@@ -7,6 +7,8 @@ export interface Task {
   startDate: string; // YYYY-MM-DD
   duration: number; // days
   rowOffset: number; // visual vertical offset
+  bgColor?: string;
+  textColor?: string;
 }
 
 export interface Staff {
