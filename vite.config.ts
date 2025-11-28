@@ -1,6 +1,6 @@
 import path from "path"
 import { defineConfig, loadEnv } from "vite"
-import react from "@vitejs/plugin-react"
+import { createVuePlugin } from "vite-plugin-vue2"
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "")
@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       host: "0.0.0.0",
     },
-    plugins: [react()],
+    plugins: [createVuePlugin()],
     define: {
       "process.env.API_KEY": JSON.stringify(env.GEMINI_API_KEY),
       "process.env.GEMINI_API_KEY": JSON.stringify(env.GEMINI_API_KEY),
@@ -34,12 +34,10 @@ export default defineConfig(({ mode }) => {
             fileName: (format) => `resource-scheduler.${format}.js`,
           },
           rollupOptions: {
-            external: ["react", "react-dom", "lucide-react"],
+            external: ["vue"],
             output: {
               globals: {
-                react: "React",
-                "react-dom": "ReactDOM",
-                "lucide-react": "lucideReact",
+                vue: "Vue",
               },
             },
           },
