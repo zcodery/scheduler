@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Staff } from '../types';
+import { PRESET_AVATAR_COLORS } from '../constants';
+import { ColorPresetPicker } from './ColorPresetPicker';
 
 interface EditStaffModalProps {
   isOpen: boolean;
@@ -13,12 +15,14 @@ export const EditStaffModal: React.FC<EditStaffModalProps> = ({ isOpen, staff, o
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [workload, setWorkload] = useState(0);
+  const [avatarColor, setAvatarColor] = useState('');
 
   useEffect(() => {
     if (staff) {
       setName(staff.name);
       setRole(staff.role);
       setWorkload(staff.workloadPercentage);
+      setAvatarColor(staff.avatarColor);
     }
   }, [staff]);
 
@@ -29,7 +33,8 @@ export const EditStaffModal: React.FC<EditStaffModalProps> = ({ isOpen, staff, o
     onSave(staff.id, {
       name,
       role,
-      workloadPercentage: Number(workload)
+      workloadPercentage: Number(workload),
+      avatarColor
     });
     onClose();
   };
@@ -61,6 +66,10 @@ export const EditStaffModal: React.FC<EditStaffModalProps> = ({ isOpen, staff, o
               value={role}
               onChange={(e) => setRole(e.target.value)}
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">头像颜色</label>
+            <ColorPresetPicker colors={PRESET_AVATAR_COLORS} selectedKey={avatarColor} onSelect={c => setAvatarColor(c.class || '')} />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">本周负荷 (%)</label>

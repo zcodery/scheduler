@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { Task } from "../types"
-import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT } from "../constants"
+import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT, PRESET_TASK_COLORS } from "../constants"
+import { PopoverColorPicker } from "./PopoverColorPicker"
 
 interface EditTaskModalProps {
   isOpen: boolean
@@ -116,11 +117,11 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, task, onCl
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">背景色</label>
-              <input type="color" className="w-full border border-gray-300 rounded p-0 text-sm h-10" value={bgColor} onChange={e => setBgColor(e.target.value)} />
+              <PopoverColorPicker value={bgColor || DEFAULT_TASK_BG} onChange={setBgColor} presets={PRESET_TASK_COLORS} columns={11} supportAlpha={true} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">文字颜色</label>
-              <input type="color" className="w-full border border-gray-300 rounded p-0 text-sm h-10" value={textColor} onChange={e => setTextColor(e.target.value)} />
+              <PopoverColorPicker value={textColor || DEFAULT_TASK_TEXT} onChange={setTextColor} presets={PRESET_TASK_COLORS} columns={11} supportAlpha={true} />
             </div>
           </div>
           <div>
