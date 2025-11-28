@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import { ChevronLeft, ChevronRight, UserPlus, Trash2, CalendarPlus, ChevronsLeft, ChevronsRight, Edit, Users } from "lucide-react"
+import { ChevronLeft, ChevronRight, UserPlus, Trash2, CalendarPlus, ChevronsLeft, ChevronsRight, Edit, Users, Lock } from "lucide-react"
 import { MOCK_STAFF_DATA } from "./constants"
 import { StaffRow } from "./components/StaffRow"
 import { Staff, Task, ViewMode, DayInfo, InteractionState, EditTaskModalState, EditStaffModalState, TooltipState } from "./types"
@@ -595,6 +595,7 @@ function App({ readonly = false, slots }: AppProps) {
   }
 
   const toggleCollapse = (id: string) => {
+    if (readonly) return
     setStaffData(staffData.map(s => (s.id === id ? { ...s, isCollapsed: !s.isCollapsed } : s)))
   }
 
@@ -650,6 +651,13 @@ function App({ readonly = false, slots }: AppProps) {
               <ChevronRight size={16} />
             </button>
           </div>
+
+          {readonly && (
+            <span className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded">
+              <Lock size={14} />
+              只读模式
+            </span>
+          )}
         </div>
       </div>
 

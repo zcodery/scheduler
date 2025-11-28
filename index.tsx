@@ -8,8 +8,15 @@ if (!rootElement) {
 }
 
 const root = ReactDOM.createRoot(rootElement);
+
+const params = new URLSearchParams(window.location.search);
+const readonlyParam = params.get('readonly');
+const readonlyFromUrl = readonlyParam === '1' || readonlyParam === 'true';
+const readonlyFromEnv = typeof import.meta !== 'undefined' && (import.meta as any).env && ((import.meta as any).env.VITE_READONLY === 'true');
+const readonly = readonlyParam != null ? readonlyFromUrl : readonlyFromEnv;
+
 root.render(
   <React.StrictMode>
-    <App />
+    <App readonly={readonly} />
   </React.StrictMode>
 );
