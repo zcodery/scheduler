@@ -1,17 +1,42 @@
 {
-  "name": "resource-scheduler",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@zcodery/resource-scheduler",
+  "private": false,
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:lib": "vite build -c vite.lib.config.ts",
+    "build:types": "tsc -p tsconfig.lib.json",
+    "build:pkg": "npm run build:lib && npm run build:types"
   },
+  "main": "dist/resource-scheduler.umd.js",
+  "module": "dist/resource-scheduler.es.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/resource-scheduler.es.js",
+      "require": "./dist/resource-scheduler.umd.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
   "dependencies": {
     "react-dom": "^19.2.0",
     "react": "^19.2.0",
     "lucide-react": "^0.555.0"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18",
+    "lucide-react": ">=0.555.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

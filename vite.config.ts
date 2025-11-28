@@ -25,5 +25,25 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "."),
       },
     },
+    build: env.BUILD_LIB === "true"
+      ? {
+          lib: {
+            entry: path.resolve(__dirname, "index.ts"),
+            name: "ResourceScheduler",
+            formats: ["es", "umd"],
+            fileName: (format) => `resource-scheduler.${format}.js`,
+          },
+          rollupOptions: {
+            external: ["react", "react-dom", "lucide-react"],
+            output: {
+              globals: {
+                react: "React",
+                "react-dom": "ReactDOM",
+                "lucide-react": "lucideReact",
+              },
+            },
+          },
+        }
+      : undefined,
   }
 })
