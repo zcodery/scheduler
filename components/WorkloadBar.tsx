@@ -2,13 +2,12 @@ import React from 'react';
 
 interface WorkloadBarProps {
   percentage: number;
+  render?: (percentage: number) => React.ReactNode;
 }
 
-export const WorkloadBar: React.FC<WorkloadBarProps> = ({ percentage }) => {
-  // Cap visual width at 100% but use color to indicate overload
+export const WorkloadBar: React.FC<WorkloadBarProps> = ({ percentage, render }) => {
+  if (render) return <>{render(percentage)}</>;
   const visualPercentage = Math.min(percentage, 100);
-  
-  // Color logic
   const isOverload = percentage > 100;
   const barColor = isOverload ? 'bg-rose-500' : 'bg-emerald-500';
   const textColor = isOverload ? 'text-rose-500' : 'text-emerald-600';
@@ -25,10 +24,8 @@ export const WorkloadBar: React.FC<WorkloadBarProps> = ({ percentage }) => {
           style={{ width: `${visualPercentage}%` }}
         />
       </div>
-      {/* Visual indicator for overload part if needed, simpler to just show full bar for >100% in this design */}
       {percentage > 100 && (
          <div className="w-full h-1 mt-0.5 flex justify-end">
-             {/* Optional: could show extra overflow indicators here */}
          </div>
       )}
     </div>

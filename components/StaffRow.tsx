@@ -12,6 +12,7 @@ interface StaffRowProps {
   viewMode: ViewMode
   readonly?: boolean
   renderAvatar?: (staff: Staff) => React.ReactNode
+  renderWorkload?: (staff: Staff) => React.ReactNode
   onStaffDragStart: (e: React.DragEvent, staffId: string) => void
   onStaffDragEnter: (e: React.DragEvent, targetStaffId: string) => void // New: Live sort
   onStaffDrop: (e: React.DragEvent, targetStaffId: string) => void
@@ -23,7 +24,7 @@ interface StaffRowProps {
   onStaffUpdate: (staffId: string, updates: Partial<Staff>) => void
 }
 
-export const StaffRow: React.FC<StaffRowProps> = ({ staff, headers, viewStartDate, viewDurationMs, viewMode, readonly, renderAvatar, onStaffDragStart, onStaffDragEnter, onStaffDrop, onContextMenu, onToggleCollapse, onTaskUpdate, onResizeStart, onTaskMouseDown, onStaffUpdate }) => {
+export const StaffRow: React.FC<StaffRowProps> = ({ staff, headers, viewStartDate, viewDurationMs, viewMode, readonly, renderAvatar, renderWorkload, onStaffDragStart, onStaffDragEnter, onStaffDrop, onContextMenu, onToggleCollapse, onTaskUpdate, onResizeStart, onTaskMouseDown, onStaffUpdate }) => {
   const [editingField, setEditingField] = useState<"name" | "role" | null>(null)
 
   // Determine row height
@@ -107,7 +108,7 @@ export const StaffRow: React.FC<StaffRowProps> = ({ staff, headers, viewStartDat
             {editingField === "name" ? (
               <input
                 autoFocus
-                className="w-full text-sm font-bold border rounded px-1"
+                className="w-full text-sm font-bold border rounded px-1 border-gray-300 focus:outline-none focus:ring-1 focus:ring-orange-300"
                 defaultValue={staff.name}
                 onBlur={e => {
                   if (!readonly && e.target.value.trim()) onStaffUpdate(staff.id, { name: e.target.value })
@@ -132,7 +133,7 @@ export const StaffRow: React.FC<StaffRowProps> = ({ staff, headers, viewStartDat
             {editingField === "role" ? (
               <input
                 autoFocus
-                className="w-full text-xs text-gray-500 border rounded px-1"
+                className="w-full text-xs text-gray-500 border rounded px-1 border-gray-300 focus:outline-none focus:ring-1 focus:ring-orange-300"
                 defaultValue={staff.role}
                 onBlur={e => {
                   if (!readonly && e.target.value.trim()) onStaffUpdate(staff.id, { role: e.target.value })
@@ -155,7 +156,7 @@ export const StaffRow: React.FC<StaffRowProps> = ({ staff, headers, viewStartDat
             )}
           </div>
         </div>
-        {!staff.isCollapsed && <WorkloadBar percentage={staff.workloadPercentage} />}
+        {!staff.isCollapsed && <WorkloadBar percentage={staff.workloadPercentage} render={renderWorkload ? p => renderWorkload(staff) : undefined} />}
       </div>
 
       {/* Right Column: Timeline Grid */}

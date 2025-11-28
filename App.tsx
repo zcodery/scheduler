@@ -8,14 +8,16 @@ import { EditStaffModal } from "./components/EditStaffModal"
 
 interface AppProps {
   readonly?: boolean
+  onDataChange?: (data: Staff[]) => void
   slots?: {
     title?: React.ReactNode
     description?: React.ReactNode
     avatar?: (staff: Staff) => React.ReactNode
+    workloadBar?: (staff: Staff) => React.ReactNode
   }
 }
 
-function App({ readonly = false, slots }: AppProps) {
+function App({ readonly = false, onDataChange, slots }: AppProps) {
   const [staffData, setStaffData] = useState<Staff[]>(MOCK_STAFF_DATA)
   const [viewStartDate, setViewStartDate] = useState(new Date().setHours(0, 0, 0, 0) - 86400000 * 2)
   const [viewMode, setViewMode] = useState<ViewMode>("month")
@@ -56,6 +58,27 @@ function App({ readonly = false, slots }: AppProps) {
 
   const ONE_DAY_MS = 86400000
   const SIDEBAR_WIDTH = 260
+
+  const emitDataChange = (data: Staff[]) => {
+    if (onDataChange) onDataChange(data)
+    try {
+      window.dispatchEvent(new CustomEvent("scheduler:data-change", { detail: data }))
+    } catch {}
+  }
+
+  const setStaffDataEmit = (producer: Staff[] | ((prev: Staff[]) => Staff[])) => {
+    if (typeof producer === "function") {
+      setStaffData(prev => {
+        const next = (producer as (p: Staff[]) => Staff[])(prev)
+        emitDataChange(next)
+        return next
+      })
+    } else {
+      const next = producer as Staff[]
+      setStaffData(next)
+      emitDataChange(next)
+    }
+  }
 
   const getViewDuration = () => {
     switch (viewMode) {
@@ -320,7 +343,7 @@ function App({ readonly = false, slots }: AppProps) {
           duration: newDuration,
           startDate: newStartDate,
         }
-        setStaffData(newStaffData)
+        setStaffDataEmit(newStaffData)
 
         // Update Tooltip
         // Calculate End Date for display
@@ -389,7 +412,7 @@ function App({ readonly = false, slots }: AppProps) {
             // Same staff update
             newStaffData[currentStaffIdx].tasks = newStaffData[currentStaffIdx].tasks.map(t => (t.id === taskToMove.id ? { ...t, startDate: dateStr, rowOffset: newRowOffset } : t))
           }
-          setStaffData(newStaffData)
+          setStaffDataEmit(newStaffData)
 
           // Tooltip Update
           const dEnd = new Date(d)
@@ -456,7 +479,7 @@ function App({ readonly = false, slots }: AppProps) {
       const newData = [...staffData]
       const [moved] = newData.splice(sourceIndex, 1)
       newData.splice(targetIndex, 0, moved)
-      setStaffData(newData)
+      setStaffDataEmit(newData)
     }
   }
 
@@ -502,19 +525,19 @@ function App({ readonly = false, slots }: AppProps) {
       tasks: [],
       isCollapsed: false,
     }
-    setStaffData([...staffData, newStaff])
+    setStaffDataEmit([...staffData, newStaff])
     setContextMenu(null)
   }
 
   const deleteStaff = (id: string) => {
     if (readonly) return
-    setStaffData(staffData.filter(s => s.id !== id))
+    setStaffDataEmit(staffData.filter(s => s.id !== id))
     setContextMenu(null)
   }
 
   const updateStaff = (id: string, updates: Partial<Staff>) => {
     if (readonly) return
-    setStaffData(staffData.map(s => (s.id === id ? { ...s, ...updates } : s)))
+    setStaffDataEmit(staffData.map(s => (s.id === id ? { ...s, ...updates } : s)))
   }
 
   const addTask = (staffId: string) => {
@@ -524,7 +547,7 @@ function App({ readonly = false, slots }: AppProps) {
     d.setHours(0, 0, 0, 0)
     const newDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 
-    setStaffData(prev =>
+    setStaffDataEmit(prev =>
       prev.map(s => {
         if (s.id === staffId) {
           const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
@@ -545,7 +568,7 @@ function App({ readonly = false, slots }: AppProps) {
 
   const deleteTask = (staffId: string, taskId: string) => {
     if (readonly) return
-    setStaffData(
+    setStaffDataEmit(
       staffData.map(s => {
         if (s.id === staffId) {
           return { ...s, tasks: s.tasks.filter(t => t.id !== taskId) }
@@ -558,7 +581,7 @@ function App({ readonly = false, slots }: AppProps) {
 
   const updateTask = (staffId: string, taskId: string, updates: Partial<Task>) => {
     if (readonly) return
-    setStaffData(
+    setStaffDataEmit(
       staffData.map(s => {
         if (s.id === staffId) {
           return {
@@ -596,7 +619,7 @@ function App({ readonly = false, slots }: AppProps) {
 
   const toggleCollapse = (id: string) => {
     if (readonly) return
-    setStaffData(staffData.map(s => (s.id === id ? { ...s, isCollapsed: !s.isCollapsed } : s)))
+    setStaffDataEmit(staffData.map(s => (s.id === id ? { ...s, isCollapsed: !s.isCollapsed } : s)))
   }
 
   const handleDateNav = (direction: "prev" | "next") => {
@@ -688,7 +711,7 @@ function App({ readonly = false, slots }: AppProps) {
         {/* Staff Rows */}
         <div className="relative">
           {staffData.map(staff => (
-            <StaffRow key={staff.id} staff={staff} headers={headers} viewStartDate={new Date(viewStartDate)} viewDurationMs={viewDurationMs} viewMode={viewMode} readonly={readonly} renderAvatar={slots?.avatar} onStaffDragStart={handleStaffDragStartWithRef} onStaffDragEnter={handleStaffLiveSort} onStaffDrop={handleStaffDrop} onContextMenu={handleContextMenu} onToggleCollapse={toggleCollapse} onTaskUpdate={updateTask} onResizeStart={handleResizeStart} onTaskMouseDown={handleTaskMouseDown} onStaffUpdate={updateStaff} />
+            <StaffRow key={staff.id} staff={staff} headers={headers} viewStartDate={new Date(viewStartDate)} viewDurationMs={viewDurationMs} viewMode={viewMode} readonly={readonly} renderAvatar={slots?.avatar} renderWorkload={slots?.workloadBar} onStaffDragStart={handleStaffDragStartWithRef} onStaffDragEnter={handleStaffLiveSort} onStaffDrop={handleStaffDrop} onContextMenu={handleContextMenu} onToggleCollapse={toggleCollapse} onTaskUpdate={updateTask} onResizeStart={handleResizeStart} onTaskMouseDown={handleTaskMouseDown} onStaffUpdate={updateStaff} />
           ))}
 
           {quickJumpDir && (
