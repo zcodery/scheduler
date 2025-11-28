@@ -5,8 +5,12 @@ import react from "@vitejs/plugin-react"
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "")
   return {
-    // Base path for assets; required when served under /<repo>/ on GitHub Pages
-    base: env.BASE_PATH || "/",
+    // Base path for assets; handle GitHub Pages automatically
+    base: (() => {
+      const repo = process.env.GITHUB_REPOSITORY?.split("/")?.[1]
+      const fromEnv = env.BASE_PATH
+      return fromEnv ? fromEnv : repo ? `/${repo}/` : "/"
+    })(),
     server: {
       port: 3000,
       host: "0.0.0.0",
