@@ -93,7 +93,7 @@ export const StaffRow: React.FC<StaffRowProps> = ({ staff, headers, viewStartDat
             <img src={staff.avatar} alt={staff.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
           ) : (
             <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${staff.avatarColor} cursor-pointer hover:ring-2 ring-offset-1 ring-indigo-200 flex-shrink-0 select-none`}
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${staff.avatarColor} cursor-pointer hover:ring-1 ring-offset-1 ring-indigo-200 flex-shrink-0 select-none`}
               onClick={() => {
                 if (!readonly) cycleAvatarColor()
               }}

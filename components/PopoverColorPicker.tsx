@@ -228,7 +228,7 @@ export const PopoverColorPicker: React.FC<Props> = ({ value, onChange, presets, 
                   tryParseText(t)
                 }}
                 placeholder="#3B82F6 或 rgba(59,130,246,1)"
-                className="flex-1 px-2 py-1 text-xs border rounded"
+                className="flex-1 px-2 py-1 text-xs rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-orange-300"
               />
               <div className="flex justify-end gap-2">
                 <button type="button" className="px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded text-nowrap" onClick={() => setOpen(false)}>

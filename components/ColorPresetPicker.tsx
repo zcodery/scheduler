@@ -51,10 +51,10 @@ export const ColorPresetPicker: React.FC<Props> = ({ colors, selectedKey, onSele
       {colors.map((c, idx) => {
         const key = toKey(c)
         const isSelected = selectedKey ? selectedKey.toLowerCase() === key.toLowerCase() : false
-        const base = `relative rounded ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"} flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-indigo-500`
+        const base = `relative rounded ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"} flex items-center justify-center focus:outline-none focus:ring-1 focus:ring-orange-300`
         const computedHex = c.hex ? c.hex : c.color ? rgbToHex(c.color) : undefined
         const border = computedHex ? (needsBorder(computedHex) ? "border border-gray-300" : "") : "border border-gray-300"
-        const ring = isSelected ? "ring-2 ring-indigo-600 ring-offset-1" : ""
+        const ring = isSelected ? "ring-1 ring-indigo-600 ring-offset-1" : ""
         const title = c.hex ? `${c.name} ${c.hex}` : c.color ? `${c.name} ${c.color}` : c.name
         return (
           <button key={idx} type="button" title={title} className={`${base} ${border} ${ring} ${c.class ?? ""}`} style={{ ...boxStyle, backgroundColor: c.hex ?? c.color ?? undefined }} onClick={() => !disabled && onSelect(c)} tabIndex={disabled ? -1 : 0}>

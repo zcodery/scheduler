@@ -102,16 +102,16 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, task, onCl
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">任务名称</label>
-            <input type="text" required className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" value={name} onChange={e => setName(e.target.value)} />
+            <input type="text" required className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-300" value={name} onChange={e => setName(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">开始日期</label>
-              <input type="date" required className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" value={startDate} onChange={e => handleStartDateChange(e.target.value)} />
+              <input type="date" required className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-300" value={startDate} onChange={e => handleStartDateChange(e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">结束日期</label>
-              <input type="date" required className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" value={endDate} onChange={e => handleEndDateChange(e.target.value)} />
+              <input type="date" required className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-300" value={endDate} onChange={e => handleEndDateChange(e.target.value)} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -126,7 +126,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, task, onCl
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">工期 (天)</label>
-            <input type="number" min="1" step="1" required className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" value={duration} onChange={e => handleDurationChange(Number(e.target.value))} />
+            <input type="number" min="1" step="1" required className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-300" value={duration} onChange={e => handleDurationChange(Number(e.target.value))} />
           </div>
           <div className="pt-4 flex justify-end gap-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">

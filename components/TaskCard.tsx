@@ -69,7 +69,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, viewMode, readonly, on
   const nameTextStyle = { color: effectiveText }
 
   return (
-    <div className={`task-card group relative flex items-center h-7 rounded px-1 transition-shadow shadow-sm ${isEditing ? "ring-2 ring-indigo-500 z-50" : "cursor-grab active:cursor-grabbing hover:brightness-95 hover:shadow-md"}`} style={{ overflow: "visible", ...bgStyle }} draggable={false} onMouseDown={handleMouseDown} onContextMenu={e => onContextMenu(e, task)} onDoubleClick={handleDoubleClick}>
+    <div className={`task-card group relative flex items-center h-7 rounded px-1 transition-shadow shadow-sm ${isEditing ? "ring-1 ring-orange-300 z-50" : "cursor-grab active:cursor-grabbing hover:brightness-95 hover:shadow-md"}`} style={{ overflow: "visible", ...bgStyle }} draggable={false} onMouseDown={handleMouseDown} onContextMenu={e => onContextMenu(e, task)} onDoubleClick={handleDoubleClick}>
       {/* Resize Handle Left */}
       {!isEditing && !readonly && (
         <div
