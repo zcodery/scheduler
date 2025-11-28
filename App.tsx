@@ -5,6 +5,7 @@ import { StaffRow } from "./components/StaffRow"
 import { Staff, Task, ViewMode, DayInfo, InteractionState, EditTaskModalState, EditStaffModalState, TooltipState } from "./types"
 import { EditTaskModal } from "./components/EditTaskModal"
 import { EditStaffModal } from "./components/EditStaffModal"
+import { Confirm } from "./components/Confirm"
 
 interface AppProps {
   readonly?: boolean
@@ -531,8 +532,15 @@ function App({ readonly = false, onDataChange, slots }: AppProps) {
 
   const deleteStaff = (id: string) => {
     if (readonly) return
-    setStaffDataEmit(staffData.filter(s => s.id !== id))
-    setContextMenu(null)
+    const s = staffData.find(x => x.id === id)
+    Confirm.show({ title: "删除人员", message: `确定删除人员「${s?.name ?? id}」及其 ${s?.tasks.length ?? 0} 个任务？`, showClose: true, confirmButtonText: "确定", cancelButtonText: "取消" })
+      .then(() => {
+        setStaffDataEmit(staffData.filter(x => x.id !== id))
+        setContextMenu(null)
+      })
+      .catch(() => {
+        setContextMenu(null)
+      })
   }
 
   const updateStaff = (id: string, updates: Partial<Staff>) => {
@@ -568,15 +576,23 @@ function App({ readonly = false, onDataChange, slots }: AppProps) {
 
   const deleteTask = (staffId: string, taskId: string) => {
     if (readonly) return
-    setStaffDataEmit(
-      staffData.map(s => {
-        if (s.id === staffId) {
-          return { ...s, tasks: s.tasks.filter(t => t.id !== taskId) }
-        }
-        return s
+    const s = staffData.find(x => x.id === staffId)
+    const t = s?.tasks.find(y => y.id === taskId)
+    Confirm.show({ title: "删除任务", message: `确定删除任务「${t?.name ?? taskId}」？`, showClose: true, confirmButtonText: "确定", cancelButtonText: "取消" })
+      .then(() => {
+        setStaffDataEmit(
+          staffData.map(x => {
+            if (x.id === staffId) {
+              return { ...x, tasks: x.tasks.filter(y => y.id !== taskId) }
+            }
+            return x
+          })
+        )
+        setContextMenu(null)
       })
-    )
-    setContextMenu(null)
+      .catch(() => {
+        setContextMenu(null)
+      })
   }
 
   const updateTask = (staffId: string, taskId: string, updates: Partial<Task>) => {
