@@ -1,0 +1,5 @@
+{
+  "name": "Resource Scheduler",
+  "description": "A visual resource allocation and workload monitoring dashboard inspired by typical enterprise resource planning tools.",
+  "requestFramePermissions": []
+}
