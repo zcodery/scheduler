@@ -30,7 +30,8 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "vue": "^2.7.16"
+    "vue": "^2.7.16",
+    "element-ui": "2.15.14"
   },
   "peerDependencies": {
     "vue": ">=2.7.0"

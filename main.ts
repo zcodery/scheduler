@@ -1,5 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
 
 const params = new URLSearchParams(window.location.search)
 const readonlyParam = params.get('readonly')
