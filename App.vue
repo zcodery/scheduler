@@ -72,6 +72,19 @@
             </div>
           </template>
           <template v-else-if="contextMenu.type === 'staff' && contextMenu.staffId">
+            <div class="rs-item" @click="ctxAddTask">
+              <i class="el-icon-plus"></i>
+              <span>新增任务</span>
+            </div>
+            <div class="rs-item" @click="ctxFocusStaff">
+              <i class="el-icon-location"></i>
+              <span>定位到人员</span>
+            </div>
+            <div class="rs-item" @click="ctxToggleCollapse">
+              <i class="el-icon-menu"></i>
+              <span>{{ staffCollapseLabel() }}</span>
+            </div>
+            <div class="rs-sep"></div>
             <div class="rs-item" @click="ctxOpenEditStaff">
               <i class="el-icon-edit"></i>
               <span>编辑人员</span>
@@ -571,9 +584,7 @@ export default {
         this.scrollToStaff(staffId)
         return
       }
-      const todayMs = new Date().setHours(0, 0, 0, 0)
-      const upcoming = s.tasks.map(t => new Date(t.startDate).getTime()).filter(ms => ms >= todayMs)
-      const target = upcoming.length > 0 ? Math.min(...upcoming) : Math.min(...s.tasks.map(t => new Date(t.startDate).getTime()))
+      const target = Math.min(...s.tasks.map(t => new Date(t.startDate).getTime()))
       this.viewStartDate = target - this.viewDurationMs * 0.1
       this.scrollToStaff(staffId)
     },
@@ -633,6 +644,23 @@ export default {
     ctxOpenEditStaff() {
       this.menuVisible = false
       this.openEditStaffModal()
+    },
+    ctxFocusStaff() {
+      this.menuVisible = false
+      if (this.contextMenu && this.contextMenu.staffId) this.focusStaff(this.contextMenu.staffId)
+    },
+    ctxToggleCollapse() {
+      this.menuVisible = false
+      if (!this.contextMenu || !this.contextMenu.staffId) return
+      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
+      if (!s) return
+      this.updateStaff(s.id, { isCollapsed: !s.isCollapsed })
+    },
+    staffCollapseLabel(): string {
+      if (!this.contextMenu || !this.contextMenu.staffId) return "折叠/展开人员"
+      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
+      if (!s) return "折叠/展开人员"
+      return s.isCollapsed ? "展开人员" : "折叠人员"
     },
     ctxDeleteStaff() {
       this.menuVisible = false
