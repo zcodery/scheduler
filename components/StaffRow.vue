@@ -24,7 +24,7 @@
       </slot>
     </div>
 
-    <div class="flex-1 relative overflow-visible bg-white" @contextmenu.prevent="onContextRow">
+    <div class="flex-1 relative overflow-hidden bg-white" @contextmenu.prevent="onContextRow">
       <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: `repeat(${headers.length}, 1fr)` }">
         <div v-for="(h, i) in headers" :key="i" :class="['border-r border-gray-100 h-full', h.isToday ? 'bg-blue-50/60' : h.isWeekend ? 'bg-gray-50/80' : '']"></div>
       </div>
