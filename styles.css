@@ -1,3 +1,7 @@
 .el-dialog__body {
   padding: 8px 20px !important;
 }
+
+.el-form.el-form--label-top .el-form-item__label {
+  padding-bottom: 0;
+}
