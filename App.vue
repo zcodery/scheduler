@@ -33,7 +33,7 @@
       </div>
     </div>
 
-    <div ref="containerRef" class="flex-1 overflow-y-auto overflow-x-hidden relative" @mousedown="onPanMouseDown" @contextmenu.prevent @wheel.prevent="onWheel">
+    <div ref="containerRef" class="flex-1 overflow-y-auto overflow-x-hidden relative" @mousedown="onPanMouseDown" @contextmenu.prevent @wheel="onWheel">
       <div class="sticky top-0 z-40 flex border-b border-gray-200 bg-gray-50 shadow-sm header-row">
         <div class="w-64 flex-shrink-0 p-3 border-r border-gray-200 text-xs font-semibold text-gray-500 flex items-center bg-gray-50" @contextmenu.prevent="onHeaderSidebarContext">人员 / 饱和度</div>
         <div class="flex-1 grid overflow-hidden" :style="{ gridTemplateColumns: `repeat(${headers.length}, 1fr)` }">
@@ -424,19 +424,23 @@ export default {
       this.onContextMenu({ clientX: (e as any).clientX, clientY: (e as any).clientY, type: "general" })
     },
     onWheel(e: WheelEvent) {
-      e.preventDefault()
       if (this.readonly) return
       if (e.ctrlKey) {
+        e.preventDefault()
         const modes: ViewMode[] = ["month", "quarter", "year"]
         const idx = modes.indexOf(this.viewMode)
         const dir = e.deltaY > 0 ? 1 : -1
         const next = modes[Math.max(0, Math.min(modes.length - 1, idx + dir))]
         this.viewMode = next
-      } else {
+        return
+      }
+      if (e.shiftKey) {
+        e.preventDefault()
         const timelineWidth = Math.max(1, window.innerWidth - 260)
         const msPerPixel = this.viewDurationMs / timelineWidth
-        const deltaX = e.deltaY
-        this.viewStartDate = this.viewStartDate + deltaX * msPerPixel * 20
+        const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
+        this.viewStartDate = this.viewStartDate + delta * msPerPixel * 20
+        return
       }
     },
     onContextMenu(payload: { clientX?: number; clientY?: number; x?: number; y?: number; type?: string; staffId?: string; taskId?: string }) {
