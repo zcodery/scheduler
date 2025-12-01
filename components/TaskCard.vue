@@ -14,39 +14,60 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import { Task, ViewMode } from '../types'
-import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT } from '../constants'
+import { Task, ViewMode } from "../types"
+import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT } from "../constants"
 
-export default Vue.extend({
+export default {
   props: {
     task: { type: Object as () => Task, required: true },
     viewMode: { type: String as () => ViewMode, required: true },
     readonly: { type: Boolean, required: false, default: false },
-    conflict: { type: Boolean, required: false, default: false }
+    conflict: { type: Boolean, required: false, default: false },
   },
   data() {
     return { editing: false, editValue: (this as any).task.name }
   },
   computed: {
-    bg(): string { return this.task.bgColor || DEFAULT_TASK_BG },
-    text(): string { return this.task.textColor || DEFAULT_TASK_TEXT },
+    bg(): string {
+      return this.task.bgColor || DEFAULT_TASK_BG
+    },
+    text(): string {
+      return this.task.textColor || DEFAULT_TASK_TEXT
+    },
     showOutside(): boolean {
-      if (this.viewMode === 'month') return this.task.duration < 2.5
-      if (this.viewMode === 'quarter') return this.task.duration < 7
-      if (this.viewMode === 'year') return this.task.duration < 15
+      if (this.viewMode === "month") return this.task.duration < 2.5
+      if (this.viewMode === "quarter") return this.task.duration < 7
+      if (this.viewMode === "year") return this.task.duration < 15
       return false
-    }
+    },
   },
   methods: {
-    startEdit() { this.editing = true; this.editValue = this.task.name; this.$nextTick(()=>{ const i = this.$refs.inputRef as HTMLInputElement; i && i.focus() }) },
-    commit() { this.editing = false; const v = this.editValue.trim(); if (v && v !== this.task.name) this.$emit('update', v) },
-    cancel() { this.editing = false; this.editValue = this.task.name },
-    onMouseDown(e: MouseEvent) { if (this.readonly || this.editing || (e as any).button!==0) return; this.$emit('mouse-down', e, this.task) },
-    emitResize(direction: 'left'|'right', e: MouseEvent) { this.$emit('resize-start', e, direction, this.task) }
-  }
-})
+    startEdit() {
+      this.editing = true
+      this.editValue = this.task.name
+      this.$nextTick(() => {
+        const i = this.$refs.inputRef as HTMLInputElement
+        i && i.focus()
+      })
+    },
+    commit() {
+      this.editing = false
+      const v = this.editValue.trim()
+      if (v && v !== this.task.name) this.$emit("update", v)
+    },
+    cancel() {
+      this.editing = false
+      this.editValue = this.task.name
+    },
+    onMouseDown(e: MouseEvent) {
+      if (this.readonly || this.editing || (e as any).button !== 0) return
+      this.$emit("mouse-down", e, this.task)
+    },
+    emitResize(direction: "left" | "right", e: MouseEvent) {
+      this.$emit("resize-start", e, direction, this.task)
+    },
+  },
+}
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
