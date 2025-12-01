@@ -557,9 +557,11 @@ export default {
     },
     onSaveTask(taskId: string, updates: Partial<Task>) {
       this.updateTask(this.editModal.staffId, taskId, updates)
+      console.log("更新任务: ", { taskId, updates })
     },
     onSaveStaff(staffId: string, updates: Partial<Staff>) {
       this.staffData = this.staffData.map(s => (s.id === staffId ? { ...s, ...updates } : s))
+      console.log("更新人员: ", { staffId, updates })
     },
     openEditModal() {
       if (this.contextMenu && this.contextMenu.staffId && this.contextMenu.taskId) {
