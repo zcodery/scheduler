@@ -109,7 +109,6 @@ import { MOCK_STAFF_DATA, WEEK_DAYS } from "./constants"
 import StaffRow from "./components/StaffRow.vue"
 import EditTaskModal from "./components/EditTaskModal.vue"
 import EditStaffModal from "./components/EditStaffModal.vue"
-import { Confirm } from "./components/Confirm"
 
 export default {
   components: { StaffRow, EditTaskModal, EditStaffModal },
@@ -379,9 +378,18 @@ export default {
           const deltaY = e.clientY - this.interaction.initialY
           const rowShift = Math.round(deltaY / 36)
           const newRowOffset = Math.max(0, (this.interaction.initialRowOffset || 0) + rowShift)
-          const elementUnderMouse = document.elementFromPoint(e.clientX, e.clientY)
-          const staffRowEl = elementUnderMouse && (elementUnderMouse as HTMLElement).closest("[data-staff-id]")
-          const targetStaffId = staffRowEl ? (staffRowEl as HTMLElement).getAttribute("data-staff-id") || undefined : undefined
+          let targetStaffId: string | undefined = undefined
+          const list = (document as any).elementsFromPoint ? (document as any).elementsFromPoint(e.clientX, e.clientY) : [document.elementFromPoint(e.clientX, e.clientY)]
+          for (const el of list as Element[]) {
+            const rowEl = (el as HTMLElement).closest("[data-staff-id]") as HTMLElement | null
+            if (rowEl) {
+              const id = rowEl.getAttribute("data-staff-id") || undefined
+              if (id) {
+                targetStaffId = id
+                break
+              }
+            }
+          }
           const newStaffData = [...this.staffData]
           let currentStaffIdx = newStaffData.findIndex(s => s.tasks.find(t => t.id === this.interaction!.taskId))
           if (currentStaffIdx !== -1) {
@@ -508,10 +516,13 @@ export default {
       })
     },
     deleteTask(staffId: string, taskId: string) {
-      Confirm.show({ title: "删除任务", message: "确定删除该任务？", confirmButtonText: "确定", cancelButtonText: "取消" }).then(() => {
-        this.staffData = this.staffData.map(x => (x.id === staffId ? { ...x, tasks: x.tasks.filter(y => y.id !== taskId) } : x))
-        this.contextMenu = null
-      })
+      ;(this as any)
+        .$confirm("确定删除该任务？", "删除任务", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
+        .then(() => {
+          this.staffData = this.staffData.map(x => (x.id === staffId ? { ...x, tasks: x.tasks.filter(y => y.id !== taskId) } : x))
+          this.contextMenu = null
+        })
+        .catch(() => {})
     },
     duplicateTask(staffId: string, taskId: string) {
       this.staffData = this.staffData.map(s => {
@@ -593,10 +604,14 @@ export default {
     },
     deleteStaff(id: string) {
       const s = this.staffData.find(x => x.id === id)
-      Confirm.show({ title: "删除人员", message: `确定删除人员「${s ? s.name : id}」及其 ${s ? s.tasks.length : 0} 个任务？`, confirmButtonText: "确定", cancelButtonText: "取消" }).then(() => {
-        this.staffData = this.staffData.filter(x => x.id !== id)
-        this.contextMenu = null
-      })
+      const msg = `确定删除人员「${s ? s.name : id}」及其 ${s ? s.tasks.length : 0} 个任务？`
+      ;(this as any)
+        .$confirm(msg, "删除人员", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
+        .then(() => {
+          this.staffData = this.staffData.filter(x => x.id !== id)
+          this.contextMenu = null
+        })
+        .catch(() => {})
     },
     ctxAddStaff() {
       this.menuVisible = false
