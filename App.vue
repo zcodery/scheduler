@@ -25,7 +25,7 @@
         </div>
         <el-tag v-if="readonly" type="info" effect="plain" size="mini">只读模式</el-tag>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center">
           <el-button size="mini" @click="jumpToToday">定位今天</el-button>
           <el-button size="mini" @click="collapseAll">折叠全部</el-button>
           <el-button size="mini" @click="expandAll">展开全部</el-button>
