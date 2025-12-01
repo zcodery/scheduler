@@ -1,65 +1,77 @@
 <template>
-  <div v-if="isOpen && staff" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" @click.self="$emit('close')">
-    <div class="bg-white rounded-lg shadow-xl w-96 overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-        <h3 class="font-bold text-gray-800">编辑人员信息</h3>
-        <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600">&times;</button>
+  <el-dialog :visible="isOpen && !!staff" title="编辑人员信息" width="480px" append-to-body :before-close="() => $emit('close')" @close="$emit('close')">
+    <el-form @submit.native.prevent="submit" label-position="top" size="mini">
+      <el-form-item label="姓名">
+        <el-input v-model="name" maxlength="40" show-word-limit />
+      </el-form-item>
+      <el-form-item label="职位">
+        <el-input v-model="role" maxlength="60" show-word-limit />
+      </el-form-item>
+      <el-form-item label="头像颜色">
+        <el-color-picker v-model="avatarColor" :predefine="presetHexes" show-alpha size="mini" @change="onAvatarChange" />
+      </el-form-item>
+      <el-form-item label="本周负荷 (%)">
+        <el-input-number v-model="workload" :min="0" :max="300" />
+      </el-form-item>
+      <div class="flex justify-end gap-2 pt-2">
+        <el-button size="mini" @click="$emit('close')">取消</el-button>
+        <el-button size="mini" type="primary" @click="submit">保存</el-button>
       </div>
-      <form @submit.prevent="submit" class="p-6 space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">姓名</label>
-          <input type="text" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-300" v-model="name" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">职位</label>
-          <input type="text" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-300" v-model="role" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">头像颜色</label>
-          <ColorPresetPicker :colors="PRESET_AVATAR_COLORS" :selectedKey="avatarColor" :columns="6" @select="c=> avatarColor = c.class || ''" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">本周负荷 (%)</label>
-          <input type="number" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-300" v-model.number="workload" />
-        </div>
-        <div class="pt-4 flex justify-end gap-2">
-          <button type="button" @click="$emit('close')" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">取消</button>
-          <button type="submit" class="px-4 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded">保存</button>
-        </div>
-      </form>
-    </div>
-  </div>
+    </el-form>
+  </el-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import { Staff } from '../types'
-import ColorPresetPicker from './ColorPresetPicker.vue'
-import { PRESET_AVATAR_COLORS } from '../constants'
+import { Staff } from "../types"
+import { PRESET_TASK_COLORS } from "../constants"
 
-export default Vue.extend({
-  components: { ColorPresetPicker },
+export default {
   props: { isOpen: { type: Boolean, required: true }, staff: { type: Object as () => Staff | null, required: false } },
   data() {
-    return { name: '', role: '', workload: 0, avatarColor: '', PRESET_AVATAR_COLORS }
+    return { name: "", role: "", workload: 0, avatarColor: "", PRESET_TASK_COLORS }
+  },
+  computed: {
+    presetHexes(): string[] {
+      const toHex = (rgb: string) => {
+        const m = rgb.match(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+)\s*)?\)/i)
+        if (!m) return rgb
+        const to2 = (n: number) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0")
+        return `#${to2(Number(m[1]))}${to2(Number(m[2]))}${to2(Number(m[3]))}`
+      }
+      const arr: string[] = (this.PRESET_TASK_COLORS || []).map(p => {
+        if ((p as any).hex) return (p as any).hex as string
+        else if (p.color) return toHex(p.color)
+        return ""
+      })
+
+      return arr?.filter(Boolean)
+    },
   },
   watch: {
     staff: {
       immediate: true,
       handler(s: Staff | null) {
-        if (s) { this.name = s.name; this.role = s.role; this.workload = s.workloadPercentage; this.avatarColor = s.avatarColor }
-      }
-    }
+        if (s) {
+          this.name = s.name
+          this.role = s.role
+          this.workload = s.workloadPercentage
+          this.avatarColor = s.avatarColor
+        }
+      },
+    },
   },
   methods: {
+    onAvatarChange(val: string) {
+      if (!this.staff) return
+      this.$emit("save", this.staff.id, { avatarColor: val })
+    },
     submit() {
       if (!this.staff) return
-      this.$emit('save', this.staff.id, { name: this.name, role: this.role, workloadPercentage: Number(this.workload), avatarColor: this.avatarColor })
-      this.$emit('close')
-    }
-  }
-})
+      this.$emit("save", this.staff.id, { name: this.name, role: this.role, workloadPercentage: Number(this.workload), avatarColor: this.avatarColor })
+      this.$emit("close")
+    },
+  },
+}
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

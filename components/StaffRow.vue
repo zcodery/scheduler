@@ -3,18 +3,18 @@
     <div class="w-64 flex-shrink-0 p-4 border-r border-gray-200 flex flex-col justify-center select-none bg-white relative group z-20 transition-colors hover:bg-gray-50/50" @contextmenu.prevent="onContextStaff" @dragover.prevent @dragenter.prevent="onDragEnter" @drop.prevent="onDrop" @mousedown.stop @click.stop>
       <div class="absolute left-1 top-1/2 -translate-y-1/2 text-gray-300 p-1 opacity-0 group-hover:opacity-100" draggable @dragstart="onDragStart">≡</div>
       <div class="flex items-center gap-3 pl-4">
-        <button class="text-gray-400 hover:text-gray-600" @click="$emit('update-staff', staff.id, { isCollapsed: !staff.isCollapsed })">{{ staff.isCollapsed ? '▸' : '▾' }}</button>
+        <button class="text-gray-400 hover:text-gray-600" @click="$emit('update-staff', staff.id, { isCollapsed: !staff.isCollapsed })">{{ staff.isCollapsed ? "▸" : "▾" }}</button>
         <slot name="avatar" :staff="staff">
           <img v-if="staff.avatar" :src="staff.avatar" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
-          <div v-else :class="['w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold', staff.avatarColor, 'flex-shrink-0 select-none cursor-pointer']" @click.stop="cycleAvatarColor">{{ staff.name.charAt(0) }}</div>
+          <div v-else :class="avatarClass" :style="avatarStyle" @click.stop="cycleAvatarColor">{{ staff.name.charAt(0) }}</div>
         </slot>
         <div class="flex-1 min-w-0">
-          <div v-if="editingField==='name'" class="w-full">
-            <input autofocus class="w-full text-sm font-bold border rounded px-1 border-gray-300" :value="staff.name" @blur="saveEdit('name',$event)" @keydown.enter.prevent="blurInput" />
+          <div v-if="editingField === 'name'" class="w-full">
+            <el-input autofocus size="mini" :value="staff.name" @blur="saveEdit('name', $event)" @keydown.enter.prevent="blurInput" />
           </div>
           <div v-else class="text-sm font-bold text-gray-900 truncate cursor-pointer" @dblclick="startEdit('name')" @click.stop="emitFocus">{{ staff.name }}</div>
-          <div v-if="editingField==='role'" class="w-full">
-            <input autofocus class="w-full text-xs text-gray-500 border rounded px-1 border-gray-300" :value="staff.role" @blur="saveEdit('role',$event)" @keydown.enter.prevent="blurInput" />
+          <div v-if="editingField === 'role'" class="w-full">
+            <el-input autofocus size="mini" :value="staff.role" @blur="saveEdit('role', $event)" @keydown.enter.prevent="blurInput" />
           </div>
           <div v-else class="text-xs text-gray-500 truncate cursor-text" @dblclick="startEdit('role')">{{ staff.role }}</div>
         </div>
@@ -23,27 +23,29 @@
         <WorkloadBar :percentage="staff.workloadPercentage" />
       </slot>
     </div>
+
     <div class="flex-1 relative overflow-hidden bg-white" @contextmenu.prevent="onContextRow">
       <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: `repeat(${headers.length}, 1fr)` }">
-        <div v-for="(h,i) in headers" :key="i" :class="['border-r border-gray-100 h-full', h.isToday ? 'bg-blue-50/60' : h.isWeekend ? 'bg-gray-50/80' : '']"></div>
+        <div v-for="(h, i) in headers" :key="i" :class="['border-r border-gray-100 h-full', h.isToday ? 'bg-blue-50/60' : h.isWeekend ? 'bg-gray-50/80' : '']"></div>
       </div>
       <div v-if="!staff.isCollapsed" class="relative w-full h-full pt-3 pb-2" @dblclick="onGridDblClick">
         <div v-for="t in staff.tasks" :key="t.id" class="absolute z-10" :style="taskStyle(t)">
           <TaskCard :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName(t)" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" />
         </div>
       </div>
-      <div v-else class="absolute inset-0 flex items-center px-2"><span class="ml-2 text-xs text-gray-400 whitespace-nowrap bg-white/80 px-2 rounded-full border border-gray-200">{{ staff.tasks.length }} 任务</span></div>
+      <div v-else class="absolute inset-0 flex items-center px-2">
+        <span class="ml-2 text-xs text-gray-400 whitespace-nowrap bg-white/80 px-2 rounded-full border border-gray-200">{{ staff.tasks.length }} 任务</span>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import { Staff, Task, DayInfo, ViewMode } from '../types'
-import TaskCard from './TaskCard.vue'
-import WorkloadBar from './WorkloadBar.vue'
+import { Staff, Task, DayInfo, ViewMode } from "../types"
+import TaskCard from "./TaskCard.vue"
+import WorkloadBar from "./WorkloadBar.vue"
 
-export default Vue.extend({
+export default {
   components: { TaskCard, WorkloadBar },
   props: {
     staff: { type: Object as () => Staff, required: true },
@@ -51,20 +53,64 @@ export default Vue.extend({
     viewStartDate: { type: Date, required: true },
     viewDurationMs: { type: Number, required: true },
     viewMode: { type: String as () => ViewMode, required: true },
-    readonly: { type: Boolean, required: false, default: false }
+    readonly: { type: Boolean, required: false, default: false },
   },
   data() {
-    return { editingField: null as null | 'name' | 'role' }
+    return { editingField: null as null | "name" | "role" }
   },
   computed: {
-    dynamicStyle(): Record<string,string> {
-      if (this.staff.isCollapsed) return { height: '64px' }
-      const maxRowIndex = this.staff.tasks.length>0 ? Math.max(...this.staff.tasks.map(t=>t.rowOffset)) : 0
-      const h = Math.max(128, (maxRowIndex+2)*36 + 20)
-      return { minHeight: '128px', height: `${h}px` }
-    }
+    dynamicStyle(): Record<string, string> {
+      if (this.staff.isCollapsed) return { height: "64px" }
+      const maxRowIndex = this.staff.tasks.length > 0 ? Math.max(...this.staff.tasks.map(t => t.rowOffset)) : 0
+      const h = Math.max(128, (maxRowIndex + 2) * 36 + 20)
+      return { minHeight: "128px", height: `${h}px` }
+    },
+    avatarIsColor(): boolean {
+      const v = this.staff.avatarColor || ""
+      return v.startsWith("#") || v.startsWith("rgb")
+    },
+    avatarClass(): any {
+      const base = ["w-10", "h-10", "rounded-full", "flex", "items-center", "justify-center", "text-sm", "font-bold", "flex-shrink-0", "select-none", "cursor-pointer"]
+      return this.avatarIsColor ? base : [...base, this.staff.avatarColor]
+    },
+    avatarStyle(): any {
+      if (!this.avatarIsColor) return {}
+      const bg = this.staff.avatarColor
+      const hex = bg.startsWith("rgb") ? this.rgbTextToHex(bg) : bg
+      const l = this.luminance(hex)
+      const color = l > 0.6 ? "#1f2937" : "#ffffff"
+      return { backgroundColor: hex, color }
+    },
   },
   methods: {
+    rgbTextToHex(rgb: string | undefined) {
+      if (!rgb) return "#ffffff"
+      const m = rgb.match(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+)\s*)?\)/i)
+      if (!m) return rgb
+      const to2 = (n: number) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0")
+      return `#${to2(Number(m[1]))}${to2(Number(m[2]))}${to2(Number(m[3]))}`
+    },
+    hexToRgb(hex: string) {
+      let h = hex.replace("#", "")
+      if (h.length === 3)
+        h = h
+          .split("")
+          .map(x => x + x)
+          .join("")
+      const r = parseInt(h.slice(0, 2), 16),
+        g = parseInt(h.slice(2, 4), 16),
+        b = parseInt(h.slice(4, 6), 16)
+      return { r, g, b }
+    },
+    luminance(hex?: string) {
+      if (!hex) return 0.5
+      const { r, g, b } = this.hexToRgb(hex)
+      const a = [r, g, b].map(v => {
+        const c = v / 255
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+      })
+      return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2]
+    },
     taskStyle(task: Task) {
       const start = new Date(task.startDate).getTime()
       const startOffset = start - this.viewStartDate.getTime()
@@ -72,50 +118,68 @@ export default Vue.extend({
       let left = (startOffset / this.viewDurationMs) * 100
       let width = (durationMs / this.viewDurationMs) * 100
       const topOffset = (task.rowOffset || 0) * 36
-      return { left: `${parseInt(`${left}`)}%`, width: `${Math.max(width,0.5)}%`, top: `${12 + topOffset}px` }
+      return { left: `${parseInt(`${left}`)}%`, width: `${Math.max(width, 0.5)}%`, top: `${12 + topOffset}px` }
     },
-    startEdit(field: 'name'|'role') { this.editingField = field },
-    blurInput(e: Event) { (e.target as HTMLInputElement).blur() },
-    saveEdit(field: 'name'|'role', e: any) { const v = String(e.target.value || '').trim(); if (v) this.$emit('update-staff', this.staff.id, field==='name'? { name: v } : { role: v }); this.editingField = null },
-    emitFocus() { this.$emit('focus-staff', this.staff.id) },
+    startEdit(field: "name" | "role") {
+      this.editingField = field
+    },
+    blurInput(e: Event) {
+      ;(e.target as HTMLInputElement).blur()
+    },
+    saveEdit(field: "name" | "role", e: any) {
+      const v = String(e.target.value || "").trim()
+      if (v) this.$emit("update-staff", this.staff.id, field === "name" ? { name: v } : { role: v })
+      this.editingField = null
+    },
+    emitFocus() {
+      this.$emit("focus-staff", this.staff.id)
+    },
     cycleAvatarColor() {
       if (this.staff.avatar) return
-      const colors = [
-        'bg-blue-100 text-blue-600',
-        'bg-emerald-100 text-emerald-600',
-        'bg-purple-100 text-purple-600',
-        'bg-orange-100 text-orange-600',
-        'bg-rose-100 text-rose-600',
-        'bg-indigo-100 text-indigo-600'
-      ]
+      const colors = ["bg-blue-100 text-blue-600", "bg-emerald-100 text-emerald-600", "bg-purple-100 text-purple-600", "bg-orange-100 text-orange-600", "bg-rose-100 text-rose-600", "bg-indigo-100 text-indigo-600"]
       const idx = colors.indexOf(this.staff.avatarColor)
-      const next = colors[(idx+1) % colors.length]
-      this.$emit('update-staff', this.staff.id, { avatarColor: next })
+      const next = colors[(idx + 1) % colors.length]
+      this.$emit("update-staff", this.staff.id, { avatarColor: next })
     },
     onContextStaff(e: MouseEvent) {
-      this.$emit('context-menu', { clientX: (e as any).clientX, clientY: (e as any).clientY, type: 'staff', staffId: this.staff.id })
+      this.$emit("context-menu", { clientX: (e as any).clientX, clientY: (e as any).clientY, type: "staff", staffId: this.staff.id })
     },
     onContextRow(e: MouseEvent) {
-      this.$emit('context-menu', { clientX: (e as any).clientX, clientY: (e as any).clientY, type: 'row', staffId: this.staff.id })
+      this.$emit("context-menu", { clientX: (e as any).clientX, clientY: (e as any).clientY, type: "row", staffId: this.staff.id })
     },
     onContextTask(task: Task, e?: MouseEvent) {
       const clientX = e ? (e as any).clientX : 0
       const clientY = e ? (e as any).clientY : 0
-      this.$emit('context-menu', { clientX, clientY, type: 'task', staffId: this.staff.id, taskId: task.id })
+      this.$emit("context-menu", { clientX, clientY, type: "task", staffId: this.staff.id, taskId: task.id })
     },
     openEditTask(task: Task) {
-      this.$emit('open-edit-task', task)
+      this.$emit("open-edit-task", task)
     },
     onUpdateTaskName(task: Task) {
-      return (newName: string) => this.$emit('update-task', this.staff.id, task.id, { name: newName })
+      return (newName: string) => this.$emit("update-task", this.staff.id, task.id, { name: newName })
     },
-    onResizeStart(e: MouseEvent, dir: 'left'|'right', task: Task) { if (this.readonly) return; this.$emit('resize-start', e, dir, task, this.staff.id) },
-    onTaskMouseDown(e: MouseEvent, task: Task) { if (this.readonly) return; this.$emit('task-mouse-down', task, this.staff.id, e) },
-    onDragStart(e: DragEvent) { if (this.readonly) return; this.$emit('staff-drag-start', e, this.staff.id) },
-    onDragEnter(e: DragEvent) { if (this.readonly) return; this.$emit('staff-drag-enter', e, this.staff.id) },
-    onDrop(e: DragEvent) { if (this.readonly) return; this.$emit('staff-drop', e, this.staff.id) },
+    onResizeStart(e: MouseEvent, dir: "left" | "right", task: Task) {
+      if (this.readonly) return
+      this.$emit("resize-start", e, dir, task, this.staff.id)
+    },
+    onTaskMouseDown(e: MouseEvent, task: Task) {
+      if (this.readonly) return
+      this.$emit("task-mouse-down", task, this.staff.id, e)
+    },
+    onDragStart(e: DragEvent) {
+      if (this.readonly) return
+      this.$emit("staff-drag-start", e, this.staff.id)
+    },
+    onDragEnter(e: DragEvent) {
+      if (this.readonly) return
+      this.$emit("staff-drag-enter", e, this.staff.id)
+    },
+    onDrop(e: DragEvent) {
+      if (this.readonly) return
+      this.$emit("staff-drop", e, this.staff.id)
+    },
     onGridDblClick(e: MouseEvent) {
-      if ((e.target as HTMLElement).closest('.task-card')) return
+      if ((e.target as HTMLElement).closest(".task-card")) return
       const rowRect = (this.$el as HTMLElement).getBoundingClientRect()
       const timelineLeft = rowRect.left + 260
       const timelineWidth = Math.max(1, rowRect.width - 260)
@@ -124,23 +188,28 @@ export default Vue.extend({
       const startMs = (this.viewStartDate as Date).getTime()
       const newStart = startMs + relativeX * msPerPixel
       const d = new Date(newStart)
-      d.setHours(0,0,0,0)
-      const y = d.getFullYear(); const m = String(d.getMonth()+1).padStart(2,'0'); const day = String(d.getDate()).padStart(2,'0')
+      d.setHours(0, 0, 0, 0)
+      const y = d.getFullYear()
+      const m = String(d.getMonth() + 1).padStart(2, "0")
+      const day = String(d.getDate()).padStart(2, "0")
       const dateStr = `${y}-${m}-${day}`
-      this.$emit('add-task-at', this.staff.id, dateStr)
+      this.$emit("add-task-at", this.staff.id, dateStr)
     },
     isConflict(t: Task): boolean {
       const startA = new Date(t.startDate).getTime()
       const endA = startA + t.duration * 86400000
-      return this.staff.tasks.some(x => x.id!==t.id && (() => {
-        const startB = new Date(x.startDate).getTime()
-        const endB = startB + x.duration * 86400000
-        return Math.max(startA, startB) < Math.min(endA, endB)
-      })())
-    }
-  }
-})
+      return this.staff.tasks.some(
+        x =>
+          x.id !== t.id &&
+          (() => {
+            const startB = new Date(x.startDate).getTime()
+            const endB = startB + x.duration * 86400000
+            return Math.max(startA, startB) < Math.min(endA, endB)
+          })()
+      )
+    },
+  },
+}
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

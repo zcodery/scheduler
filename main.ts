@@ -3,6 +3,12 @@ import App from './App.vue'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 
+Vue.use(ElementUI)
+
+Vue.config.warnHandler = (msg) => {
+  if (/\$attrs is readonly|\$listeners is readonly/.test(msg)) return
+}
+
 const params = new URLSearchParams(window.location.search)
 const readonlyParam = params.get('readonly')
 const readonlyFromUrl = readonlyParam === '1' || readonlyParam === 'true'
