@@ -1,23 +1,24 @@
 <template>
   <el-dialog :visible="isOpen && !!task" title="编辑任务" width="480px" append-to-body :before-close="() => $emit('close')" @close="$emit('close')">
     <el-form label-position="top" size="mini">
-      <el-form-item label="任务名称">
-        <el-input v-model="name" maxlength="60" show-word-limit />
-      </el-form-item>
       <el-row :gutter="12">
+        <el-col :span="24">
+          <el-form-item label="任务名称">
+            <el-input v-model="name" maxlength="60" show-word-limit />
+          </el-form-item>
+        </el-col>
+
         <el-col :span="12">
           <el-form-item label="开始日期">
-            <el-date-picker v-model="startDate" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" @change="handleStartDate" />
+            <el-date-picker v-model="startDate" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" @change="handleStartDate" class="!w-full" />
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="结束日期">
-            <el-date-picker v-model="endDate" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" @change="handleEndDate" />
+            <el-date-picker v-model="endDate" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" @change="handleEndDate" class="!w-full" />
           </el-form-item>
         </el-col>
-      </el-row>
 
-      <el-row :gutter="12">
         <el-col :span="8">
           <el-form-item label="背景色">
             <el-color-picker v-model="bgColor" :predefine="presetHexes" show-alpha size="mini" @change="onBgChange" />
@@ -30,7 +31,7 @@
         </el-col>
         <el-col :span="8">
           <el-form-item label="工期 (天)">
-            <el-input-number v-model="duration" :min="1" :step="1" @change="handleDuration" />
+            <el-input-number v-model="duration" :min="1" :step="1" @change="handleDuration" class="!w-full" />
           </el-form-item>
         </el-col>
       </el-row>
