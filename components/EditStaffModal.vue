@@ -10,9 +10,6 @@
       <el-form-item label="头像颜色">
         <el-color-picker v-model="avatarColor" :predefine="presetHexes" show-alpha size="mini" @change="onAvatarChange" />
       </el-form-item>
-      <el-form-item label="本周负荷 (%)">
-        <el-input-number v-model="workload" :min="0" :max="300" />
-      </el-form-item>
       <div class="flex justify-end gap-2 pt-2">
         <el-button size="mini" @click="$emit('close')">取消</el-button>
         <el-button size="mini" type="primary" @click="submit">保存</el-button>
