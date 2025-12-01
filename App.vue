@@ -93,6 +93,32 @@
               <i class="el-icon-edit"></i>
               <span>编辑任务</span>
             </div>
+            <div class="rs-item" @click="ctxDuplicateTask">
+              <i class="el-icon-document-copy"></i>
+              <span>复制任务</span>
+            </div>
+            <div class="rs-item" @click="ctxFocusTask">
+              <i class="el-icon-location"></i>
+              <span>定位到任务</span>
+            </div>
+            <div class="rs-sep"></div>
+            <div class="rs-item" @click="ctxDurationPlus">
+              <i class="el-icon-plus"></i>
+              <span>工期 +1 天</span>
+            </div>
+            <div class="rs-item" @click="ctxDurationMinus">
+              <i class="el-icon-minus"></i>
+              <span>工期 -1 天</span>
+            </div>
+            <div class="rs-sep"></div>
+            <div class="rs-item" :class="{ 'rs-item-disabled': !canMoveRowUp() }" @click="ctxMoveRowUp">
+              <i class="el-icon-arrow-up"></i>
+              <span>移到上一行</span>
+            </div>
+            <div class="rs-item" @click="ctxMoveRowDown">
+              <i class="el-icon-arrow-down"></i>
+              <span>移到下一行</span>
+            </div>
             <div class="rs-sep"></div>
             <div class="rs-item rs-item-danger" @click="ctxDeleteTask">
               <i class="el-icon-delete"></i>
@@ -624,6 +650,58 @@ export default {
       this.menuVisible = false
       if (this.contextMenu && this.contextMenu.staffId && this.contextMenu.taskId) this.deleteTask(this.contextMenu.staffId, this.contextMenu.taskId)
     },
+    ctxDuplicateTask() {
+      this.menuVisible = false
+      if (this.contextMenu && this.contextMenu.staffId && this.contextMenu.taskId) this.duplicateTask(this.contextMenu.staffId, this.contextMenu.taskId)
+    },
+    ctxFocusTask() {
+      this.menuVisible = false
+      if (this.contextMenu && this.contextMenu.staffId && this.contextMenu.taskId) this.focusTask(this.contextMenu.staffId, this.contextMenu.taskId)
+    },
+    ctxDurationPlus() {
+      this.menuVisible = false
+      if (!this.contextMenu || !this.contextMenu.staffId || !this.contextMenu.taskId) return
+      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
+      const t = s && s.tasks.find(y => y.id === this.contextMenu!.taskId)
+      if (!t) return
+      const next = Math.max(1, (t.duration || 1) + 1)
+      this.updateTask(this.contextMenu.staffId, this.contextMenu.taskId, { duration: next })
+    },
+    ctxDurationMinus() {
+      this.menuVisible = false
+      if (!this.contextMenu || !this.contextMenu.staffId || !this.contextMenu.taskId) return
+      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
+      const t = s && s.tasks.find(y => y.id === this.contextMenu!.taskId)
+      if (!t) return
+      const next = Math.max(1, (t.duration || 1) - 1)
+      this.updateTask(this.contextMenu.staffId, this.contextMenu.taskId, { duration: next })
+    },
+    ctxMoveRowUp() {
+      this.menuVisible = false
+      if (!this.contextMenu || !this.contextMenu.staffId || !this.contextMenu.taskId) return
+      if (!this.canMoveRowUp()) return
+      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
+      const t = s && s.tasks.find(y => y.id === this.contextMenu!.taskId)
+      if (!t) return
+      const next = Math.max(0, (t.rowOffset || 0) - 1)
+      this.updateTask(this.contextMenu.staffId, this.contextMenu.taskId, { rowOffset: next })
+    },
+    ctxMoveRowDown() {
+      this.menuVisible = false
+      if (!this.contextMenu || !this.contextMenu.staffId || !this.contextMenu.taskId) return
+      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
+      const t = s && s.tasks.find(y => y.id === this.contextMenu!.taskId)
+      if (!t) return
+      const next = (t.rowOffset || 0) + 1
+      this.updateTask(this.contextMenu.staffId, this.contextMenu.taskId, { rowOffset: next })
+    },
+    canMoveRowUp(): boolean {
+      if (!this.contextMenu || !this.contextMenu.staffId || !this.contextMenu.taskId) return false
+      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
+      const t = s && s.tasks.find(y => y.id === this.contextMenu!.taskId)
+      if (!t) return false
+      return (t.rowOffset || 0) > 0
+    },
     getQuickJumpDirection(): "left" | "right" | null {
       let minTaskStart = Infinity
       let maxTaskEnd = -Infinity
@@ -678,6 +756,12 @@ export default {
 }
 .rs-item:hover {
   background: #f5f7fa;
+}
+.rs-item-disabled {
+  opacity: 0.6;
+  color: #9ca3af;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 .rs-item-danger {
   color: #e11d48;
