@@ -378,33 +378,11 @@ export default {
           const deltaY = e.clientY - this.interaction.initialY
           const rowShift = Math.round(deltaY / 36)
           const newRowOffset = Math.max(0, (this.interaction.initialRowOffset || 0) + rowShift)
-          let targetStaffId: string | undefined = undefined
-          const list = (document as any).elementsFromPoint ? (document as any).elementsFromPoint(e.clientX, e.clientY) : [document.elementFromPoint(e.clientX, e.clientY)]
-          for (const el of list as Element[]) {
-            const rowEl = (el as HTMLElement).closest("[data-staff-id]") as HTMLElement | null
-            if (rowEl) {
-              const id = rowEl.getAttribute("data-staff-id") || undefined
-              if (id) {
-                targetStaffId = id
-                break
-              }
-            }
-          }
           const newStaffData = [...this.staffData]
           let currentStaffIdx = newStaffData.findIndex(s => s.tasks.find(t => t.id === this.interaction!.taskId))
           if (currentStaffIdx !== -1) {
             let taskToMove = newStaffData[currentStaffIdx].tasks.find(t => t.id === this.interaction!.taskId) as Task
-            if (targetStaffId && targetStaffId !== newStaffData[currentStaffIdx].id) {
-              const targetStaffIdx = newStaffData.findIndex(s => s.id === targetStaffId)
-              if (targetStaffIdx !== -1) {
-                newStaffData[currentStaffIdx].tasks = newStaffData[currentStaffIdx].tasks.filter(t => t.id !== taskToMove.id)
-                taskToMove = { ...taskToMove, startDate: dateStr, rowOffset: newRowOffset }
-                newStaffData[targetStaffIdx].tasks.push(taskToMove)
-                this.interaction = { ...this.interaction, staffId: targetStaffId }
-              }
-            } else {
-              newStaffData[currentStaffIdx].tasks = newStaffData[currentStaffIdx].tasks.map(t => (t.id === taskToMove.id ? { ...t, startDate: dateStr, rowOffset: newRowOffset } : t))
-            }
+            newStaffData[currentStaffIdx].tasks = newStaffData[currentStaffIdx].tasks.map(t => (t.id === taskToMove.id ? { ...t, startDate: dateStr, rowOffset: newRowOffset } : t))
             this.staffData = newStaffData
             const dEnd = new Date(d)
             dEnd.setDate(dEnd.getDate() + taskToMove.duration)
