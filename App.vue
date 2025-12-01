@@ -45,10 +45,12 @@
       </div>
 
       <div class="relative">
-        <StaffRow v-for="s in displayStaffs" :key="s.id" :staff="s" :headers="headers" :viewStartDate="new Date(viewStartDate)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @staff-drag-start="handleStaffDragStartWithRef" @staff-drag-enter="handleStaffLiveSort" @staff-drop="handleStaffDrop" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff">
-          <template #avatar="{ staff }"><slot name="avatar" :staff="staff"></slot></template>
-          <template #workload="{ staff }"><slot name="workloadBar" :staff="staff"></slot></template>
-        </StaffRow>
+        <draggable v-model="staffData" item-key="id" :disabled="readonly" handle=".rs-staff-handle" :animation="150">
+          <StaffRow v-for="s in staffData" :key="s.id" :staff="s" :headers="headers" :viewStartDate="new Date(viewStartDate)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff">
+            <template #avatar="{ staff }"><slot name="avatar" :staff="staff"></slot></template>
+            <template #workload="{ staff }"><slot name="workloadBar" :staff="staff"></slot></template>
+          </StaffRow>
+        </draggable>
         <div v-if="quickJumpDir" class="absolute top-1/2 -translate-y-1/2 z-50 pointer-events-none w-full flex justify-between px-10 pl-[280px]">
           <button v-if="quickJumpDir === 'left'" class="bg-indigo-600 text-white p-3 rounded-full shadow-lg hover:bg-indigo-700 pointer-events-auto" @click="jumpToData('left')">«</button>
           <div class="flex-1"></div>
@@ -109,9 +111,10 @@ import { MOCK_STAFF_DATA, WEEK_DAYS } from "./constants"
 import StaffRow from "./components/StaffRow.vue"
 import EditTaskModal from "./components/EditTaskModal.vue"
 import EditStaffModal from "./components/EditStaffModal.vue"
+import draggable from "vuedraggable"
 
 export default {
-  components: { StaffRow, EditTaskModal, EditStaffModal },
+  components: { StaffRow, EditTaskModal, EditStaffModal, draggable },
   props: { readonly: { type: Boolean, required: false, default: false } },
   data() {
     return {
@@ -614,24 +617,6 @@ export default {
     ctxDeleteTask() {
       this.menuVisible = false
       if (this.contextMenu && this.contextMenu.staffId && this.contextMenu.taskId) this.deleteTask(this.contextMenu.staffId, this.contextMenu.taskId)
-    },
-    handleStaffDragStartWithRef(e: DragEvent, staffId: string) {
-      this.draggedStaffId = staffId
-    },
-    handleStaffLiveSort(e: DragEvent, targetStaffId: string) {
-      const sourceId = this.draggedStaffId
-      if (!sourceId || sourceId === targetStaffId) return
-      const sourceIndex = this.staffData.findIndex(s => s.id === sourceId)
-      const targetIndex = this.staffData.findIndex(s => s.id === targetStaffId)
-      if (sourceIndex !== -1 && targetIndex !== -1) {
-        const newData = [...this.staffData]
-        const [moved] = newData.splice(sourceIndex, 1)
-        newData.splice(targetIndex, 0, moved)
-        this.staffData = newData
-      }
-    },
-    handleStaffDrop() {
-      this.draggedStaffId = null
     },
     getQuickJumpDirection(): "left" | "right" | null {
       let minTaskStart = Infinity

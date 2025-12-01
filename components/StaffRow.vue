@@ -1,7 +1,7 @@
 <template>
   <div :data-staff-id="staff.id" class="flex border-b border-gray-100 bg-white transition-all duration-300 ease-in-out" :style="dynamicStyle">
-    <div class="w-64 flex-shrink-0 p-4 border-r border-gray-200 flex flex-col justify-center select-none bg-white relative group z-20 transition-colors hover:bg-gray-50/50" @contextmenu.prevent="onContextStaff" @dragover.prevent @dragenter.prevent="onDragEnter" @drop.prevent="onDrop" @mousedown.stop @click.stop>
-      <div class="absolute left-1 top-1/2 -translate-y-1/2 text-gray-300 p-1 opacity-0 group-hover:opacity-100" draggable @dragstart="onDragStart">≡</div>
+    <div class="w-64 flex-shrink-0 p-4 border-r border-gray-200 flex flex-col justify-center select-none bg-white relative group z-20 transition-colors hover:bg-gray-50/50" @contextmenu.prevent="onContextStaff" @mousedown.stop @click.stop>
+      <div class="absolute left-1 top-1/2 -translate-y-1/2 text-gray-300 p-1 opacity-0 group-hover:opacity-100 rs-staff-handle">≡</div>
       <div class="flex items-center gap-3 pl-4">
         <button class="text-gray-400 hover:text-gray-600" @click="$emit('update-staff', staff.id, { isCollapsed: !staff.isCollapsed })">{{ staff.isCollapsed ? "▸" : "▾" }}</button>
         <slot name="avatar" :staff="staff">
@@ -165,18 +165,6 @@ export default {
     onTaskMouseDown(e: MouseEvent, task: Task) {
       if (this.readonly) return
       this.$emit("task-mouse-down", task, this.staff.id, e)
-    },
-    onDragStart(e: DragEvent) {
-      if (this.readonly) return
-      this.$emit("staff-drag-start", e, this.staff.id)
-    },
-    onDragEnter(e: DragEvent) {
-      if (this.readonly) return
-      this.$emit("staff-drag-enter", e, this.staff.id)
-    },
-    onDrop(e: DragEvent) {
-      if (this.readonly) return
-      this.$emit("staff-drop", e, this.staff.id)
     },
     onGridDblClick(e: MouseEvent) {
       if ((e.target as HTMLElement).closest(".task-card")) return
