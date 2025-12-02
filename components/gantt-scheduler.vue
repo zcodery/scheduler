@@ -483,6 +483,7 @@ export default {
       this.contextMenu = null
     },
     onHeaderSidebarContext(e: MouseEvent) {
+      if (this.readonly) return
       this.onContextMenu({ clientX: (e as any).clientX, clientY: (e as any).clientY, type: "general" })
     },
     onWheel(e: WheelEvent) {
@@ -506,6 +507,7 @@ export default {
       }
     },
     onContextMenu(payload: { clientX?: number; clientY?: number; x?: number; y?: number; type?: string; staffId?: string; taskId?: string }) {
+      if (this.readonly) return
       const container = this.$refs.containerRef as HTMLDivElement
       const rect = container.getBoundingClientRect()
       const clientX = payload.clientX != null ? payload.clientX! : payload.x != null ? rect.left + payload.x! : rect.left
@@ -613,10 +615,12 @@ export default {
     },
     openEditTask(staff: Staff) {
       return (task: Task) => {
+        if (this.readonly) return
         this.editModal = { isOpen: true, staffId: staff.id, task }
       }
     },
     openEditStaff(staff: Staff) {
+      if (this.readonly) return
       this.editStaffModal = { isOpen: true, staff }
     },
     onSaveTask(taskId: string, updates: Partial<Task>) {
@@ -645,6 +649,9 @@ export default {
       }
     },
     updateStaff(staffId: string, updates: Partial<Staff>) {
+      const keys = Object.keys(updates || {})
+      const onlyCollapse = keys.length === 1 && keys[0] === "isCollapsed"
+      if (this.readonly && !onlyCollapse) return
       this.staffData = this.staffData.map(s => (s.id === staffId ? { ...s, ...updates } : s))
     },
     deleteStaff(id: string) {

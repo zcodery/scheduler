@@ -121,6 +121,7 @@ export default {
       return { left: `${parseInt(`${left}`)}%`, width: `${Math.max(width, 0.5)}%`, top: `${12 + topOffset}px` }
     },
     startEdit(field: "name" | "role") {
+      if (this.readonly) return
       this.editingField = field
     },
     blurInput(e: Event) {
@@ -142,17 +143,21 @@ export default {
       this.$emit("update-staff", this.staff.id, { avatarColor: next })
     },
     onContextStaff(e: MouseEvent) {
+      if (this.readonly) return
       this.$emit("context-menu", { clientX: (e as any).clientX, clientY: (e as any).clientY, type: "staff", staffId: this.staff.id })
     },
     onContextRow(e: MouseEvent) {
+      if (this.readonly) return
       this.$emit("context-menu", { clientX: (e as any).clientX, clientY: (e as any).clientY, type: "row", staffId: this.staff.id })
     },
     onContextTask(task: Task, e?: MouseEvent) {
+      if (this.readonly) return
       const clientX = e ? (e as any).clientX : 0
       const clientY = e ? (e as any).clientY : 0
       this.$emit("context-menu", { clientX, clientY, type: "task", staffId: this.staff.id, taskId: task.id })
     },
     openEditTask(task: Task) {
+      if (this.readonly) return
       this.$emit("open-edit-task", task)
     },
     onUpdateTaskName(task: Task) {
@@ -167,6 +172,7 @@ export default {
       this.$emit("task-mouse-down", task, this.staff.id, e)
     },
     onGridDblClick(e: MouseEvent) {
+      if (this.readonly) return
       if ((e.target as HTMLElement).closest(".task-card")) return
       const rowRect = (this.$el as HTMLElement).getBoundingClientRect()
       const timelineLeft = rowRect.left + 260

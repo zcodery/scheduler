@@ -43,6 +43,7 @@ export default {
   },
   methods: {
     startEdit() {
+      if (this.readonly) return
       this.editing = true
       this.editValue = this.task.name
       this.$nextTick(() => {
@@ -52,6 +53,7 @@ export default {
     },
     commit() {
       this.editing = false
+      if (this.readonly) return
       const v = this.editValue.trim()
       if (v && v !== this.task.name) this.$emit("update", v)
     },
