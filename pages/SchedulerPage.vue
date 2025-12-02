@@ -11,15 +11,19 @@
       <img v-else-if="staff.name == '王五'" src="/public/avatar.jpg" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
       <div v-else :class="staff.avatarColor" class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold">{{ staff.name.charAt(0) }}</div>
     </template>
+    <template #workloadBar="{ staff }">
+      <workload-bar :percentage="staff.workloadPercentage"></workload-bar>
+    </template>
   </gantt-scheduler>
 </template>
 
 <script lang="ts">
+import WorkloadBar from "@/components/WorkloadBar.vue"
 import GanttScheduler from "../components/gantt-scheduler.vue"
 import { MOCK_STAFF_DATA } from "../constants"
 
 export default {
-  components: { "gantt-scheduler": GanttScheduler },
+  components: { "gantt-scheduler": GanttScheduler, WorkloadBar },
   data() {
     const params = new URLSearchParams(window.location.search)
     const ro = params.get("readonly")

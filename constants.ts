@@ -139,16 +139,3 @@ export const PRESET_TASK_COLORS = [
   { color: "rgb(122, 15, 75)", name: "粉色-6" },
   { color: "rgb(39, 5, 97)", name: "紫色-6" },
 ]
-
-export const PRESET_AVATAR_COLORS = [
-  { name: "白", class: "bg-white text-gray-800" },
-  { name: "灰", class: "bg-gray-100 text-gray-600" },
-  { name: "黑", class: "bg-gray-900 text-white" },
-  { name: "红", class: "bg-rose-100 text-rose-600" },
-  { name: "绿", class: "bg-emerald-100 text-emerald-600" },
-  { name: "蓝", class: "bg-blue-100 text-blue-600" },
-  { name: "主色", class: "bg-indigo-100 text-indigo-600" },
-  { name: "辅助色", class: "bg-amber-100 text-amber-600" },
-  { name: "紫", class: "bg-purple-100 text-purple-600" },
-  { name: "橙", class: "bg-orange-100 text-orange-600" },
-]

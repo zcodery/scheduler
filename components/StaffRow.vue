@@ -19,9 +19,7 @@
           <div v-else class="text-xs text-gray-500 truncate cursor-text" @dblclick="startEdit('role')">{{ staff.role }}</div>
         </div>
       </div>
-      <slot name="workload" v-if="!staff.isCollapsed" :staff="staff">
-        <WorkloadBar :percentage="staff.workloadPercentage" />
-      </slot>
+      <slot name="workload" v-if="!staff.isCollapsed" :staff="staff"></slot>
     </div>
 
     <div class="flex-1 relative overflow-hidden bg-white" @contextmenu.prevent="onContextRow">

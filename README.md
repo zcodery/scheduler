@@ -138,7 +138,7 @@ UMD（全局对象 `window.ResourceScheduler`）：
 - 主题与样式：自动侦测系统深色模式切换 `documentElement.classList` 的 `dark` 类；Tailwind CDN 与 ElementUI 风格融合（`components/GanttScheduler.vue:270`、`index.html`、`styles.css`）。
 - 数据校验与持久化：对 `task` 进行运行时结构校验；`localStorage` 持久化变更并广播 `window` 事件（`components/GanttScheduler.vue:356`、`:235`）。
 - 性能优化：细粒度状态更新、自动滚动、避免不必要重绘，适配较大数据集（`components/GanttScheduler.vue:440`）。
-- 类型与测试：`types.ts` 包含 `Staff`、`Task`、`DayInfo`、`GanttSchedulerProps` 等；`Vitest` + `@vue/test-utils` 单元测试覆盖 Props、Slots、事件（`types.ts`、`tests/GanttScheduler.spec.ts`）。
+- 类型：`types.ts` 包含 `Staff`、`Task`、`DayInfo`、`GanttSchedulerProps` 等。
 
 ### 使用说明
 - 环境准备：
@@ -171,9 +171,7 @@ UMD（全局对象 `window.ResourceScheduler`）：
   - 构建库：`npm run build:lib`
   - 生成类型：`npm run build:types`
   - 一次性：`npm run build:pkg`
-- 测试：
-  - 运行：`npm test`
-  - 配置：`vitest.config.ts`，`environment: 'jsdom'`，集成 `vite-plugin-vue2`
+
 
 ### 注意事项
 - 只读模式会禁用任务拖拽/调整等交互；上下文菜单与快捷键部分功能也受限。
@@ -197,7 +195,6 @@ UMD（全局对象 `window.ResourceScheduler`）：
   - `element-ui 2.15.14`
   - `vite ^4.5.x`
   - `vite-plugin-vue2 ^2.0.x`
-  - `vitest ^1.6.x`、`@vue/test-utils ^1.3.x`、`jsdom ^24.x`
 
 ## 构建与发布
 
