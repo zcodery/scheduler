@@ -256,7 +256,7 @@ export default {
       return 86400000
     },
     viewDurationMs(): number {
-      if (this.viewMode === "month") return this.ONE_DAY_MS * 30
+      if (this.viewMode === "month") return this.ONE_DAY_MS * 31
       if (this.viewMode === "quarter") return this.ONE_DAY_MS * 90
       return this.ONE_DAY_MS * 365
     },
@@ -341,17 +341,22 @@ export default {
       this.panStartDate = this.viewStartDate
       document.body.style.cursor = "grabbing"
     },
+    getTimelineWidth(): number {
+      const container = this.$refs.containerRef as HTMLDivElement
+      const baseWidth = container ? container.clientWidth : window.innerWidth
+      return Math.max(1, baseWidth - 260)
+    },
     getDateAtMouse(clientX: number): number {
-      const timelineWidth = Math.max(1, window.innerWidth - 260)
+      const timelineWidth = this.getTimelineWidth()
       const msPerPixel = this.viewDurationMs / timelineWidth
       const relativeX = clientX - 260
       return this.viewStartDate + relativeX * msPerPixel
     },
     todayLineCalc(): number {
       const today = new Date().getTime()
-      const timelineWidth = Math.max(1, window.innerWidth - 260)
+      const timelineWidth = this.getTimelineWidth()
       const ratio = (today - this.viewStartDate) / this.viewDurationMs
-      return Math.max(0, Math.min(timelineWidth, ratio * timelineWidth))
+      return ratio * timelineWidth
     },
     stopAutoScroll() {
       if (this.autoScrollTimer) {
@@ -385,7 +390,7 @@ export default {
       document.body.style.cursor = "move"
     },
     onGlobalMouseMove(e: MouseEvent) {
-      const timelineWidth = Math.max(1, window.innerWidth - 260)
+      const timelineWidth = this.getTimelineWidth()
       const msPerPixel = this.viewDurationMs / timelineWidth
       this.lastMouseX = e.clientX
       if (this.interaction) {
@@ -499,7 +504,7 @@ export default {
       }
       if (e.shiftKey) {
         e.preventDefault()
-        const timelineWidth = Math.max(1, window.innerWidth - 260)
+        const timelineWidth = this.getTimelineWidth()
         const msPerPixel = this.viewDurationMs / timelineWidth
         const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
         this.viewStartDate = this.viewStartDate + delta * msPerPixel * 20
