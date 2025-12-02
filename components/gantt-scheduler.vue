@@ -273,7 +273,7 @@ export default {
         for (let i = 0; i < count; i++) {
           const d = new Date(startDay)
           d.setDate(d.getDate() + i)
-          headers.push({ date: d, label: String(d.getDate()), subLabel: WEEK_DAYS[d.getDay()], isToday: isSameDay(d, today), isWeekend: d.getDay() === 0 || d.getDay() === 6 })
+          headers.push({ date: d, label: `${d.getMonth() + 1}/${d.getDate()}`, subLabel: WEEK_DAYS[d.getDay()], isToday: isSameDay(d, today), isWeekend: d.getDay() === 0 || d.getDay() === 6 })
         }
       } else if (this.viewMode === "quarter") {
         const startDay = new Date(startDate)
@@ -787,25 +787,30 @@ export default {
       return null
     },
     jumpToData(direction: "left" | "right") {
+      // 是否全部折叠
+      const allCollapsed = this.staffData.every(s => s.isCollapsed)
+
       if (direction == "left") {
         let minTaskStart = Infinity
-        this.staffData.forEach(s =>
+        this.staffData.forEach(s => {
+          if (!allCollapsed && s.isCollapsed) return
           s.tasks.forEach(t => {
             const start = new Date(t.startDate).getTime()
             if (start < minTaskStart) minTaskStart = start
           })
-        )
+        })
         if (minTaskStart === Infinity) minTaskStart = new Date().getTime()
         this.viewStartDate = minTaskStart - this.viewDurationMs * 0.1
       } else {
         let maxTaskEnd = -Infinity
-        this.staffData.forEach(s =>
+        this.staffData.forEach(s => {
+          if (!allCollapsed && s.isCollapsed) return
           s.tasks.forEach(t => {
             const start = new Date(t.startDate).getTime()
             const end = start + t.duration * this.ONE_DAY_MS
             if (end > maxTaskEnd) maxTaskEnd = end
           })
-        )
+        })
         if (maxTaskEnd === -Infinity) maxTaskEnd = new Date().getTime()
         this.viewStartDate = maxTaskEnd - this.viewDurationMs * 0.9
       }
