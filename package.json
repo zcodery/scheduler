@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "build:lib": "vite build -c vite.lib.config.ts",
     "build:types": "tsc -p tsconfig.lib.json",
-    "build:pkg": "npm run build:lib && npm run build:types"
+    "build:pkg": "npm run build:lib && npm run build:types",
+    "test:unit": "vitest",
+    "test:e2e": "playwright test"
   },
   "main": "dist/resource-scheduler.umd.js",
   "module": "dist/resource-scheduler.es.js",
@@ -32,7 +34,8 @@
   "dependencies": {
     "element-ui": "2.15.14",
     "vue": ">=2.7.0",
-    "vuedraggable": "^2.24.3"
+    "vuedraggable": "^2.24.3",
+    "vue-router": "^3.6.5"
   },
   "peerDependencies": {
     "vue": ">=2.7.0"
@@ -42,6 +45,10 @@
     "typescript": "~5.8.2",
     "vite": "^4.5.3",
     "vite-plugin-vue2": "^2.0.3",
-    "vue-template-compiler": "^2.7.16"
+    "vue-template-compiler": "^2.7.16",
+    "vitest": "^1.5.0",
+    "@vue/test-utils": "^1.3.0",
+    "jsdom": "^24.0.0",
+    "playwright": "^1.48.0"
   }
 }
