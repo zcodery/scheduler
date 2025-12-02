@@ -36,9 +36,11 @@
               <i class="el-icon-arrow-down el-icon--right"></i>
             </el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item command="today">定位今天</el-dropdown-item>
-              <el-dropdown-item command="collapse">折叠全部</el-dropdown-item>
-              <el-dropdown-item command="expand">展开全部</el-dropdown-item>
+              <el-dropdown-item command="today" icon="el-icon-place">定位今天</el-dropdown-item>
+              <el-dropdown-item command="collapse" icon="el-icon-minus">折叠全部</el-dropdown-item>
+              <el-dropdown-item command="expand" icon="el-icon-plus">展开全部</el-dropdown-item>
+              <el-dropdown-item command="jump-left" icon="el-icon-d-arrow-left">跳到左侧数据</el-dropdown-item>
+              <el-dropdown-item command="jump-right" icon="el-icon-d-arrow-right">跳到右侧数据</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
           <slot name="extra"></slot>
@@ -65,9 +67,9 @@
           </StaffRow>
         </draggable>
         <div v-if="quickJumpDir" class="absolute top-1/2 -translate-y-1/2 z-50 pointer-events-none w-full flex justify-between px-10 pl-[280px]">
-          <button v-if="quickJumpDir === 'left'" class="bg-indigo-600 text-white p-3 rounded-full shadow-lg hover:bg-indigo-700 pointer-events-auto" @click="jumpToData('left')">«</button>
+          <el-button v-if="quickJumpDir === 'left'" type="primary" plain circle icon="el-icon-d-arrow-left" class="pointer-events-auto" @click="jumpToData('right')"></el-button>
           <div class="flex-1"></div>
-          <button v-if="quickJumpDir === 'right'" class="bg-indigo-600 text-white p-3 rounded-full shadow-lg hover:bg-indigo-700 pointer-events-auto" @click="jumpToData('right')">»</button>
+          <el-button v-if="quickJumpDir === 'right'" type="primary" plain circle icon="el-icon-d-arrow-right" class="pointer-events-auto" @click="jumpToData('left')"></el-button>
         </div>
         <div class="h-[300px]" @click="contextMenu = null"></div>
       </div>
@@ -309,6 +311,8 @@ export default {
       if (cmd === "today") this.jumpToToday()
       else if (cmd === "collapse") this.collapseAll()
       else if (cmd === "expand") this.expandAll()
+      else if (cmd === "jump-left") this.jumpToData("left")
+      else if (cmd === "jump-right") this.jumpToData("right")
     },
     modeLabel(m: ViewMode) {
       return m === "month" ? "月" : m === "quarter" ? "季" : "年"
@@ -316,7 +320,7 @@ export default {
     nav(dir: "prev" | "next") {
       const shift = dir === "next" ? 1 : -1
       let shiftMs = 0
-      if (this.viewMode === "month") shiftMs = this.ONE_DAY_MS * 30 * shift
+      if (this.viewMode === "month") shiftMs = this.ONE_DAY_MS * 31 * shift
       else if (this.viewMode === "quarter") shiftMs = this.ONE_DAY_MS * 90 * shift
       else shiftMs = this.ONE_DAY_MS * 365 * shift
       this.viewStartDate = this.viewStartDate + shiftMs
@@ -783,15 +787,28 @@ export default {
       return null
     },
     jumpToData(direction: "left" | "right") {
-      let minTaskStart = Infinity
-      this.staffData.forEach(s =>
-        s.tasks.forEach(t => {
-          const start = new Date(t.startDate).getTime()
-          if (start < minTaskStart) minTaskStart = start
-        })
-      )
-      if (minTaskStart === Infinity) minTaskStart = new Date().getTime()
-      this.viewStartDate = minTaskStart - this.viewDurationMs * 0.1
+      if (direction == "left") {
+        let minTaskStart = Infinity
+        this.staffData.forEach(s =>
+          s.tasks.forEach(t => {
+            const start = new Date(t.startDate).getTime()
+            if (start < minTaskStart) minTaskStart = start
+          })
+        )
+        if (minTaskStart === Infinity) minTaskStart = new Date().getTime()
+        this.viewStartDate = minTaskStart - this.viewDurationMs * 0.1
+      } else {
+        let maxTaskEnd = -Infinity
+        this.staffData.forEach(s =>
+          s.tasks.forEach(t => {
+            const start = new Date(t.startDate).getTime()
+            const end = start + t.duration * this.ONE_DAY_MS
+            if (end > maxTaskEnd) maxTaskEnd = end
+          })
+        )
+        if (maxTaskEnd === -Infinity) maxTaskEnd = new Date().getTime()
+        this.viewStartDate = maxTaskEnd - this.viewDurationMs * 0.9
+      }
     },
   },
 }
