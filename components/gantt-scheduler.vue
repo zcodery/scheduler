@@ -11,8 +11,12 @@
 
     <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white z-50 relative shadow-sm shrink-0">
       <div>
-        <slot name="title"><h1 class="text-xl font-bold text-gray-900">{{ title || '人员排期' }}</h1></slot>
-        <slot name="description"><p class="text-xs text-gray-500 mt-1">{{ description || '拖动图表滑动 • 双击编辑 • 右键管理' }}</p></slot>
+        <slot name="title">
+          <h1 class="text-xl font-bold text-gray-900">{{ title || "人员排期" }}</h1>
+        </slot>
+        <slot name="description">
+          <p class="text-xs text-gray-500 mt-1">{{ description || "拖动图表滑动 • 双击编辑 • 右键管理" }}</p>
+        </slot>
       </div>
       <div class="flex items-center gap-4">
         <el-button-group>
@@ -25,10 +29,19 @@
         </div>
         <el-tag v-if="readonly" type="info" effect="plain" size="mini">只读模式</el-tag>
 
-        <div class="flex items-center">
-          <el-button size="mini" @click="jumpToToday">定位今天</el-button>
-          <el-button size="mini" @click="collapseAll">折叠全部</el-button>
-          <el-button size="mini" @click="expandAll">展开全部</el-button>
+        <div class="flex items-center gap-2">
+          <el-dropdown @command="onToolbarCommand">
+            <el-button size="mini" type="primary">
+              操作
+              <i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="today">定位今天</el-dropdown-item>
+              <el-dropdown-item command="collapse">折叠全部</el-dropdown-item>
+              <el-dropdown-item command="expand">展开全部</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+          <slot name="extra"></slot>
         </div>
       </div>
     </div>
@@ -292,6 +305,11 @@ export default {
     },
   },
   methods: {
+    onToolbarCommand(cmd: string) {
+      if (cmd === "today") this.jumpToToday()
+      else if (cmd === "collapse") this.collapseAll()
+      else if (cmd === "expand") this.expandAll()
+    },
     modeLabel(m: ViewMode) {
       return m === "month" ? "月" : m === "quarter" ? "季" : "年"
     },
@@ -785,13 +803,50 @@ export default {
   color: #374151;
   cursor: pointer;
 }
-.rs-item:hover { background: #f5f7fa; }
-.rs-item-disabled { opacity: 0.6; color: #9ca3af; cursor: not-allowed; pointer-events: none; }
-.rs-item-danger { color: #e11d48; }
-.rs-sep { height: 1px; background: #e5e7eb; margin: 4px 0; }
-.rs-navbox { display: flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; box-shadow: 0 2px 6px rgba(16, 24, 40, 0.06); padding: 6px 8px; }
-.rs-navbox-label { line-height: 1; font-size: 14px; color: #1f2d3d; letter-spacing: 0.5px; }
-.rs-nav-icon { padding: 0; min-width: auto; }
-.rs-nav-icon .el-icon-arrow-left, .rs-nav-icon .el-icon-arrow-right { font-size: 16px; color: #606266; }
-.rs-nav-icon:hover .el-icon-arrow-left, .rs-nav-icon:hover .el-icon-arrow-right { color: #303133; }
+.rs-item:hover {
+  background: #f5f7fa;
+}
+.rs-item-disabled {
+  opacity: 0.6;
+  color: #9ca3af;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.rs-item-danger {
+  color: #e11d48;
+}
+.rs-sep {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 4px 0;
+}
+.rs-navbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(16, 24, 40, 0.06);
+  padding: 6px 8px;
+}
+.rs-navbox-label {
+  line-height: 1;
+  font-size: 14px;
+  color: #1f2d3d;
+  letter-spacing: 0.5px;
+}
+.rs-nav-icon {
+  padding: 0;
+  min-width: auto;
+}
+.rs-nav-icon .el-icon-arrow-left,
+.rs-nav-icon .el-icon-arrow-right {
+  font-size: 16px;
+  color: #606266;
+}
+.rs-nav-icon:hover .el-icon-arrow-left,
+.rs-nav-icon:hover .el-icon-arrow-right {
+  color: #303133;
+}
 </style>
