@@ -66,3 +66,12 @@ export interface EditStaffModalState {
   isOpen: boolean;
   staff: Staff | null;
 }
+
+export interface GanttSchedulerProps {
+  readonly?: boolean;
+  task: Staff[];
+  title?: string;
+  description?: string;
+}
+
+export type GanttSchedulerDataChangePayload = Staff[];
