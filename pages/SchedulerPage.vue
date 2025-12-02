@@ -8,7 +8,7 @@
     </template>
     <template #avatar="{ staff }">
       <img v-if="staff.avatar" :src="staff.avatar" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
-      <img v-else-if="staff.name == '王五'" src="/public/avatar.jpg" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
+      <img v-else-if="staff.name == '王五'" src="/avatar.jpg" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
       <div v-else :class="staff.avatarColor" class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold">{{ staff.name.charAt(0) }}</div>
     </template>
     <template #workloadBar="{ staff }">
@@ -28,10 +28,15 @@ export default {
     const params = new URLSearchParams(window.location.search)
     const ro = params.get("readonly")
     const readonly = ro === "1" || ro === "true"
+    let initialData = MOCK_STAFF_DATA
+    try {
+      const saved = localStorage.getItem("scheduler:data")
+      if (saved) initialData = JSON.parse(saved)
+    } catch {}
     return {
       title: "人员排期",
       description: "拖动图表滑动 • 双击编辑 • 右键管理",
-      data: MOCK_STAFF_DATA,
+      data: initialData,
       readonly,
     }
   },

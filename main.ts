@@ -1,34 +1,26 @@
-import Vue from 'vue'
-import Root from './Root.vue'
-import ElementUI from 'element-ui'
-import 'element-ui/lib/theme-chalk/index.css'
-import './styles.css'
-import VueRouter from 'vue-router'
-import SchedulerPage from './pages/SchedulerPage.vue'
+import Vue from "vue"
+import App from "./App.vue"
+import ElementUI from "element-ui"
+import "element-ui/lib/theme-chalk/index.css"
+import "./styles.css"
+import VueRouter from "vue-router"
+import SchedulerPage from "./pages/SchedulerPage.vue"
 
 Vue.use(ElementUI)
 Vue.use(VueRouter)
 
-Vue.config.warnHandler = (msg) => {
+Vue.config.warnHandler = msg => {
   if (/\$attrs is readonly|\$listeners is readonly/.test(msg)) return
 }
 
 const routes = [
-  { path: '/scheduler', component: SchedulerPage, meta: { requiresAuth: false } },
-  { path: '/', redirect: '/scheduler' },
+  { path: "/scheduler", component: SchedulerPage, meta: { requiresAuth: false } },
+  { path: "/", redirect: "/scheduler" },
 ]
 
-const router = new VueRouter({ mode: 'history', routes })
-
-router.beforeEach((to, from, next) => {
-  if (to.meta && to.meta.requiresAuth) {
-    const token = new URLSearchParams(window.location.search).get('token')
-    if (!token) return next('/')
-  }
-  next()
-})
+const router = new VueRouter({ mode: "history", routes })
 
 new Vue({
   router,
-  render: h => h(Root)
-}).$mount('#root')
+  render: h => h(App),
+}).$mount("#root")
