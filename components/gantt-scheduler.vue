@@ -574,8 +574,10 @@ export default {
       })
     },
     deleteTask(staffId: string, taskId: string) {
+      const s = this.staffData?.find(x => x.id === staffId)
+      const t = s?.tasks.find(y => y.id === taskId)
       ;(this as any)
-        .$confirm("确定删除该任务？", "删除任务", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
+        .$confirm(`确定删除「${taskId}： ${t?.name}」任务？`, "删除任务", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
         .then(() => {
           this.staffData = this.staffData.map(x => (x.id === staffId ? { ...x, tasks: x.tasks.filter(y => y.id !== taskId) } : x))
           this.contextMenu = null
