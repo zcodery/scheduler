@@ -589,7 +589,8 @@ export default {
         if (s.id !== staffId) return s
         const original = s.tasks.find(t => t.id === taskId)
         if (!original) return s
-        const copy: Task = { ...original, id: `${original.id}-C${Date.now().toString().slice(-3)}` }
+        const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
+        const copy: Task = { ...original, id: `${original.id}-C${Date.now().toString().slice(-3)}`, rowOffset: maxRow + 1 }
         return { ...s, tasks: [...s.tasks, copy] }
       })
       this.contextMenu = null
