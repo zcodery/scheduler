@@ -10,6 +10,7 @@
       </div>
     </template>
     <div v-if="!editing && !readonly" class="absolute right-0 top-0 bottom-0 w-2 cursor-e-resize z-20 hover:bg-indigo-400/50 rounded-r" @mousedown.stop="emitResize('right', $event)"></div>
+    <span v-show="!showOutside" class="text-[10px] font-bold mr-1.5 whitespace-nowrap select-none ml-1 flex-shrink-0 z-10" :style="{ color: text }">{{ task.duration }}天</span>
   </div>
 </template>
 

@@ -25,9 +25,9 @@ export const MOCK_STAFF_DATA: Staff[] = [
     workloadPercentage: 65,
     isCollapsed: false,
     tasks: [
-      { id: "SH009", name: "环境延伸与遮罩合成", startDate: getRelativeDate(-2), duration: 3, rowOffset: 0 },
-      { id: "SH013", name: "赛博朋克追逐场次 V1", startDate: getRelativeDate(0), duration: 4, rowOffset: 1 },
-      { id: "SH017", name: "主角特写合成渲染", startDate: getRelativeDate(2), duration: 5, rowOffset: 2 },
+      { id: "T009", name: "环境延伸与遮罩合成", startDate: getRelativeDate(-2), duration: 3, rowOffset: 0 },
+      { id: "T013", name: "赛博朋克追逐场次 V1", startDate: getRelativeDate(0), duration: 4, rowOffset: 1 },
+      { id: "T017", name: "主角特写合成渲染", startDate: getRelativeDate(2), duration: 5, rowOffset: 2 },
     ],
   },
   {
@@ -38,9 +38,9 @@ export const MOCK_STAFF_DATA: Staff[] = [
     workloadPercentage: 45,
     isCollapsed: false,
     tasks: [
-      { id: "SH006", name: "环境延伸与遮罩", startDate: getRelativeDate(-1), duration: 3, rowOffset: 0 },
-      { id: "SH010", name: "赛博朋克追逐场次 V1", startDate: getRelativeDate(1), duration: 3, rowOffset: 1 },
-      { id: "SH014", name: "主角特写合成", startDate: getRelativeDate(3), duration: 5, rowOffset: 2 },
+      { id: "T006", name: "环境延伸与遮罩", startDate: getRelativeDate(-1), duration: 3, rowOffset: 0 },
+      { id: "T010", name: "赛博朋克追逐场次 V1", startDate: getRelativeDate(1), duration: 3, rowOffset: 1 },
+      { id: "T014", name: "主角特写合成", startDate: getRelativeDate(3), duration: 5, rowOffset: 2 },
     ],
   },
   {
@@ -51,9 +51,9 @@ export const MOCK_STAFF_DATA: Staff[] = [
     workloadPercentage: 10,
     isCollapsed: false,
     tasks: [
-      { id: "SH007", name: "赛博朋克追逐场次 V1", startDate: getRelativeDate(-3), duration: 3, rowOffset: 0 },
-      { id: "SH011", name: "主角特写合成", startDate: getRelativeDate(0), duration: 3, rowOffset: 1 },
-      { id: "SH015", name: "环境延伸与遮罩", startDate: getRelativeDate(4), duration: 5, rowOffset: 2 },
+      { id: "T007", name: "赛博朋克追逐场次 V1", startDate: getRelativeDate(-3), duration: 3, rowOffset: 0 },
+      { id: "T011", name: "主角特写合成", startDate: getRelativeDate(0), duration: 3, rowOffset: 1 },
+      { id: "T015", name: "环境延伸与遮罩", startDate: getRelativeDate(4), duration: 5, rowOffset: 2 },
     ],
   },
   {
@@ -64,9 +64,9 @@ export const MOCK_STAFF_DATA: Staff[] = [
     workloadPercentage: 90,
     isCollapsed: false,
     tasks: [
-      { id: "SH008", name: "主角特写合成", startDate: getRelativeDate(-2), duration: 3, rowOffset: 0 },
-      { id: "SH012", name: "环境延伸与遮罩", startDate: getRelativeDate(1), duration: 3, rowOffset: 1 },
-      { id: "SH016", name: "赛博朋克追逐场次 V1", startDate: getRelativeDate(3), duration: 5, rowOffset: 2 },
+      { id: "T008", name: "主角特写合成", startDate: getRelativeDate(-2), duration: 3, rowOffset: 0 },
+      { id: "T012", name: "环境延伸与遮罩", startDate: getRelativeDate(1), duration: 3, rowOffset: 1 },
+      { id: "T016", name: "赛博朋克追逐场次 V1", startDate: getRelativeDate(3), duration: 5, rowOffset: 2 },
     ],
   },
 ]
