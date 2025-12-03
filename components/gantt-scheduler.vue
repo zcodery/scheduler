@@ -207,7 +207,6 @@ export default {
       handler(val: Staff[]) {
         this.$emit("data-change", val)
         try {
-          localStorage.setItem("scheduler:data", JSON.stringify(val))
           window.dispatchEvent(new CustomEvent("scheduler:data-change", { detail: val }))
         } catch {}
       },
@@ -239,13 +238,6 @@ export default {
     document.addEventListener("mousedown", onDocClick)
     ;(this as any)._onKey = onKey
     ;(this as any)._onDocClick = onDocClick
-    try {
-      const raw = localStorage.getItem("scheduler:data")
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        if (Array.isArray(parsed)) this.staffData = parsed
-      }
-    } catch {}
   },
   beforeDestroy() {
     const onKey = (this as any)._onKey as (e: KeyboardEvent) => void

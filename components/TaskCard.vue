@@ -1,5 +1,5 @@
 <template>
-  <div class="task-card group relative flex items-center h-7 rounded px-1 transition-shadow shadow-sm" :class="conflict ? 'border border-rose-400' : ''" :style="{ overflow: 'visible', backgroundColor: bg }" @dblclick.stop="startEdit" @contextmenu.stop.prevent="$emit('contextmenu', task)" @mousedown="onMouseDown">
+  <div class="task-card group relative flex items-center h-7 rounded px-1 transition-shadow shadow-sm" :class="conflict ? 'border border-rose-400' : ''" :style="{ overflow: 'visible', backgroundColor: bg }" @dblclick.stop="startEdit" @contextmenu.stop.prevent="$emit('contextmenu', task)" @mousedown="onMouseDown" @mouseenter="$emit('mouse-move', task)" @mousemove="$emit('mouse-move', task)" name="123">
     <div v-if="!editing && !readonly" class="absolute left-0 top-0 bottom-0 w-2 cursor-w-resize z-20 hover:bg-indigo-400/50 rounded-l" @mousedown.stop="emitResize('left', $event)"></div>
     <span class="text-[10px] font-bold mr-1.5 whitespace-nowrap select-none ml-1 flex-shrink-0 z-10" :style="{ color: text }">{{ task.id }}</span>
     <input v-if="editing" ref="inputRef" type="text" v-model="editValue" @blur="commit" @keydown.enter.prevent="commit" @keydown.esc.prevent="cancel" class="flex-1 bg-white text-[10px] px-1 py-0.5 border-none outline-none text-indigo-900 rounded h-5 min-w-0 z-10" />
@@ -56,7 +56,7 @@ export default {
       this.editing = false
       if (this.readonly) return
       const v = this.editValue.trim()
-      if (v && v !== this.task.name) this.$emit("update", v)
+      if (v && v !== this.task.name) this.$emit("update", this.task, v)
     },
     cancel() {
       this.editing = false
