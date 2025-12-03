@@ -123,7 +123,7 @@ export default {
       let left = (startOffset / this.viewDurationMs) * 100
       let width = (durationMs / this.viewDurationMs) * 100
       const topOffset = (task.rowOffset || 0) * 36
-      return { left: `${parseInt(`${left}`)}%`, width: `${Math.max(width, 0.5)}%`, top: `${12 + topOffset}px` }
+      return { left: `${left}%`, width: `${Math.max(width, 0.5)}%`, top: `${12 + topOffset}px` }
     },
     startEdit(field: "name" | "role") {
       if (this.readonly) return

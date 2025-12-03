@@ -76,7 +76,8 @@
         <div class="h-[300px]" @click="contextMenu = null"></div>
       </div>
 
-      <div class="pointer-events-none absolute top-0 bottom-0" :style="{ left: 260 + todayLineCalc() + 'px' }">
+      <!-- 今天 定位 线 -->
+      <div class="pointer-events-none absolute top-0 bottom-0" :style="{ left: 260 + todayLineCalc() + 'px' }" v-if="viewMode != 'month'">
         <div class="w-px h-full bg-indigo-500/50"></div>
       </div>
 
