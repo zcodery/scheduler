@@ -1,8 +1,8 @@
 <template>
   <gantt-scheduler :readonly="readonly" :task="payload" :title="title" :description="description" @data-change="onDataChange">
-    <template #title>
+    <!-- <template #title>
       <h1 class="text-xl font-bold text-gray-900">{{ title }}</h1>
-    </template>
+    </template> -->
     <template #description>
       <p class="text-xs text-gray-500 mt-1">{{ description }}</p>
     </template>
@@ -15,7 +15,8 @@
       <workload-bar :percentage="staff.workloadPercentage"></workload-bar>
     </template>
     <template #extra>
-      <el-button size="mini" type="success" :icon="withdynamicIcon" @click="onSave" :loading="loading">保存</el-button>
+      <el-button v-if="!readonly" size="mini" type="success" :icon="withdynamicIcon" @click="onSave" :loading="loading">保存</el-button>
+      <el-switch size="mini" v-model="readonly" active-color="#13ce66" inactive-color="#409eff" :active-text="readonly ? '只读模式' : '编辑模式'"></el-switch>
     </template>
   </gantt-scheduler>
 </template>

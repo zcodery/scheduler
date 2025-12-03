@@ -12,7 +12,10 @@
     <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white z-50 relative shadow-sm shrink-0">
       <div>
         <slot name="title">
-          <h1 class="text-xl font-bold text-gray-900">{{ title || "人员排期" }}</h1>
+          <h1 class="text-xl font-bold text-gray-900 flex gap-1 items-center">
+            <span>{{ title || "人员排期" }}</span>
+            <i v-if="readonly" class="el-icon-lock text-sm"></i>
+          </h1>
         </slot>
         <slot name="description">
           <p class="text-xs text-gray-500 mt-1">{{ description || "拖动图表滑动 • 双击编辑 • 右键管理" }}</p>
@@ -27,7 +30,6 @@
           <span class="rs-navbox-label">{{ currentLabel }}</span>
           <i class="el-icon-arrow-right text-sm cursor-pointer hover:text-orange-600" @click="nav('next')"></i>
         </div>
-        <el-tag v-if="readonly" type="info" effect="plain" size="mini">只读模式</el-tag>
 
         <div class="flex items-center gap-2">
           <el-dropdown @command="onToolbarCommand">

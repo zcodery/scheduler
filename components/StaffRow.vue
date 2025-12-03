@@ -28,7 +28,14 @@
       </div>
       <div v-if="!staff.isCollapsed" class="relative w-full h-full pt-3 pb-2" @dblclick="onGridDblClick">
         <div v-for="t in staff.tasks" :key="t.id" class="absolute z-10" :style="taskStyle(t)">
-          <TaskCard :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName(t)" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" />
+          <el-popover trigger="hover" popper-class="!p-0" :visible-arrow="false" :disabled="!readonly">
+            <div class="bg-gray-900 text-white text-xs px-2 py-1.5 rounded">
+              <div>开始: {{ t.startDate }}</div>
+              <div>结束: {{ displyEndDate(t.startDate, t.duration) }}</div>
+              <div>工期: {{ t.duration }} 天</div>
+            </div>
+            <TaskCard slot="reference" :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName(t)" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" />
+          </el-popover>
         </div>
       </div>
       <div v-else class="absolute inset-0 flex items-center px-2">
@@ -199,6 +206,11 @@ export default {
             return Math.max(startA, startB) < Math.min(endA, endB)
           })()
       )
+    },
+    displyEndDate(startDate: string, duration: number) {
+      const dEnd = new Date(startDate)
+      dEnd.setDate(dEnd.getDate() + duration)
+      return `${dEnd.getFullYear()}-${String(dEnd.getMonth() + 1).padStart(2, "0")}-${String(dEnd.getDate()).padStart(2, "0")}`
     },
   },
 }
