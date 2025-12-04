@@ -107,7 +107,7 @@ export default {
       return new Date(y, Math.max(0, m - 1), Math.max(1, d))
     },
     onSidebarMouseDown(e: MouseEvent) {
-      e.preventDefault()
+      return
     },
     rgbTextToHex(rgb: string | undefined) {
       if (!rgb) return "#ffffff"
