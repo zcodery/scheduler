@@ -1,6 +1,6 @@
 # Resource Scheduler
 一个基于 Vue 2.7 的可视化资源排期组件库
-![Scheduler Demo](https://raw.githubusercontent.com/zcodery/scheduler/feature/month/public/scheduler-demo.png)
+![Scheduler Demo](https://i-blog.csdnimg.cn/direct/f1af0b0d77174470a407cb017504945e.png)
 
 ## 介绍
 
