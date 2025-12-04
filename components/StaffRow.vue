@@ -50,6 +50,8 @@
 <script lang="ts">
 import { Staff, Task, DayInfo, ViewMode } from "../types"
 import TaskCard from "./TaskCard.vue"
+import { AVATAR_COLOR_CLASSES } from "../constants"
+import { rgbTextToHex, luminance } from "../utils"
 
 export default {
   components: { TaskCard },
@@ -91,8 +93,8 @@ export default {
     avatarStyle(): any {
       if (!this.avatarIsColor) return {}
       const bg = this.staff.avatarColor
-      const hex = bg.startsWith("rgb") ? this.rgbTextToHex(bg) : bg
-      const l = this.luminance(hex)
+      const hex = bg.startsWith("rgb") ? rgbTextToHex(bg) : bg
+      const l = luminance(hex)
       const color = l > 0.6 ? "#1f2937" : "#ffffff"
       return { backgroundColor: hex, color }
     },
@@ -107,34 +109,6 @@ export default {
     },
     onSidebarMouseDown(e: MouseEvent) {
       return
-    },
-    rgbTextToHex(rgb: string | undefined) {
-      if (!rgb) return "#ffffff"
-      const m = rgb.match(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+)\s*)?\)/i)
-      if (!m) return rgb
-      const to2 = (n: number) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0")
-      return `#${to2(Number(m[1]))}${to2(Number(m[2]))}${to2(Number(m[3]))}`
-    },
-    hexToRgb(hex: string) {
-      let h = hex.replace("#", "")
-      if (h.length === 3)
-        h = h
-          .split("")
-          .map(x => x + x)
-          .join("")
-      const r = parseInt(h.slice(0, 2), 16),
-        g = parseInt(h.slice(2, 4), 16),
-        b = parseInt(h.slice(4, 6), 16)
-      return { r, g, b }
-    },
-    luminance(hex?: string) {
-      if (!hex) return 0.5
-      const { r, g, b } = this.hexToRgb(hex)
-      const a = [r, g, b].map(v => {
-        const c = v / 255
-        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-      })
-      return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2]
     },
     daysInMonth(d: Date): number {
       return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
@@ -207,7 +181,7 @@ export default {
     },
     cycleAvatarColor() {
       if (this.staff.avatar) return
-      const colors = ["bg-blue-100 text-blue-600", "bg-emerald-100 text-emerald-600", "bg-purple-100 text-purple-600", "bg-orange-100 text-orange-600", "bg-rose-100 text-rose-600", "bg-indigo-100 text-indigo-600"]
+      const colors = AVATAR_COLOR_CLASSES
       const idx = colors.indexOf(this.staff.avatarColor)
       const next = colors[(idx + 1) % colors.length]
       this.$emit("update-staff", this.staff.id, { avatarColor: next })

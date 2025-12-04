@@ -18,7 +18,7 @@
 <script lang="ts">
 import WorkloadBar from "@/pages/components/WorkloadBar.vue"
 import GanttScheduler from "../common/gantt-scheduler.vue"
-import { MOCK_STAFF_DATA } from "../constants"
+import { MOCK_STAFF_DATA } from "./database/gantt"
 
 export default {
   components: { "gantt-scheduler": GanttScheduler, WorkloadBar },

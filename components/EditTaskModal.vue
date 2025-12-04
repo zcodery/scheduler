@@ -47,6 +47,7 @@
 <script lang="ts">
 import { Task } from "../types"
 import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT, PRESET_TASK_COLORS } from "../constants"
+import { rgbTextToHex, calcEnd, calcDuration } from "../utils"
 
 export default {
   props: {
@@ -58,15 +59,9 @@ export default {
   },
   computed: {
     presetHexes(): string[] {
-      const toHex = (rgb: string) => {
-        const m = rgb.match(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+)\s*)?\)/i)
-        if (!m) return rgb
-        const to2 = (n: number) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0")
-        return `#${to2(Number(m[1]))}${to2(Number(m[2]))}${to2(Number(m[3]))}`
-      }
       const arr: string[] = (this.presets || []).map(p => {
         if ((p as any).hex) return (p as any).hex as string
-        else if (p.color) return toHex(p.color)
+        else if (p.color) return rgbTextToHex(p.color)
         return ""
       })
       return arr?.filter(Boolean)
@@ -89,23 +84,10 @@ export default {
   },
   methods: {
     calcEnd(start: string, dur: number) {
-      if (!start) return ""
-      const d = new Date(start)
-      d.setHours(0, 0, 0, 0)
-      d.setDate(d.getDate() + Math.round(dur))
-      const y = d.getFullYear()
-      const m = String(d.getMonth() + 1).padStart(2, "0")
-      const day = String(d.getDate()).padStart(2, "0")
-      return `${y}-${m}-${day}`
+      return calcEnd(start, dur)
     },
     calcDuration(start: string, end: string) {
-      if (!start || !end) return 0
-      const d1 = new Date(start)
-      const d2 = new Date(end)
-      d1.setHours(0, 0, 0, 0)
-      d2.setHours(0, 0, 0, 0)
-      const diff = d2.getTime() - d1.getTime()
-      return Math.max(1, Math.round(diff / 86400000))
+      return calcDuration(start, end)
     },
     handleStartDate() {
       if (this.duration > 0) this.endDate = this.calcEnd(this.startDate, this.duration)

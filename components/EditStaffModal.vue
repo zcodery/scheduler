@@ -21,6 +21,7 @@
 <script lang="ts">
 import { Staff } from "../types"
 import { PRESET_TASK_COLORS } from "../constants"
+import { rgbTextToHex } from "../utils"
 
 export default {
   props: { isOpen: { type: Boolean, required: true }, staff: { type: Object as () => Staff | null, required: false } },
@@ -29,18 +30,11 @@ export default {
   },
   computed: {
     presetHexes(): string[] {
-      const toHex = (rgb: string) => {
-        const m = rgb.match(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+)\s*)?\)/i)
-        if (!m) return rgb
-        const to2 = (n: number) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0")
-        return `#${to2(Number(m[1]))}${to2(Number(m[2]))}${to2(Number(m[3]))}`
-      }
       const arr: string[] = (this.PRESET_TASK_COLORS || []).map(p => {
         if ((p as any).hex) return (p as any).hex as string
-        else if (p.color) return toHex(p.color)
+        else if (p.color) return rgbTextToHex(p.color)
         return ""
       })
-
       return arr?.filter(Boolean)
     },
   },
