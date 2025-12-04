@@ -193,7 +193,7 @@ export default {
     return {
       staffData: (this as any).task as Staff[],
       viewStartDate: new Date().setHours(0, 0, 0, 0) - 86400000 * 2,
-      viewMode: "year" as ViewMode,
+      viewMode: "month" as ViewMode,
       scrollX: 0,
       headersStartDate: null as Date | null,
       headersEndDate: null as Date | null,
@@ -469,9 +469,6 @@ export default {
       const m = Number(parts[1] || 1)
       const d = Number(parts[2] || 1)
       return new Date(y, Math.max(0, m - 1), Math.max(1, d))
-    },
-    daysInMonth(d: Date): number {
-      return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
     },
     dateToPixel(date: Date): number {
       if (this.viewMode === "year" && this.headers && this.headers.length > 0) {
