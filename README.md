@@ -1,8 +1,6 @@
-<div align="center">
-  <h1>Resource Scheduler</h1>
-  <p>一个基于 Vue 2.7 的可视化资源排期组件库</p>
-  <img src="https://github.com/zcodery/scheduler/blob/feature/month/public/scheduler-demo.png?raw=true" alt="Scheduler Demo" style="max-width: 820px; width: 100%; margin-top: 12px" />
-</div>
+# Resource Scheduler
+一个基于 Vue 2.7 的可视化资源排期组件库
+![Scheduler Demo](https://raw.githubusercontent.com/zcodery/scheduler/feature/month/public/scheduler-demo.png)
 
 ## 介绍
 
