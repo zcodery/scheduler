@@ -23,7 +23,7 @@
     </div>
 
     <div class="flex-1 relative overflow-hidden bg-white" @contextmenu.prevent="onContextRow">
-      <div class="relative h-full" :style="{ width: viewMode === 'year' ? '100%' : viewMode === 'month' ? headers.length * dayWidth + 'px' : headers.length * 120 + 'px', transform: viewMode !== 'year' ? `translateX(${-scrollX}px)` : undefined, willChange: viewMode !== 'year' ? 'transform' : undefined }">
+      <div class="relative h-full" :style="{ width: viewMode === 'month' ? headers.length * dayWidth + 'px' : headers.length * 120 + 'px', transform: `translateX(${-scrollX}px)`, willChange: 'transform' }">
         <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: viewMode === 'month' ? `repeat(${headers.length}, ${dayWidth}px)` : `repeat(${headers.length}, 120px)` }">
           <div v-for="(h, i) in headers" :key="i" :class="['border-r border-gray-100 h-full', h.isToday ? 'bg-blue-50/60' : h.isWeekend ? 'bg-gray-50/80' : '']"></div>
         </div>
@@ -99,8 +99,15 @@ export default {
     },
   },
   methods: {
+    parseDateStr(s: string): Date {
+      const parts = String(s).split("-")
+      const y = Number(parts[0] || 0)
+      const m = Number(parts[1] || 1)
+      const d = Number(parts[2] || 1)
+      return new Date(y, Math.max(0, m - 1), Math.max(1, d))
+    },
     onSidebarMouseDown(e: MouseEvent) {
-      this.$emit("pan-start", e)
+      e.preventDefault()
     },
     rgbTextToHex(rgb: string | undefined) {
       if (!rgb) return "#ffffff"
@@ -130,12 +137,37 @@ export default {
       })
       return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2]
     },
+    daysInMonth(d: Date): number {
+      return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
+    },
+    dateToPixelYear(d: Date): number {
+      if (!this.headers || this.headers.length === 0) return 0
+      const base = new Date(this.headers[0].date)
+      let px = 0
+      let cur = new Date(base)
+      while (cur.getFullYear() < d.getFullYear() || cur.getMonth() < d.getMonth()) {
+        px += 120
+        cur.setMonth(cur.getMonth() + 1)
+      }
+      const dim = this.daysInMonth(cur)
+      const dayIndex = Math.max(0, Math.min(dim - 1, d.getDate() - 1))
+      px += dayIndex * (120 / dim)
+      return px
+    },
     taskStyle(task: Task) {
-      const sDate = new Date(task.startDate)
+      const sDate = this.parseDateStr(task.startDate)
       sDate.setHours(0, 0, 0, 0)
       const start = sDate.getTime()
       const startOffset = start - this.viewStartDate.getTime()
       const topOffset = (task.rowOffset || 0) * 36
+      if (this.viewMode === "year") {
+        const leftPx = this.dateToPixelYear(sDate)
+        const end = new Date(sDate)
+        end.setDate(end.getDate() + task.duration)
+        const rightPx = this.dateToPixelYear(end)
+        const widthPx = Math.max(1, rightPx - leftPx)
+        return { left: `${leftPx}px`, width: `${widthPx}px`, top: `${12 + topOffset}px` }
+      }
       if (this.viewMode === "month" || this.viewMode === "quarter") {
         const baseDate = this.headers && this.headers.length > 0 ? new Date(this.headers[0].date) : new Date(this.viewStartDate)
         baseDate.setHours(0, 0, 0, 0)
@@ -208,7 +240,16 @@ export default {
       const timelineLeft = rowRect.left + 260
       const relativeX = e.clientX - timelineLeft
       let d: Date
-      if (this.viewMode === "month" || this.viewMode === "quarter") {
+      if (this.viewMode === "year" && this.headers && this.headers.length > 0) {
+        const x = Math.max(0, this.scrollX + relativeX)
+        const monthIndex = Math.min(this.headers.length - 1, Math.floor(x / 120))
+        const monthStart = new Date(this.headers[monthIndex].date)
+        const dim = this.daysInMonth(monthStart)
+        const within = x - monthIndex * 120
+        const dayOffset = Math.max(0, Math.floor(within / (120 / dim)))
+        d = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1)
+        d.setDate(d.getDate() + dayOffset)
+      } else if (this.viewMode === "month" || this.viewMode === "quarter") {
         const baseDate = this.headers && this.headers.length > 0 ? new Date(this.headers[0].date) : new Date(this.viewStartDate as Date)
         baseDate.setHours(0, 0, 0, 0)
         const baseStartMs = baseDate.getTime()
@@ -229,20 +270,20 @@ export default {
       this.$emit("add-task-at", this.staff.id, dateStr)
     },
     isConflict(t: Task): boolean {
-      const startA = new Date(t.startDate).getTime()
+      const startA = this.parseDateStr(t.startDate).getTime()
       const endA = startA + t.duration * 86400000
       return this.staff.tasks.some(
         x =>
           x.id !== t.id &&
           (() => {
-            const startB = new Date(x.startDate).getTime()
+            const startB = this.parseDateStr(x.startDate).getTime()
             const endB = startB + x.duration * 86400000
             return Math.max(startA, startB) < Math.min(endA, endB)
           })()
       )
     },
     displyEndDate(startDate: string, duration: number) {
-      const dEnd = new Date(startDate)
+      const dEnd = this.parseDateStr(startDate)
       dEnd.setDate(dEnd.getDate() + duration)
       return `${dEnd.getFullYear()}-${String(dEnd.getMonth() + 1).padStart(2, "0")}-${String(dEnd.getDate()).padStart(2, "0")}`
     },
