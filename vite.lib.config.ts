@@ -17,10 +17,13 @@ export default defineConfig({
       fileName: (format) => `resource-scheduler.${format}.js`,
     },
     rollupOptions: {
-      external: ["vue"],
+      external: ["vue", "vuedraggable", "element-ui", "vue-router"],
       output: {
         globals: {
           vue: "Vue",
+          vuedraggable: "vuedraggable",
+          "element-ui": "ELEMENT",
+          "vue-router": "VueRouter",
         },
       },
     },

@@ -91,6 +91,8 @@ UMD（全局对象 `window.ResourceScheduler`）：
 
 可选镜像：将上面 CDN 域名替换为 `unpkg.com` 亦可。
 
+注意：UMD 使用需同时加载 `vuedraggable`。
+
 ## 组件入口与导出
 
 库入口文件：`index.ts`。
