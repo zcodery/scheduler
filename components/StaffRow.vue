@@ -229,7 +229,6 @@ export default {
     },
     openEditTask(task: Task) {
       if (this.readonly) return
-      return console.log(task)
       this.$emit("open-edit-task", task)
     },
     onUpdateTaskName(task: Task, newName: string) {
