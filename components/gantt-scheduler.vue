@@ -1223,7 +1223,11 @@ export default {
     },
     ctxAddTask() {
       this.menuVisible = false
-      if (this.contextMenu && this.contextMenu.staffId) this.addTask(this.contextMenu.staffId)
+      if (this.contextMenu && this.contextMenu.staffId) {
+        const dateStr = (this.contextMenu as any).dateAtMouse
+        if (dateStr) this.addTaskAtDate(this.contextMenu.staffId, dateStr)
+        else this.addTask(this.contextMenu.staffId)
+      }
     },
     ctxOpenEditTask() {
       this.menuVisible = false
