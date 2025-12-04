@@ -35,7 +35,7 @@
                 <div>结束: {{ displyEndDate(t.startDate, t.duration) }}</div>
                 <div>工期: {{ t.duration }} 天</div>
               </div>
-              <TaskCard slot="reference" :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName(t, $event)" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" @editing-start="onTaskEditingStart" @editing-end="onTaskEditingEnd" />
+              <TaskCard slot="reference" :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" @editing-start="onTaskEditingStart" @editing-end="onTaskEditingEnd" />
             </el-popover>
           </div>
         </div>
