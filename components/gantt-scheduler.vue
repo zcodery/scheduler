@@ -1408,68 +1408,94 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+$menu-bg: #fff;
+$menu-border: #e5e7eb;
+$menu-shadow: 0 8px 24px rgba(16, 24, 40, 0.08), 0 4px 12px rgba(16, 24, 40, 0.06);
+$item-hover-bg: #f5f7fa;
+$text-default: #374151;
+$text-muted: #9ca3af;
+$danger: #e11d48;
+
+$nav-bg: #fff;
+$nav-border: #e5e7eb;
+$nav-shadow: 0 2px 6px rgba(16, 24, 40, 0.06);
+$icon-color: #606266;
+$icon-color-hover: #303133;
+
 .rs-menu {
   min-width: 120px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: $menu-bg;
+  border: 1px solid $menu-border;
   border-radius: 4px;
-  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08), 0 4px 12px rgba(16, 24, 40, 0.06);
+  box-shadow: $menu-shadow;
   padding: 6px;
+
+  .rs-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: $text-default;
+    cursor: pointer;
+
+    &:hover {
+      background: $item-hover-bg;
+    }
+
+    &.rs-item-disabled {
+      opacity: 0.6;
+      color: $text-muted;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    &.rs-item-danger {
+      color: $danger;
+    }
+  }
+
+  .rs-sep {
+    height: 1px;
+    background: $menu-border;
+    margin: 4px 0;
+  }
 }
-.rs-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  font-size: 12px;
-  color: #374151;
-  cursor: pointer;
-}
-.rs-item:hover {
-  background: #f5f7fa;
-}
-.rs-item-disabled {
-  opacity: 0.6;
-  color: #9ca3af;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-.rs-item-danger {
-  color: #e11d48;
-}
-.rs-sep {
-  height: 1px;
-  background: #e5e7eb;
-  margin: 4px 0;
-}
+
 .rs-navbox {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: $nav-bg;
+  border: 1px solid $nav-border;
   border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(16, 24, 40, 0.06);
+  box-shadow: $nav-shadow;
   padding: 6px 8px;
+
+  .rs-navbox-label {
+    line-height: 1;
+    font-size: 14px;
+    color: #1f2d3d;
+    letter-spacing: 0.5px;
+  }
 }
-.rs-navbox-label {
-  line-height: 1;
-  font-size: 14px;
-  color: #1f2d3d;
-  letter-spacing: 0.5px;
-}
+
 .rs-nav-icon {
   padding: 0;
   min-width: auto;
-}
-.rs-nav-icon .el-icon-arrow-left,
-.rs-nav-icon .el-icon-arrow-right {
-  font-size: 16px;
-  color: #606266;
-}
-.rs-nav-icon:hover .el-icon-arrow-left,
-.rs-nav-icon:hover .el-icon-arrow-right {
-  color: #303133;
+
+  .el-icon-arrow-left,
+  .el-icon-arrow-right {
+    font-size: 16px;
+    color: $icon-color;
+  }
+
+  &:hover {
+    .el-icon-arrow-left,
+    .el-icon-arrow-right {
+      color: $icon-color-hover;
+    }
+  }
 }
 </style>
