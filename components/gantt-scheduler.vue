@@ -470,6 +470,31 @@ export default {
       const d = Number(parts[2] || 1)
       return new Date(y, Math.max(0, m - 1), Math.max(1, d))
     },
+    daysInMonth(d: Date): number {
+      return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
+    },
+    dateToPixel(date: Date): number {
+      if (this.viewMode === "year" && this.headers && this.headers.length > 0) {
+        const base = new Date(this.headers[0].date)
+        let px = 0
+        let cur = new Date(base)
+        while (cur.getFullYear() < date.getFullYear() || cur.getMonth() < date.getMonth()) {
+          px += 120
+          cur.setMonth(cur.getMonth() + 1)
+        }
+        const dim = this.daysInMonth(cur)
+        const dayIndex = Math.max(0, Math.min(dim - 1, date.getDate() - 1))
+        px += dayIndex * (120 / dim)
+        return px
+      }
+      if (this.headersStartDate) {
+        const startMs = this.headersStartDate.getTime()
+        const diffDays = Math.round((date.getTime() - startMs) / this.ONE_DAY_MS)
+        return Math.max(0, diffDays * this.effectiveDayWidth)
+      }
+      const msPerPixel = this.viewDurationMs / this.getTimelineWidth()
+      return Math.max(0, (date.getTime() - this.viewStartDate) / msPerPixel)
+    },
     onTaskEditStart() {
       this.stopAutoScroll()
       this.interaction = null
@@ -674,6 +699,18 @@ export default {
     jumpToToday() {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
+      if (this.viewMode === "month" || this.viewMode === "quarter" || this.viewMode === "year") {
+        const px = this.dateToPixel(today)
+        const container = this.$refs.containerRef as HTMLDivElement
+        const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+        const contentWidth = this.getTimelineWidth()
+        const margin = 40
+        const targetScroll = Math.max(0, Math.min(contentWidth - viewport, Math.max(0, px - margin)))
+        this.scrollX = targetScroll
+        this.ensureRightCapacity(targetScroll)
+        this.scheduleAdjustRange(true)
+        return
+      }
       const ms = today.getTime()
       this.viewStartDate = ms - this.viewDurationMs * 0.1
     },
@@ -1055,8 +1092,21 @@ export default {
       const s = this.staffData.find(x => x.id === staffId)
       const t = s && s.tasks.find(y => y.id === taskId)
       if (!t) return
-      const start = this.parseDateStr(t.startDate).getTime()
-      this.viewStartDate = start - this.viewDurationMs * 0.1
+      const d = this.parseDateStr(t.startDate)
+      if (this.viewMode === "month" || this.viewMode === "quarter" || this.viewMode === "year") {
+        const px = this.dateToPixel(d)
+        const container = this.$refs.containerRef as HTMLDivElement
+        const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+        const contentWidth = this.getTimelineWidth()
+        const margin = 40
+        const targetScroll = Math.max(0, Math.min(contentWidth - viewport, Math.max(0, px - margin)))
+        this.scrollX = targetScroll
+        this.ensureRightCapacity(targetScroll)
+      } else {
+        const start = d.getTime()
+        this.viewStartDate = start - this.viewDurationMs * 0.1
+      }
+      this.scrollToStaff(staffId)
       this.contextMenu = null
     },
     scrollToStaff(staffId: string) {
@@ -1077,8 +1127,20 @@ export default {
         this.scrollToStaff(staffId)
         return
       }
-      const target = Math.min(...s.tasks.map(t => this.parseDateStr(t.startDate).getTime()))
-      this.viewStartDate = target - this.viewDurationMs * 0.1
+      const targetDate = new Date(Math.min(...s.tasks.map(t => this.parseDateStr(t.startDate).getTime())))
+      if (this.viewMode === "month" || this.viewMode === "quarter" || this.viewMode === "year") {
+        const px = this.dateToPixel(targetDate)
+        const container = this.$refs.containerRef as HTMLDivElement
+        const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+        const contentWidth = this.getTimelineWidth()
+        const margin = 40
+        const targetScroll = Math.max(0, Math.min(contentWidth - viewport, Math.max(0, px - margin)))
+        this.scrollX = targetScroll
+        this.ensureRightCapacity(targetScroll)
+      } else {
+        const start = targetDate.getTime()
+        this.viewStartDate = start - this.viewDurationMs * 0.1
+      }
       this.scrollToStaff(staffId)
     },
     openEditTask(staff: Staff) {
