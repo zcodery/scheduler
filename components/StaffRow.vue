@@ -10,11 +10,11 @@
         </slot>
         <div class="flex-1 min-w-0">
           <div v-if="editingField === 'name'" class="w-full">
-            <el-input autofocus size="mini" v-model="staff.name" @blur="saveEdit('name', $event)" @keydown.enter.prevent="blurInput" />
+            <el-input ref="nameInput" autofocus size="mini" v-model="staff.name" @blur="saveEdit('name', $event)" @keydown.enter.prevent="blurInput" />
           </div>
           <div v-else class="text-sm font-bold text-gray-900 truncate cursor-pointer" @dblclick="startEdit('name')" @click.stop="emitFocus">{{ staff.name }}</div>
           <div v-if="editingField === 'role'" class="w-full">
-            <el-input autofocus size="mini" v-model="staff.role" @blur="saveEdit('role', $event)" @keydown.enter.prevent="blurInput" />
+            <el-input ref="roleInput" autofocus size="mini" v-model="staff.role" @blur="saveEdit('role', $event)" @keydown.enter.prevent="blurInput" />
           </div>
           <div v-else class="text-xs text-gray-500 truncate cursor-text" @dblclick="startEdit('role')">{{ staff.role }}</div>
         </div>
@@ -183,7 +183,17 @@ export default {
     },
     startEdit(field: "name" | "role") {
       if (this.readonly) return
+      this.$emit("focus-staff", this.staff.id)
       this.editingField = field
+      this.$nextTick(() => {
+        if (field === "name") {
+          const r = (this.$refs as any).nameInput
+          if (r && typeof r.focus === "function") r.focus()
+        } else {
+          const r = (this.$refs as any).roleInput
+          if (r && typeof r.focus === "function") r.focus()
+        }
+      })
     },
     blurInput(e: Event) {
       ;(e.target as HTMLInputElement).blur()
