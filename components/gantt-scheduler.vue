@@ -50,30 +50,32 @@
       </div>
     </div>
 
-    <div ref="containerRef" class="flex-1 overflow-y-auto overflow-x-hidden relative" @mousedown="onPanMouseDown" @contextmenu.prevent @wheel="onWheel">
+    <div ref="containerRef" class="flex-1 overflow-y-auto overflow-x-auto relative" @mousedown="onPanMouseDown" @contextmenu.prevent @wheel="onWheel">
       <div class="sticky top-0 z-40 flex border-b border-gray-200 bg-gray-50 shadow-sm header-row">
-        <div class="w-64 flex-shrink-0 p-3 border-r border-gray-200 text-xs font-semibold text-gray-500 flex items-center bg-gray-50" @contextmenu.prevent="onHeaderSidebarContext">人员 / 饱和度</div>
-        <div class="flex-1 grid overflow-hidden" :style="{ gridTemplateColumns: `repeat(${headers.length}, 1fr)` }">
-          <div v-for="(h, i) in headers" :key="i" :class="['flex flex-col items-center justify-center py-2 border-r border-gray-200 text-xs', h.isToday ? 'bg-blue-100/50' : h.isWeekend ? 'bg-gray-200/50' : '']">
-            <span :class="['font-medium whitespace-nowrap', h.isToday ? 'text-blue-600' : 'text-gray-700']">{{ h.label }}</span>
-            <span class="text-[10px] text-gray-400 mt-0.5 whitespace-nowrap">{{ h.subLabel }}</span>
+        <div class="w-64 flex-shrink-0 p-3 border-r border-gray-200 text-xs font-semibold text-gray-500 flex items-center bg-gray-50" @contextmenu.prevent="onHeaderSidebarContext" @mousedown="onPanMouseDown">人员 / 饱和度</div>
+        <div class="flex-1 overflow-hidden">
+          <div class="grid" :style="{ gridTemplateColumns: viewMode === 'month' ? `repeat(${headers.length}, ${DAY_CELL_PX}px)` : `repeat(${headers.length}, 1fr)`, width: viewMode === 'month' ? headers.length * DAY_CELL_PX + 'px' : '100%', transform: viewMode === 'month' ? `translateX(${-scrollX}px)` : undefined, willChange: viewMode === 'month' ? 'transform' : undefined }">
+            <div v-for="(h, i) in headers" :key="i" :class="['flex flex-col items-center justify-center py-2 border-r border-gray-200 text-xs', h.isToday ? 'bg-blue-100/50' : h.isWeekend ? 'bg-gray-200/50' : '']">
+              <span :class="['font-medium whitespace-nowrap', h.isToday ? 'text-blue-600' : 'text-gray-700']">{{ h.label }}</span>
+              <span class="text-[10px] text-gray-400 mt-0.5 whitespace-nowrap">{{ h.subLabel }}</span>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="relative">
-        <draggable v-model="staffData" item-key="id" :disabled="readonly" handle=".rs-staff-handle" :animation="150">
-          <StaffRow v-for="s in displayStaffs" :key="s.id" :staff="s" :headers="headers" :viewStartDate="new Date(viewStartDate)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff">
+        <draggable v-model="staffData" item-key="id" :disabled="readonly || isEditingTask" handle=".rs-staff-handle" :animation="150">
+          <StaffRow v-for="s in displayStaffs" :key="s.id" :staff="s" :headers="headers" :viewStartDate="new Date(headers[0].date)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" :dayWidth="DAY_CELL_PX" :scrollX="scrollX" @pan-start="onPanMouseDown" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff" @task-edit-start="onTaskEditStart" @task-edit-end="onTaskEditEnd">
             <template #avatar="{ staff }"><slot name="avatar" :staff="staff"></slot></template>
             <template #workload="{ staff }"><slot name="workloadBar" :staff="staff"></slot></template>
           </StaffRow>
         </draggable>
-        <div v-if="quickJumpDir" class="absolute top-1/2 -translate-y-1/2 z-50 pointer-events-none w-full flex justify-between px-10 pl-[280px]">
+        <div v-if="quickJumpDir" class="absolute top-1/2 -translate-y-1/2 z-50 pointer-events-none flex justify-between px-6" :style="{ left: '260px', right: '0' }">
           <el-button v-if="quickJumpDir === 'left'" type="primary" plain circle icon="el-icon-d-arrow-left" class="pointer-events-auto" @click="jumpToData('right')"></el-button>
           <div class="flex-1"></div>
           <el-button v-if="quickJumpDir === 'right'" type="primary" plain circle icon="el-icon-d-arrow-right" class="pointer-events-auto" @click="jumpToData('left')"></el-button>
         </div>
-        <div class="h-[300px]" @click="contextMenu = null"></div>
+        <div class="h-[100px]" @click="contextMenu = null"></div>
       </div>
 
       <!-- 今天 定位 线 -->
@@ -184,6 +186,9 @@ export default {
       staffData: (this as any).task as Staff[],
       viewStartDate: new Date().setHours(0, 0, 0, 0) - 86400000 * 2,
       viewMode: "month" as ViewMode,
+      scrollX: 0,
+      headersStartDate: null as Date | null,
+      headersEndDate: null as Date | null,
       tooltip: null as TooltipState | null,
       editModal: { isOpen: false, staffId: "", task: null } as EditTaskModalState,
       editStaffModal: { isOpen: false, staff: null } as EditStaffModalState,
@@ -191,12 +196,24 @@ export default {
       isPanning: false,
       panStartX: 0,
       panStartDate: 0,
+      panStartScrollLeft: 0,
       interaction: null as null | { type: "resize" | "move"; taskId: string; staffId: string; direction?: "left" | "right"; initialDuration?: number; initialX: number; initialY: number; initialStartTime: number; initialRowOffset?: number; offsetMs?: number },
       autoScrollTimer: null as number | null,
       lastMouseX: 0,
+      panRaf: null as number | null,
+      lastPanDeltaX: 0,
+      lastAnchorDays: 0,
+      ANCHOR_STEP_DAYS: 7,
+      adjustRangeTimer: null as number | null,
+      ADJUST_DEBOUNCE_MS: 120,
       draggedStaffId: null as string | null,
       menuVisible: false,
+      isEditingTask: false,
     }
+  },
+  created() {
+    this.initHeadersRange()
+    this.lastAnchorDays = Math.floor(this.scrollX / this.DAY_CELL_PX)
   },
   watch: {
     task: {
@@ -213,6 +230,29 @@ export default {
           window.dispatchEvent(new CustomEvent("scheduler:data-change", { detail: val }))
         } catch {}
       },
+    },
+    scrollX() {
+      if (this.viewMode === "month" && this.headersStartDate && this.headersEndDate) {
+        const days = Math.floor(this.scrollX / this.DAY_CELL_PX)
+        if (this.isPanning && this.lastPanDeltaX < 0 && days < 0) {
+          const visibleLeft = new Date(this.visibleLeftDate)
+          const newStart = new Date(visibleLeft)
+          newStart.setDate(newStart.getDate() - 30)
+          const newEnd = new Date(visibleLeft)
+          newEnd.setDate(newEnd.getDate() + 60)
+          const oldStart = this.headersStartDate
+          const diffDays = Math.round((newStart.getTime() - oldStart.getTime()) / this.ONE_DAY_MS)
+          if (diffDays !== 0) {
+            this.headersStartDate = newStart
+            this.headersEndDate = newEnd
+            this.scrollX = this.scrollX - diffDays * this.DAY_CELL_PX
+            this.lastAnchorDays = days
+            this.scheduleAdjustRange(true)
+            return
+          }
+        }
+      }
+      this.scheduleAdjustRange(false)
     },
   },
   mounted() {
@@ -239,21 +279,33 @@ export default {
     }
     document.addEventListener("keydown", onKey)
     document.addEventListener("mousedown", onDocClick)
+    const onDocMouseMove = (e: MouseEvent) => this.onGlobalMouseMove(e)
+    document.addEventListener("mousemove", onDocMouseMove)
     ;(this as any)._onKey = onKey
     ;(this as any)._onDocClick = onDocClick
+    ;(this as any)._onDocMouseMove = onDocMouseMove
   },
   beforeDestroy() {
     const onKey = (this as any)._onKey as (e: KeyboardEvent) => void
     if (onKey) document.removeEventListener("keydown", onKey)
     const onDocClick = (this as any)._onDocClick as (e: MouseEvent) => void
     if (onDocClick) document.removeEventListener("mousedown", onDocClick)
+    const onDocMouseMove = (this as any)._onDocMouseMove as (e: MouseEvent) => void
+    if (onDocMouseMove) document.removeEventListener("mousemove", onDocMouseMove)
+    if (this.adjustRangeTimer) {
+      window.clearTimeout(this.adjustRangeTimer)
+      this.adjustRangeTimer = null
+    }
   },
   computed: {
     ONE_DAY_MS(): number {
       return 86400000
     },
+    DAY_CELL_PX(): number {
+      return 50
+    },
     viewDurationMs(): number {
-      if (this.viewMode === "month") return this.ONE_DAY_MS * 31
+      if (this.viewMode === "month") return this.ONE_DAY_MS * this.headers.length
       if (this.viewMode === "quarter") return this.ONE_DAY_MS * 90
       return this.ONE_DAY_MS * 365
     },
@@ -264,11 +316,26 @@ export default {
       const isSameDay = (d1: Date, d2: Date) => d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear()
       const today = new Date()
       if (this.viewMode === "month") {
-        const startDay = new Date(startDate)
-        for (let i = 0; i < count; i++) {
-          const d = new Date(startDay)
-          d.setDate(d.getDate() + i)
-          headers.push({ date: d, label: `${d.getDate()}`, subLabel: WEEK_DAYS[d.getDay()], isToday: isSameDay(d, today), isWeekend: d.getDay() === 0 || d.getDay() === 6 })
+        const rangeStart = this.headersStartDate
+          ? new Date(this.headersStartDate)
+          : (() => {
+              const b = new Date(startDate)
+              b.setDate(1)
+              b.setMonth(b.getMonth() - 1)
+              return b
+            })()
+        const rangeEnd = this.headersEndDate
+          ? new Date(this.headersEndDate)
+          : (() => {
+              const e = new Date(startDate)
+              e.setMonth(e.getMonth() + 2)
+              e.setDate(0)
+              return e
+            })()
+        for (let d = new Date(rangeStart); d <= rangeEnd; ) {
+          const dd = new Date(d)
+          headers.push({ date: dd, label: `${dd.getMonth() + 1}月${dd.getDate()}`, subLabel: WEEK_DAYS[dd.getDay()], isToday: isSameDay(dd, today), isWeekend: dd.getDay() === 0 || dd.getDay() === 6 })
+          d.setDate(d.getDate() + 1)
         }
       } else if (this.viewMode === "quarter") {
         const startDay = new Date(startDate)
@@ -287,9 +354,31 @@ export default {
       }
       return headers
     },
+    headersStartMs(): number {
+      return this.headers && this.headers.length > 0 ? this.headers[0].date.getTime() : this.viewStartDate
+    },
+    visibleLeftDate(): Date {
+      console.log(23)
+
+      const start = this.headersStartDate ? new Date(this.headersStartDate) : new Date(this.viewStartDate)
+      const days = Math.floor(this.scrollX / this.DAY_CELL_PX)
+      const d = new Date(start)
+      d.setDate(d.getDate() + days)
+      d.setHours(0, 0, 0, 0)
+      return d
+    },
     currentLabel(): string {
+      if (this.viewMode === "month") {
+        const d = new Date(this.visibleLeftDate)
+        return `${d.getFullYear()}年 ${d.getMonth() + 1}月`
+      }
+      if (this.viewMode === "quarter") {
+        const d = new Date(this.viewStartDate)
+        const q = Math.floor(d.getMonth() / 3) + 1
+        return `${d.getFullYear()}年 Q${q}`
+      }
       const d = new Date(this.viewStartDate)
-      return `${d.getFullYear()}年 ${d.getMonth() + 1}月`
+      return `${d.getFullYear()}年`
     },
     viewModes(): ViewMode[] {
       return ["month", "quarter", "year"]
@@ -302,6 +391,78 @@ export default {
     },
   },
   methods: {
+    onTaskEditStart() {
+      this.stopAutoScroll()
+      this.interaction = null
+      this.isEditingTask = true
+    },
+    onTaskEditEnd() {
+      this.stopAutoScroll()
+      this.isEditingTask = false
+    },
+    preExtendLeftBuffer() {
+      if (this.viewMode !== "month" || !this.headersStartDate || !this.headersEndDate) return
+      const add = 30
+      const ns = new Date(this.headersStartDate)
+      ns.setDate(ns.getDate() - add)
+      const ne = new Date(this.headersEndDate)
+      ne.setDate(ne.getDate() + add)
+      this.headersStartDate = ns
+      this.headersEndDate = ne
+      const px = add * this.DAY_CELL_PX
+      this.scrollX = this.scrollX + px
+      if (this.isPanning) this.panStartScrollLeft = this.panStartScrollLeft + px
+    },
+    scheduleAdjustRange(force: boolean = false) {
+      if (force) {
+        if (this.adjustRangeTimer) {
+          window.clearTimeout(this.adjustRangeTimer)
+          this.adjustRangeTimer = null
+        }
+        this.adjustHeadersRange()
+        return
+      }
+      if (this.adjustRangeTimer) window.clearTimeout(this.adjustRangeTimer)
+      this.adjustRangeTimer = window.setTimeout(() => {
+        this.adjustRangeTimer = null
+        this.adjustHeadersRange()
+      }, this.ADJUST_DEBOUNCE_MS)
+    },
+    initHeadersRange() {
+      const base = new Date(this.viewStartDate)
+      base.setHours(0, 0, 0, 0)
+      base.setDate(1)
+      const prevFirst = new Date(base)
+      prevFirst.setMonth(prevFirst.getMonth() - 1)
+      prevFirst.setDate(1)
+      const nextEnd = new Date(base)
+      nextEnd.setMonth(nextEnd.getMonth() + 2)
+      nextEnd.setDate(0)
+      this.headersStartDate = prevFirst
+      this.headersEndDate = nextEnd
+    },
+    daysInMonth(d: Date): number {
+      return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
+    },
+    adjustHeadersRange() {
+      if (this.viewMode !== "month" || !this.headersStartDate || !this.headersEndDate) return
+      const daysScrolled = Math.floor(this.scrollX / this.DAY_CELL_PX)
+      if (Math.abs(daysScrolled - this.lastAnchorDays) < this.ANCHOR_STEP_DAYS) return
+      const visibleLeft = new Date(this.visibleLeftDate)
+      const newStart = new Date(visibleLeft)
+      newStart.setDate(newStart.getDate() - 30)
+      const newEnd = new Date(visibleLeft)
+      newEnd.setDate(newEnd.getDate() + 60)
+      const oldStart = this.headersStartDate
+      const diffDays = Math.round((newStart.getTime() - oldStart.getTime()) / this.ONE_DAY_MS)
+      const endDiffDays = Math.round((newEnd.getTime() - this.headersEndDate.getTime()) / this.ONE_DAY_MS)
+      if (diffDays !== 0 || endDiffDays !== 0) {
+        this.headersStartDate = newStart
+        this.headersEndDate = newEnd
+        this.scrollX = this.scrollX - diffDays * this.DAY_CELL_PX
+        this.lastAnchorDays = daysScrolled
+      }
+    },
     onToolbarCommand(cmd: string) {
       if (cmd === "today") this.jumpToToday()
       else if (cmd === "collapse") this.collapseAll()
@@ -314,9 +475,14 @@ export default {
     },
     nav(dir: "prev" | "next") {
       const shift = dir === "next" ? 1 : -1
+      if (this.viewMode === "month") {
+        const shiftDays = 30
+        this.scrollX = this.scrollX + shiftDays * this.DAY_CELL_PX * shift
+        this.scheduleAdjustRange(true)
+        return
+      }
       let shiftMs = 0
-      if (this.viewMode === "month") shiftMs = this.ONE_DAY_MS * 31 * shift
-      else if (this.viewMode === "quarter") shiftMs = this.ONE_DAY_MS * 90 * shift
+      if (this.viewMode === "quarter") shiftMs = this.ONE_DAY_MS * 90 * shift
       else shiftMs = this.ONE_DAY_MS * 365 * shift
       this.viewStartDate = this.viewStartDate + shiftMs
     },
@@ -333,23 +499,33 @@ export default {
       this.staffData = this.staffData.map(s => ({ ...s, isCollapsed: false }))
     },
     onPanMouseDown(e: MouseEvent) {
+      if (this.isEditingTask) return
       if ((e.target as HTMLElement).closest(".task-card")) return
       if ((e.target as HTMLElement).closest("input")) return
+      const active = document.activeElement as HTMLElement | null
+      if (active && active.tagName === "INPUT") return
+      e.preventDefault()
       this.isPanning = true
       this.panStartX = e.clientX
       this.panStartDate = this.viewStartDate
+      this.panStartScrollLeft = this.scrollX
       document.body.style.cursor = "grabbing"
     },
     getTimelineWidth(): number {
       const container = this.$refs.containerRef as HTMLDivElement
       const baseWidth = container ? container.clientWidth : window.innerWidth
-      return Math.max(1, baseWidth - 260)
+      let width = Math.max(1, baseWidth - 260)
+      if (this.viewMode === "month") width = this.headers.length * this.DAY_CELL_PX
+      return width
     },
     getDateAtMouse(clientX: number): number {
+      const container = this.$refs.containerRef as HTMLDivElement
+      const rect = container.getBoundingClientRect()
+      const timelineLeft = rect.left + 260
       const timelineWidth = this.getTimelineWidth()
       const msPerPixel = this.viewDurationMs / timelineWidth
-      const relativeX = clientX - 260
-      return this.viewStartDate + relativeX * msPerPixel
+      const relativeX = clientX - timelineLeft + this.scrollX
+      return this.headersStartMs + relativeX * msPerPixel
     },
     todayLineCalc(): number {
       const today = new Date().getTime()
@@ -367,8 +543,22 @@ export default {
       if (this.autoScrollTimer) return
       this.autoScrollTimer = window.setInterval(() => {
         const shift = direction === "left" ? -1 : 1
-        const speed = this.viewDurationMs * 0.005
-        this.viewStartDate = this.viewStartDate + speed * shift
+        if (this.viewMode === "month") {
+          const container = this.$refs.containerRef as HTMLDivElement
+          const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+          let nextRaw = this.scrollX + 8 * shift
+          if (shift < 0 && nextRaw <= 10) {
+            this.preExtendLeftBuffer()
+            nextRaw = this.scrollX + 8 * shift
+          }
+          const maxScroll = Math.max(0, this.headers.length * this.DAY_CELL_PX - viewport)
+          const next = Math.max(0, Math.min(maxScroll, nextRaw))
+          this.scrollX = next
+          this.scheduleAdjustRange(false)
+        } else {
+          const speed = this.viewDurationMs * 0.005
+          this.viewStartDate = this.viewStartDate + speed * shift
+        }
       }, 16)
     },
     handleResizeStart(e: MouseEvent, direction: "left" | "right", task: Task, staffId: string) {
@@ -389,6 +579,7 @@ export default {
       document.body.style.cursor = "move"
     },
     onGlobalMouseMove(e: MouseEvent) {
+      if (this.isEditingTask) return
       const timelineWidth = this.getTimelineWidth()
       const msPerPixel = this.viewDurationMs / timelineWidth
       this.lastMouseX = e.clientX
@@ -438,7 +629,6 @@ export default {
         if (this.interaction.type === "move" && this.interaction.initialRowOffset !== undefined && this.interaction.offsetMs !== undefined) {
           let newStartMs = currentMouseTime + this.interaction.offsetMs
           const d = new Date(newStartMs)
-          if (d.getHours() >= 12) d.setDate(d.getDate() + 1)
           d.setHours(0, 0, 0, 0)
           const y = d.getFullYear()
           const m = String(d.getMonth() + 1).padStart(2, "0")
@@ -463,7 +653,28 @@ export default {
       }
       if (this.isPanning) {
         const deltaX = e.clientX - this.panStartX
-        this.viewStartDate = this.panStartDate - deltaX * msPerPixel
+        this.lastPanDeltaX = deltaX
+        if (this.panRaf == null) {
+          this.panRaf = requestAnimationFrame(() => {
+            this.panRaf = null
+            const dx = this.lastPanDeltaX
+            if (this.viewMode === "month") {
+              const container = this.$refs.containerRef as HTMLDivElement
+              const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+              let nextRaw = this.panStartScrollLeft - dx
+              if (nextRaw <= 10) {
+                this.preExtendLeftBuffer()
+                nextRaw = this.panStartScrollLeft - dx
+              }
+              const maxScroll = Math.max(0, this.headers.length * this.DAY_CELL_PX - viewport)
+              const next = Math.max(0, Math.min(maxScroll, nextRaw))
+              this.scrollX = next
+              this.scheduleAdjustRange(false)
+            } else {
+              this.viewStartDate = this.panStartDate - dx * msPerPixel
+            }
+          })
+        }
       }
     },
     onGlobalMouseUp() {
@@ -482,7 +693,7 @@ export default {
     onGeneralContext(e: MouseEvent) {
       const container = this.$refs.containerRef as HTMLDivElement
       const rect = container.getBoundingClientRect()
-      const x = (e as any).clientX - rect.left + container.scrollLeft
+      const x = (e as any).clientX - rect.left + this.scrollX
       const y = (e as any).clientY - rect.top + container.scrollTop
       this.contextMenu = null
     },
@@ -491,6 +702,7 @@ export default {
       this.onContextMenu({ clientX: (e as any).clientX, clientY: (e as any).clientY, type: "general" })
     },
     onWheel(e: WheelEvent) {
+      if (this.isEditingTask) return
       if (this.readonly) return
       if (e.ctrlKey) {
         e.preventDefault()
@@ -503,10 +715,24 @@ export default {
       }
       if (e.shiftKey) {
         e.preventDefault()
-        const timelineWidth = this.getTimelineWidth()
-        const msPerPixel = this.viewDurationMs / timelineWidth
         const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
-        this.viewStartDate = this.viewStartDate + delta * msPerPixel * 20
+        if (this.viewMode === "month") {
+          const container = this.$refs.containerRef as HTMLDivElement
+          const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+          let nextRaw = this.scrollX + delta * 2
+          if (delta < 0 && nextRaw <= 10) {
+            this.preExtendLeftBuffer()
+            nextRaw = this.scrollX + delta * 2
+          }
+          const maxScroll = Math.max(0, this.headers.length * this.DAY_CELL_PX - viewport)
+          const next = Math.max(0, Math.min(maxScroll, nextRaw))
+          this.scrollX = next
+          this.scheduleAdjustRange(false)
+        } else {
+          const timelineWidth = this.getTimelineWidth()
+          const msPerPixel = this.viewDurationMs / timelineWidth
+          this.viewStartDate = this.viewStartDate + delta * msPerPixel * 20
+        }
         return
       }
     },
@@ -516,7 +742,7 @@ export default {
       const rect = container.getBoundingClientRect()
       const clientX = payload.clientX != null ? payload.clientX! : payload.x != null ? rect.left + payload.x! : rect.left
       const clientY = payload.clientY != null ? payload.clientY! : payload.y != null ? rect.top + payload.y! : rect.top
-      const x = clientX - rect.left + container.scrollLeft
+      const x = clientX - rect.left + this.scrollX
       const y = clientY - rect.top + container.scrollTop
       let clampedX = x
       let clampedY = y
@@ -563,6 +789,8 @@ export default {
       })
     },
     updateTask(staffId: string, taskId: string, updates: Partial<Task>) {
+      console.log(staffId, taskId, updates)
+
       this.staffData = this.staffData.map(s => {
         if (s.id === staffId) return { ...s, tasks: s.tasks.map(t => (t.id === taskId ? { ...t, ...updates } : t)) }
         return s
@@ -769,7 +997,9 @@ export default {
       let minTaskStart = Infinity
       let maxTaskEnd = -Infinity
       let hasTasks = false
+      const allCollapsed = this.staffData.every(s => s.isCollapsed)
       this.staffData.forEach(s => {
+        if (!allCollapsed && s.isCollapsed) return
         s.tasks.forEach(t => {
           hasTasks = true
           const start = new Date(t.startDate).getTime()
@@ -779,6 +1009,16 @@ export default {
         })
       })
       if (!hasTasks) return null
+      if (this.viewMode === "month") {
+        const container = this.$refs.containerRef as HTMLDivElement
+        const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+        const visibleDays = Math.max(1, Math.floor(viewport / this.DAY_CELL_PX))
+        const left = new Date(this.visibleLeftDate).getTime()
+        const right = left + visibleDays * this.ONE_DAY_MS
+        if (maxTaskEnd < left) return "left"
+        if (minTaskStart > right) return "right"
+        return null
+      }
       const viewEnd = this.viewStartDate + this.viewDurationMs
       if (maxTaskEnd < this.viewStartDate) return "left"
       if (minTaskStart > viewEnd) return "right"
@@ -787,6 +1027,59 @@ export default {
     jumpToData(direction: "left" | "right") {
       // 是否全部折叠
       const allCollapsed = this.staffData.every(s => s.isCollapsed)
+      if (this.viewMode === "month") {
+        const container = this.$refs.containerRef as HTMLDivElement
+        const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+        const visibleDays = Math.max(1, Math.floor(viewport / this.DAY_CELL_PX))
+        if (direction === "left") {
+          let minTaskStart = Infinity
+          this.staffData.forEach(s => {
+            if (!allCollapsed && s.isCollapsed) return
+            s.tasks.forEach(t => {
+              const start = new Date(t.startDate).getTime()
+              if (start < minTaskStart) minTaskStart = start
+            })
+          })
+          if (minTaskStart === Infinity) minTaskStart = Date.now()
+          const target = new Date(minTaskStart)
+          target.setHours(0, 0, 0, 0)
+          const visibleLeft = new Date(target)
+          const newStart = new Date(visibleLeft)
+          newStart.setDate(newStart.getDate() - 30)
+          const newEnd = new Date(visibleLeft)
+          newEnd.setDate(newEnd.getDate() + 60)
+          this.headersStartDate = newStart
+          this.headersEndDate = newEnd
+          this.scrollX = Math.floor((visibleLeft.getTime() - newStart.getTime()) / this.ONE_DAY_MS) * this.DAY_CELL_PX
+          this.lastAnchorDays = Math.floor(this.scrollX / this.DAY_CELL_PX)
+          this.scheduleAdjustRange(true)
+        } else {
+          let maxTaskEnd = -Infinity
+          this.staffData.forEach(s => {
+            if (!allCollapsed && s.isCollapsed) return
+            s.tasks.forEach(t => {
+              const start = new Date(t.startDate).getTime()
+              const end = start + t.duration * this.ONE_DAY_MS
+              if (end > maxTaskEnd) maxTaskEnd = end
+            })
+          })
+          if (maxTaskEnd === -Infinity) maxTaskEnd = Date.now()
+          const target = new Date(maxTaskEnd)
+          target.setHours(0, 0, 0, 0)
+          const visibleLeft = new Date(target)
+          visibleLeft.setDate(visibleLeft.getDate() - Math.max(1, visibleDays - 1))
+          const newStart = new Date(visibleLeft)
+          newStart.setDate(newStart.getDate() - 30)
+          const newEnd = new Date(visibleLeft)
+          newEnd.setDate(newEnd.getDate() + 60)
+          this.headersStartDate = newStart
+          this.headersEndDate = newEnd
+          this.scrollX = Math.floor((visibleLeft.getTime() - newStart.getTime()) / this.ONE_DAY_MS) * this.DAY_CELL_PX
+          this.lastAnchorDays = Math.floor(this.scrollX / this.DAY_CELL_PX)
+          this.scheduleAdjustRange(true)
+        }
+        return
+      }
 
       if (direction == "left") {
         let minTaskStart = Infinity

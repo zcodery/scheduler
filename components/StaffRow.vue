@@ -1,6 +1,6 @@
 <template>
   <div :data-staff-id="staff.id" class="flex border-b border-gray-100 bg-white transition-all duration-300 ease-in-out" :style="dynamicStyle">
-    <div class="w-64 flex-shrink-0 p-4 border-r border-gray-200 flex flex-col justify-center select-none bg-white relative group z-20 transition-colors hover:bg-gray-50/50" @contextmenu.prevent="onContextStaff" @mousedown.stop @click.stop>
+    <div class="w-64 flex-shrink-0 p-4 border-r border-gray-200 flex flex-col justify-center select-none bg-white relative group z-20 transition-colors hover:bg-gray-50/50" @contextmenu.prevent="onContextStaff" @mousedown.stop="onSidebarMouseDown" @click.stop>
       <div class="absolute left-1 top-1/2 -translate-y-1/2 text-gray-300 p-1 opacity-0 group-hover:opacity-100 rs-staff-handle">≡</div>
       <div class="flex items-center gap-3 pl-4">
         <button class="text-gray-400 hover:text-gray-600" @click="$emit('update-staff', staff.id, { isCollapsed: !staff.isCollapsed })">{{ staff.isCollapsed ? "▸" : "▾" }}</button>
@@ -23,22 +23,24 @@
     </div>
 
     <div class="flex-1 relative overflow-hidden bg-white" @contextmenu.prevent="onContextRow">
-      <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: `repeat(${headers.length}, 1fr)` }">
-        <div v-for="(h, i) in headers" :key="i" :class="['border-r border-gray-100 h-full', h.isToday ? 'bg-blue-50/60' : h.isWeekend ? 'bg-gray-50/80' : '']"></div>
-      </div>
-      <div v-if="!staff.isCollapsed" class="relative w-full h-full pt-3 pb-2" @dblclick="onGridDblClick">
-        <div v-for="t in staff.tasks" :key="t.id" class="absolute z-10" :style="taskStyle(t)">
-          <el-popover trigger="hover" popper-class="!p-0" :visible-arrow="false" :disabled="!readonly">
-            <div class="bg-gray-900 text-white text-xs px-2 py-1.5 rounded">
-              <div>开始: {{ t.startDate }}</div>
-              <div>结束: {{ displyEndDate(t.startDate, t.duration) }}</div>
-              <div>工期: {{ t.duration }} 天</div>
-            </div>
-            <TaskCard slot="reference" :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName(t)" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" />
-          </el-popover>
+      <div class="relative h-full" :style="{ width: viewMode === 'month' ? headers.length * dayWidth + 'px' : '100%', transform: viewMode === 'month' ? `translateX(${-scrollX}px)` : undefined, willChange: viewMode === 'month' ? 'transform' : undefined }">
+        <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: viewMode === 'month' ? `repeat(${headers.length}, ${dayWidth}px)` : `repeat(${headers.length}, 1fr)` }">
+          <div v-for="(h, i) in headers" :key="i" :class="['border-r border-gray-100 h-full', h.isToday ? 'bg-blue-50/60' : h.isWeekend ? 'bg-gray-50/80' : '']"></div>
+        </div>
+        <div v-show="!staff.isCollapsed" class="relative w-full h-full pt-3 pb-2" @dblclick="onGridDblClick">
+          <div v-for="t in staff.tasks" :key="t.id" class="absolute z-10" :style="taskStyle(t)">
+            <el-popover trigger="hover" popper-class="!p-0" :visible-arrow="false" :disabled="!readonly">
+              <div class="bg-gray-900 text-white text-xs px-2 py-1.5 rounded">
+                <div>开始: {{ t.startDate }}</div>
+                <div>结束: {{ displyEndDate(t.startDate, t.duration) }}</div>
+                <div>工期: {{ t.duration }} 天</div>
+              </div>
+              <TaskCard slot="reference" :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName(t, $event)" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" @editing-start="onTaskEditingStart" @editing-end="onTaskEditingEnd" />
+            </el-popover>
+          </div>
         </div>
       </div>
-      <div v-else class="absolute inset-0 flex items-center px-2">
+      <div v-if="staff.isCollapsed" class="absolute inset-0 flex items-center px-2 z-10">
         <span class="ml-2 text-xs text-gray-400 whitespace-nowrap bg-white/80 px-2 rounded-full border border-gray-200">{{ staff.tasks.length }} 任务</span>
       </div>
     </div>
@@ -59,6 +61,8 @@ export default {
     viewDurationMs: { type: Number, required: true },
     viewMode: { type: String as () => ViewMode, required: true },
     readonly: { type: Boolean, required: false, default: false },
+    dayWidth: { type: Number, required: false, default: 50 },
+    scrollX: { type: Number, required: false, default: 0 },
   },
   data() {
     return { editingField: null as null | "name" | "role" }
@@ -88,6 +92,9 @@ export default {
     },
   },
   methods: {
+    onSidebarMouseDown(e: MouseEvent) {
+      this.$emit("pan-start", e)
+    },
     rgbTextToHex(rgb: string | undefined) {
       if (!rgb) return "#ffffff"
       const m = rgb.match(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+)\s*)?\)/i)
@@ -117,12 +124,22 @@ export default {
       return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2]
     },
     taskStyle(task: Task) {
-      const start = new Date(task.startDate).getTime()
+      const sDate = new Date(task.startDate)
+      sDate.setHours(0, 0, 0, 0)
+      const start = sDate.getTime()
       const startOffset = start - this.viewStartDate.getTime()
+      const topOffset = (task.rowOffset || 0) * 36
+      if (this.viewMode === "month") {
+        const baseDate = this.headers && this.headers.length > 0 ? new Date(this.headers[0].date) : new Date(this.viewStartDate)
+        baseDate.setHours(0, 0, 0, 0)
+        const baseStartMs = baseDate.getTime()
+        const leftPx = ((start - baseStartMs) / 86400000) * this.dayWidth
+        const widthPx = Math.max(1, task.duration * this.dayWidth)
+        return { left: `${leftPx}px`, width: `${widthPx}px`, top: `${12 + topOffset}px` }
+      }
       const durationMs = task.duration * 86400000
       let left = (startOffset / this.viewDurationMs) * 100
       let width = (durationMs / this.viewDurationMs) * 100
-      const topOffset = (task.rowOffset || 0) * 36
       return { left: `${left}%`, width: `${Math.max(width, 0.5)}%`, top: `${12 + topOffset}px` }
     },
     startEdit(field: "name" | "role") {
@@ -163,6 +180,7 @@ export default {
     },
     openEditTask(task: Task) {
       if (this.readonly) return
+      return console.log(task)
       this.$emit("open-edit-task", task)
     },
     onUpdateTaskName(task: Task, newName: string) {
@@ -181,12 +199,21 @@ export default {
       if ((e.target as HTMLElement).closest(".task-card")) return
       const rowRect = (this.$el as HTMLElement).getBoundingClientRect()
       const timelineLeft = rowRect.left + 260
-      const timelineWidth = Math.max(1, rowRect.width - 260)
       const relativeX = e.clientX - timelineLeft
-      const msPerPixel = this.viewDurationMs / timelineWidth
-      const startMs = (this.viewStartDate as Date).getTime()
-      const newStart = startMs + relativeX * msPerPixel
-      const d = new Date(newStart)
+      let d: Date
+      if (this.viewMode === "month") {
+        const baseDate = this.headers && this.headers.length > 0 ? new Date(this.headers[0].date) : new Date(this.viewStartDate as Date)
+        baseDate.setHours(0, 0, 0, 0)
+        const baseStartMs = baseDate.getTime()
+        const daysOffset = Math.floor((this.scrollX + relativeX) / this.dayWidth)
+        d = new Date(baseStartMs + daysOffset * 86400000)
+      } else {
+        const timelineWidth = Math.max(1, rowRect.width - 260)
+        const msPerPixel = this.viewDurationMs / timelineWidth
+        const startMs = (this.viewStartDate as Date).getTime()
+        const newStart = startMs + relativeX * msPerPixel
+        d = new Date(newStart)
+      }
       d.setHours(0, 0, 0, 0)
       const y = d.getFullYear()
       const m = String(d.getMonth() + 1).padStart(2, "0")
@@ -211,6 +238,12 @@ export default {
       const dEnd = new Date(startDate)
       dEnd.setDate(dEnd.getDate() + duration)
       return `${dEnd.getFullYear()}-${String(dEnd.getMonth() + 1).padStart(2, "0")}-${String(dEnd.getDate()).padStart(2, "0")}`
+    },
+    onTaskEditingStart() {
+      this.$emit("task-edit-start")
+    },
+    onTaskEditingEnd() {
+      this.$emit("task-edit-end")
     },
   },
 }
