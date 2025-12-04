@@ -1,7 +1,7 @@
 <div align="center">
   <h1>Resource Scheduler</h1>
   <p>一个基于 Vue 2.7 的可视化资源排期组件库</p>
-  <img src="./public/scheduler-demo.png" alt="Scheduler Demo" style="max-width: 820px; width: 100%; margin-top: 12px" />
+  <img src="https://github.com/zcodery/scheduler/blob/feature/month/public/scheduler-demo.png?raw=true" alt="Scheduler Demo" style="max-width: 820px; width: 100%; margin-top: 12px" />
 </div>
 
 ## 介绍
@@ -79,11 +79,11 @@ export default { components: { GanttScheduler } }
 
 ESM：
 
-`import { GanttScheduler } from 'https://cdn.jsdelivr.net/npm/@zcodery/resource-scheduler@0.1.1/dist/resource-scheduler.es.js'`
+`import { GanttScheduler } from 'https://cdn.jsdelivr.net/npm/@zcodery/resource-scheduler@latest/dist/resource-scheduler.es.js'`
 
 UMD（全局对象 `window.ResourceScheduler`）：
 
-`<script src="https://cdn.jsdelivr.net/npm/@zcodery/resource-scheduler@0.1.1/dist/resource-scheduler.umd.js"></script>`
+`<script src="https://cdn.jsdelivr.net/npm/@zcodery/resource-scheduler@latest/dist/resource-scheduler.umd.js"></script>`
 
 示例：
 
