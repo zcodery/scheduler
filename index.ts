@@ -1,8 +1,3 @@
-export { default as TaskCard } from "./components/TaskCard.vue"
-export { default as WorkloadBar } from "./components/WorkloadBar.vue"
-export { default as StaffRow } from "./components/StaffRow.vue"
-export { default as EditTaskModal } from "./components/EditTaskModal.vue"
-export { default as EditStaffModal } from "./components/EditStaffModal.vue"
 export { default as GanttScheduler } from "./common/gantt-scheduler.vue"
 export * from "./types"
 export * from "./constants"
