@@ -50,11 +50,19 @@
       </div>
     </div>
 
-    <div ref="containerRef" class="flex-1 overflow-y-auto overflow-x-auto relative" @mousedown="onPanMouseDown" @contextmenu.prevent @wheel="onWheel">
+    <div ref="containerRef" class="flex-1 overflow-y-auto overflow-x-hidden relative" @mousedown="onPanMouseDown" @contextmenu.prevent @wheel="onWheel">
       <div class="sticky top-0 z-40 flex border-b border-gray-200 bg-gray-50 shadow-sm header-row">
-        <div class="w-64 flex-shrink-0 p-3 border-r border-gray-200 text-xs font-semibold text-gray-500 flex items-center bg-gray-50" @contextmenu.prevent="onHeaderSidebarContext" @mousedown="onPanMouseDown">人员 / 饱和度</div>
+        <div class="flex-shrink-0 p-3 border-r border-gray-200 text-xs font-semibold text-gray-500 flex items-center bg-gray-50" style="width: 260px" @contextmenu.prevent="onHeaderSidebarContext" @mousedown="onPanMouseDown">人员 / 饱和度</div>
         <div class="flex-1 overflow-hidden">
-          <div class="grid" :style="{ gridTemplateColumns: viewMode === 'month' ? `repeat(${headers.length}, ${DAY_CELL_PX}px)` : `repeat(${headers.length}, 1fr)`, width: viewMode === 'month' ? headers.length * DAY_CELL_PX + 'px' : '100%', transform: viewMode === 'month' ? `translateX(${-scrollX}px)` : undefined, willChange: viewMode === 'month' ? 'transform' : undefined }">
+          <div
+            class="grid"
+            :style="{
+              gridTemplateColumns: viewMode === 'month' ? `repeat(${headers.length}, ${DAY_CELL_PX}px)` : `repeat(${headers.length}, 120px)`,
+              width: viewMode === 'month' ? headers.length * DAY_CELL_PX + 'px' : headers.length * 120 + 'px',
+              transform: viewMode !== 'year' ? `translateX(${-scrollX}px)` : undefined,
+              willChange: viewMode !== 'year' ? 'transform' : undefined,
+            }"
+          >
             <div v-for="(h, i) in headers" :key="i" :class="['flex flex-col items-center justify-center py-2 border-r border-gray-200 text-xs', h.isToday ? 'bg-blue-100/50' : h.isWeekend ? 'bg-gray-200/50' : '']">
               <span :class="['font-medium whitespace-nowrap', h.isToday ? 'text-blue-600' : 'text-gray-700']">{{ h.label }}</span>
               <span class="text-[10px] text-gray-400 mt-0.5 whitespace-nowrap">{{ h.subLabel }}</span>
@@ -65,7 +73,7 @@
 
       <div class="relative">
         <draggable v-model="staffData" item-key="id" :disabled="readonly || isEditingTask" handle=".rs-staff-handle" :animation="150">
-          <StaffRow v-for="s in displayStaffs" :key="s.id" :staff="s" :headers="headers" :viewStartDate="new Date(headers[0].date)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" :dayWidth="DAY_CELL_PX" :scrollX="scrollX" @pan-start="onPanMouseDown" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff" @task-edit-start="onTaskEditStart" @task-edit-end="onTaskEditEnd">
+          <StaffRow v-for="s in displayStaffs" :key="s.id" :staff="s" :headers="headers" :viewStartDate="new Date(headers[0].date)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" :dayWidth="effectiveDayWidth" :scrollX="scrollX" @pan-start="onPanMouseDown" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff" @task-edit-start="onTaskEditStart" @task-edit-end="onTaskEditEnd">
             <template #avatar="{ staff }"><slot name="avatar" :staff="staff"></slot></template>
             <template #workload="{ staff }"><slot name="workloadBar" :staff="staff"></slot></template>
           </StaffRow>
@@ -79,7 +87,7 @@
       </div>
 
       <!-- 今天 定位 线 -->
-      <div class="pointer-events-none absolute top-0 bottom-0" :style="{ left: 260 + todayLineCalc() + 'px' }" v-if="viewMode != 'month'">
+      <div class="pointer-events-none absolute top-0 bottom-0" :style="{ left: 260 + todayLineCalc() + 'px' }" v-if="false">
         <div class="w-px h-full bg-indigo-500/50"></div>
       </div>
 
@@ -185,7 +193,7 @@ export default {
     return {
       staffData: (this as any).task as Staff[],
       viewStartDate: new Date().setHours(0, 0, 0, 0) - 86400000 * 2,
-      viewMode: "month" as ViewMode,
+      viewMode: "year" as ViewMode,
       scrollX: 0,
       headersStartDate: null as Date | null,
       headersEndDate: null as Date | null,
@@ -213,7 +221,7 @@ export default {
   },
   created() {
     this.initHeadersRange()
-    this.lastAnchorDays = Math.floor(this.scrollX / this.DAY_CELL_PX)
+    this.lastAnchorDays = Math.floor(this.scrollX / this.effectiveDayWidth)
   },
   watch: {
     task: {
@@ -231,9 +239,15 @@ export default {
         } catch {}
       },
     },
+    viewMode() {
+      this.initHeadersRange()
+      this.scrollX = 0
+      this.lastAnchorDays = Math.floor(this.scrollX / this.effectiveDayWidth)
+      this.scheduleAdjustRange(true)
+    },
     scrollX() {
       if (this.viewMode === "month" && this.headersStartDate && this.headersEndDate) {
-        const days = Math.floor(this.scrollX / this.DAY_CELL_PX)
+        const days = Math.floor(this.scrollX / this.effectiveDayWidth)
         if (this.isPanning && this.lastPanDeltaX < 0 && days < 0) {
           const visibleLeft = new Date(this.visibleLeftDate)
           const newStart = new Date(visibleLeft)
@@ -304,6 +318,9 @@ export default {
     DAY_CELL_PX(): number {
       return 50
     },
+    effectiveDayWidth(): number {
+      return this.viewMode === "quarter" ? 120 / 7 : this.DAY_CELL_PX
+    },
     viewDurationMs(): number {
       if (this.viewMode === "month") return this.ONE_DAY_MS * this.headers.length
       if (this.viewMode === "quarter") return this.ONE_DAY_MS * 90
@@ -338,15 +355,38 @@ export default {
           d.setDate(d.getDate() + 1)
         }
       } else if (this.viewMode === "quarter") {
-        const startDay = new Date(startDate)
-        for (let i = 0; i < count; i++) {
-          const d = new Date(startDay)
-          d.setDate(d.getDate() + i * 7)
-          headers.push({ date: d, label: `W${Math.ceil(d.getDate() / 7)}`, subLabel: `${d.getMonth() + 1}/${d.getDate()}`, isToday: false, isWeekend: false })
+        const rangeStart = this.headersStartDate
+          ? new Date(this.headersStartDate)
+          : (() => {
+              const b = new Date(startDate)
+              b.setDate(b.getDate() - 30)
+              return b
+            })()
+        const rangeEnd = this.headersEndDate
+          ? new Date(this.headersEndDate)
+          : (() => {
+              const e = new Date(startDate)
+              e.setDate(e.getDate() + 60)
+              return e
+            })()
+        let d = new Date(rangeStart)
+        const day = d.getDay()
+        const delta = (((4 - day) % 7) + 7) % 7
+        d.setDate(d.getDate() + delta)
+        for (; d <= rangeEnd; d.setDate(d.getDate() + 7)) {
+          const weekStart = new Date(d)
+          const weekEnd = new Date(d)
+          weekEnd.setDate(weekEnd.getDate() + 6)
+          const sub = `${weekStart.getMonth() + 1}/${weekStart.getDate()} ~ ${weekEnd.getMonth() + 1}/${weekEnd.getDate()}`
+          const dd = new Date(d)
+          headers.push({ date: dd, label: `Q${Math.floor(dd.getMonth() / 3) + 1}/W${Math.ceil(dd.getDate() / 7)}`, subLabel: sub, isToday: isSameDay(dd, today), isWeekend: false })
         }
       } else {
         const startDay = new Date(startDate)
-        for (let i = 0; i < count; i++) {
+        const container = this.$refs.containerRef as HTMLDivElement
+        const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+        const months = Math.max(12, Math.ceil(viewport / 120))
+        for (let i = 0; i < months; i++) {
           const d = new Date(startDay)
           d.setMonth(d.getMonth() + i)
           headers.push({ date: d, label: `${d.getMonth() + 1}月`, subLabel: `${d.getFullYear()}`, isToday: d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear(), isWeekend: false })
@@ -358,10 +398,8 @@ export default {
       return this.headers && this.headers.length > 0 ? this.headers[0].date.getTime() : this.viewStartDate
     },
     visibleLeftDate(): Date {
-      console.log(23)
-
       const start = this.headersStartDate ? new Date(this.headersStartDate) : new Date(this.viewStartDate)
-      const days = Math.floor(this.scrollX / this.DAY_CELL_PX)
+      const days = Math.floor(this.scrollX / this.effectiveDayWidth)
       const d = new Date(start)
       d.setDate(d.getDate() + days)
       d.setHours(0, 0, 0, 0)
@@ -373,7 +411,7 @@ export default {
         return `${d.getFullYear()}年 ${d.getMonth() + 1}月`
       }
       if (this.viewMode === "quarter") {
-        const d = new Date(this.viewStartDate)
+        const d = new Date(this.visibleLeftDate)
         const q = Math.floor(d.getMonth() / 3) + 1
         return `${d.getFullYear()}年 Q${q}`
       }
@@ -401,7 +439,7 @@ export default {
       this.isEditingTask = false
     },
     preExtendLeftBuffer() {
-      if (this.viewMode !== "month" || !this.headersStartDate || !this.headersEndDate) return
+      if ((this.viewMode !== "month" && this.viewMode !== "quarter") || !this.headersStartDate || !this.headersEndDate) return
       const add = 30
       const ns = new Date(this.headersStartDate)
       ns.setDate(ns.getDate() - add)
@@ -409,9 +447,37 @@ export default {
       ne.setDate(ne.getDate() + add)
       this.headersStartDate = ns
       this.headersEndDate = ne
-      const px = add * this.DAY_CELL_PX
+      const px = add * this.effectiveDayWidth
       this.scrollX = this.scrollX + px
       if (this.isPanning) this.panStartScrollLeft = this.panStartScrollLeft + px
+    },
+    preExtendRightBuffer() {
+      if ((this.viewMode !== "month" && this.viewMode !== "quarter") || !this.headersStartDate || !this.headersEndDate) return
+      const container = this.$refs.containerRef as HTMLDivElement
+      const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+      const daysRange = Math.max(1, Math.round((this.headersEndDate.getTime() - this.headersStartDate.getTime()) / this.ONE_DAY_MS) + 1)
+      const contentWidth = daysRange * this.effectiveDayWidth
+      const target = this.scrollX + viewport
+      if (contentWidth - viewport >= target + 20) return
+      const needPx = target + 20 + viewport - contentWidth
+      const needDays = Math.max(1, Math.ceil(needPx / this.effectiveDayWidth))
+      const ne = new Date(this.headersEndDate)
+      ne.setDate(ne.getDate() + needDays)
+      this.headersEndDate = ne
+    },
+    ensureRightCapacity(nextRaw: number) {
+      if ((this.viewMode !== "month" && this.viewMode !== "quarter") || !this.headersStartDate || !this.headersEndDate) return
+      const container = this.$refs.containerRef as HTMLDivElement
+      const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+      const margin = 20
+      let daysRange = Math.max(1, Math.round((this.headersEndDate.getTime() - this.headersStartDate.getTime()) / this.ONE_DAY_MS) + 1)
+      let contentWidth = daysRange * this.effectiveDayWidth
+      if (contentWidth - viewport >= nextRaw + margin) return
+      const needPx = nextRaw + margin + viewport - contentWidth
+      const needDays = Math.max(1, Math.ceil(needPx / this.effectiveDayWidth))
+      const ne = new Date(this.headersEndDate)
+      ne.setDate(ne.getDate() + needDays)
+      this.headersEndDate = ne
     },
     scheduleAdjustRange(force: boolean = false) {
       if (force) {
@@ -431,35 +497,55 @@ export default {
     initHeadersRange() {
       const base = new Date(this.viewStartDate)
       base.setHours(0, 0, 0, 0)
-      base.setDate(1)
-      const prevFirst = new Date(base)
-      prevFirst.setMonth(prevFirst.getMonth() - 1)
-      prevFirst.setDate(1)
-      const nextEnd = new Date(base)
-      nextEnd.setMonth(nextEnd.getMonth() + 2)
-      nextEnd.setDate(0)
-      this.headersStartDate = prevFirst
-      this.headersEndDate = nextEnd
+      if (this.viewMode === "month") {
+        base.setDate(1)
+        const prevFirst = new Date(base)
+        prevFirst.setMonth(prevFirst.getMonth() - 1)
+        prevFirst.setDate(1)
+        const nextEnd = new Date(base)
+        nextEnd.setMonth(nextEnd.getMonth() + 2)
+        nextEnd.setDate(0)
+        this.headersStartDate = prevFirst
+        this.headersEndDate = nextEnd
+        return
+      }
+      if (this.viewMode === "quarter") {
+        const container = this.$refs.containerRef as HTMLDivElement
+        const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+        const viewportDays = Math.max(1, Math.ceil(viewport / this.effectiveDayWidth))
+        const prev = new Date(base)
+        prev.setDate(prev.getDate() - 30)
+        const next = new Date(base)
+        next.setDate(next.getDate() + viewportDays + 30)
+        this.headersStartDate = prev
+        this.headersEndDate = next
+        return
+      }
+      this.headersStartDate = null
+      this.headersEndDate = null
     },
     daysInMonth(d: Date): number {
       return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
     },
     adjustHeadersRange() {
-      if (this.viewMode !== "month" || !this.headersStartDate || !this.headersEndDate) return
-      const daysScrolled = Math.floor(this.scrollX / this.DAY_CELL_PX)
+      if ((this.viewMode !== "month" && this.viewMode !== "quarter") || !this.headersStartDate || !this.headersEndDate) return
+      const daysScrolled = Math.floor(this.scrollX / this.effectiveDayWidth)
       if (Math.abs(daysScrolled - this.lastAnchorDays) < this.ANCHOR_STEP_DAYS) return
+      const container = this.$refs.containerRef as HTMLDivElement
+      const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
+      const viewportDays = Math.max(1, Math.ceil(viewport / this.effectiveDayWidth))
       const visibleLeft = new Date(this.visibleLeftDate)
       const newStart = new Date(visibleLeft)
       newStart.setDate(newStart.getDate() - 30)
       const newEnd = new Date(visibleLeft)
-      newEnd.setDate(newEnd.getDate() + 60)
+      newEnd.setDate(newEnd.getDate() + viewportDays + 30)
       const oldStart = this.headersStartDate
       const diffDays = Math.round((newStart.getTime() - oldStart.getTime()) / this.ONE_DAY_MS)
       const endDiffDays = Math.round((newEnd.getTime() - this.headersEndDate.getTime()) / this.ONE_DAY_MS)
       if (diffDays !== 0 || endDiffDays !== 0) {
         this.headersStartDate = newStart
         this.headersEndDate = newEnd
-        this.scrollX = this.scrollX - diffDays * this.DAY_CELL_PX
+        this.scrollX = this.scrollX - diffDays * this.effectiveDayWidth
         this.lastAnchorDays = daysScrolled
       }
     },
@@ -477,13 +563,17 @@ export default {
       const shift = dir === "next" ? 1 : -1
       if (this.viewMode === "month") {
         const shiftDays = 30
-        this.scrollX = this.scrollX + shiftDays * this.DAY_CELL_PX * shift
+        this.scrollX = this.scrollX + shiftDays * this.effectiveDayWidth * shift
         this.scheduleAdjustRange(true)
         return
       }
-      let shiftMs = 0
-      if (this.viewMode === "quarter") shiftMs = this.ONE_DAY_MS * 90 * shift
-      else shiftMs = this.ONE_DAY_MS * 365 * shift
+      if (this.viewMode === "quarter") {
+        const shiftDays = 30
+        this.scrollX = this.scrollX + shiftDays * this.effectiveDayWidth * shift
+        this.scheduleAdjustRange(true)
+        return
+      }
+      let shiftMs = this.ONE_DAY_MS * 365 * shift
       this.viewStartDate = this.viewStartDate + shiftMs
     },
     jumpToToday() {
@@ -515,20 +605,31 @@ export default {
       const container = this.$refs.containerRef as HTMLDivElement
       const baseWidth = container ? container.clientWidth : window.innerWidth
       let width = Math.max(1, baseWidth - 260)
-      if (this.viewMode === "month") width = this.headers.length * this.DAY_CELL_PX
+      if ((this.viewMode === "month" || this.viewMode === "quarter") && this.headersStartDate && this.headersEndDate) {
+        const days = Math.max(1, Math.round((this.headersEndDate.getTime() - this.headersStartDate.getTime()) / this.ONE_DAY_MS) + 1)
+        width = days * this.effectiveDayWidth
+      }
       return width
     },
     getDateAtMouse(clientX: number): number {
       const container = this.$refs.containerRef as HTMLDivElement
       const rect = container.getBoundingClientRect()
       const timelineLeft = rect.left + 260
+      const relativeX = clientX - timelineLeft + (this.viewMode === "year" ? 0 : this.scrollX)
+      if (this.viewMode === "month" || this.viewMode === "quarter") {
+        const msPerPixel = this.ONE_DAY_MS / this.effectiveDayWidth
+        return this.headersStartMs + relativeX * msPerPixel
+      }
       const timelineWidth = this.getTimelineWidth()
       const msPerPixel = this.viewDurationMs / timelineWidth
-      const relativeX = clientX - timelineLeft + this.scrollX
-      return this.headersStartMs + relativeX * msPerPixel
+      return this.viewStartDate + relativeX * msPerPixel
     },
     todayLineCalc(): number {
       const today = new Date().getTime()
+      if (this.viewMode === "month" || this.viewMode === "quarter") {
+        const days = (today - this.headersStartMs) / this.ONE_DAY_MS
+        return days * this.effectiveDayWidth - this.scrollX
+      }
       const timelineWidth = this.getTimelineWidth()
       const ratio = (today - this.viewStartDate) / this.viewDurationMs
       return ratio * timelineWidth
@@ -543,7 +644,7 @@ export default {
       if (this.autoScrollTimer) return
       this.autoScrollTimer = window.setInterval(() => {
         const shift = direction === "left" ? -1 : 1
-        if (this.viewMode === "month") {
+        if (this.viewMode === "month" || this.viewMode === "quarter") {
           const container = this.$refs.containerRef as HTMLDivElement
           const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
           let nextRaw = this.scrollX + 8 * shift
@@ -551,7 +652,13 @@ export default {
             this.preExtendLeftBuffer()
             nextRaw = this.scrollX + 8 * shift
           }
-          const maxScroll = Math.max(0, this.headers.length * this.DAY_CELL_PX - viewport)
+          let daysRange = this.headersStartDate && this.headersEndDate ? Math.max(1, Math.round((this.headersEndDate.getTime() - this.headersStartDate.getTime()) / this.ONE_DAY_MS) + 1) : this.headers.length
+          let maxScroll = Math.max(0, daysRange * this.effectiveDayWidth - viewport)
+          if (shift > 0 && nextRaw >= maxScroll - 10) {
+            this.preExtendRightBuffer()
+            daysRange = this.headersStartDate && this.headersEndDate ? Math.max(1, Math.round((this.headersEndDate.getTime() - this.headersStartDate.getTime()) / this.ONE_DAY_MS) + 1) : this.headers.length
+            maxScroll = Math.max(0, daysRange * this.effectiveDayWidth - viewport)
+          }
           const next = Math.max(0, Math.min(maxScroll, nextRaw))
           this.scrollX = next
           this.scheduleAdjustRange(false)
@@ -658,7 +765,7 @@ export default {
           this.panRaf = requestAnimationFrame(() => {
             this.panRaf = null
             const dx = this.lastPanDeltaX
-            if (this.viewMode === "month") {
+            if (this.viewMode === "month" || this.viewMode === "quarter") {
               const container = this.$refs.containerRef as HTMLDivElement
               const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
               let nextRaw = this.panStartScrollLeft - dx
@@ -666,7 +773,13 @@ export default {
                 this.preExtendLeftBuffer()
                 nextRaw = this.panStartScrollLeft - dx
               }
-              const maxScroll = Math.max(0, this.headers.length * this.DAY_CELL_PX - viewport)
+              let daysRange = this.headersStartDate && this.headersEndDate ? Math.max(1, Math.round((this.headersEndDate.getTime() - this.headersStartDate.getTime()) / this.ONE_DAY_MS) + 1) : this.headers.length
+              let maxScroll = Math.max(0, daysRange * this.effectiveDayWidth - viewport)
+              if (nextRaw >= maxScroll - 10) {
+                this.preExtendRightBuffer()
+                daysRange = this.headersStartDate && this.headersEndDate ? Math.max(1, Math.round((this.headersEndDate.getTime() - this.headersStartDate.getTime()) / this.ONE_DAY_MS) + 1) : this.headers.length
+                maxScroll = Math.max(0, daysRange * this.effectiveDayWidth - viewport)
+              }
               const next = Math.max(0, Math.min(maxScroll, nextRaw))
               this.scrollX = next
               this.scheduleAdjustRange(false)
@@ -716,7 +829,7 @@ export default {
       if (e.shiftKey) {
         e.preventDefault()
         const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
-        if (this.viewMode === "month") {
+        if (this.viewMode === "month" || this.viewMode === "quarter") {
           const container = this.$refs.containerRef as HTMLDivElement
           const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
           let nextRaw = this.scrollX + delta * 2
@@ -724,7 +837,13 @@ export default {
             this.preExtendLeftBuffer()
             nextRaw = this.scrollX + delta * 2
           }
-          const maxScroll = Math.max(0, this.headers.length * this.DAY_CELL_PX - viewport)
+          let daysRange = this.headersStartDate && this.headersEndDate ? Math.max(1, Math.round((this.headersEndDate.getTime() - this.headersStartDate.getTime()) / this.ONE_DAY_MS) + 1) : this.headers.length
+          let maxScroll = Math.max(0, daysRange * this.effectiveDayWidth - viewport)
+          if (delta > 0 && nextRaw >= maxScroll - 10) {
+            this.preExtendRightBuffer()
+            daysRange = this.headersStartDate && this.headersEndDate ? Math.max(1, Math.round((this.headersEndDate.getTime() - this.headersStartDate.getTime()) / this.ONE_DAY_MS) + 1) : this.headers.length
+            maxScroll = Math.max(0, daysRange * this.effectiveDayWidth - viewport)
+          }
           const next = Math.max(0, Math.min(maxScroll, nextRaw))
           this.scrollX = next
           this.scheduleAdjustRange(false)
@@ -1009,10 +1128,10 @@ export default {
         })
       })
       if (!hasTasks) return null
-      if (this.viewMode === "month") {
+      if (this.viewMode === "month" || this.viewMode === "quarter") {
         const container = this.$refs.containerRef as HTMLDivElement
         const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
-        const visibleDays = Math.max(1, Math.floor(viewport / this.DAY_CELL_PX))
+        const visibleDays = Math.max(1, Math.floor(viewport / this.effectiveDayWidth))
         const left = new Date(this.visibleLeftDate).getTime()
         const right = left + visibleDays * this.ONE_DAY_MS
         if (maxTaskEnd < left) return "left"
@@ -1027,10 +1146,10 @@ export default {
     jumpToData(direction: "left" | "right") {
       // 是否全部折叠
       const allCollapsed = this.staffData.every(s => s.isCollapsed)
-      if (this.viewMode === "month") {
+      if (this.viewMode === "month" || this.viewMode === "quarter") {
         const container = this.$refs.containerRef as HTMLDivElement
         const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - 260)
-        const visibleDays = Math.max(1, Math.floor(viewport / this.DAY_CELL_PX))
+        const visibleDays = Math.max(1, Math.floor(viewport / this.effectiveDayWidth))
         if (direction === "left") {
           let minTaskStart = Infinity
           this.staffData.forEach(s => {
@@ -1047,11 +1166,12 @@ export default {
           const newStart = new Date(visibleLeft)
           newStart.setDate(newStart.getDate() - 30)
           const newEnd = new Date(visibleLeft)
-          newEnd.setDate(newEnd.getDate() + 60)
+          newEnd.setDate(newEnd.getDate() + visibleDays + 30)
           this.headersStartDate = newStart
           this.headersEndDate = newEnd
-          this.scrollX = Math.floor((visibleLeft.getTime() - newStart.getTime()) / this.ONE_DAY_MS) * this.DAY_CELL_PX
-          this.lastAnchorDays = Math.floor(this.scrollX / this.DAY_CELL_PX)
+          this.scrollX = Math.floor((visibleLeft.getTime() - newStart.getTime()) / this.ONE_DAY_MS) * this.effectiveDayWidth
+          this.lastAnchorDays = Math.floor(this.scrollX / this.effectiveDayWidth)
+          this.ensureRightCapacity(this.scrollX)
           this.scheduleAdjustRange(true)
         } else {
           let maxTaskEnd = -Infinity
@@ -1071,11 +1191,12 @@ export default {
           const newStart = new Date(visibleLeft)
           newStart.setDate(newStart.getDate() - 30)
           const newEnd = new Date(visibleLeft)
-          newEnd.setDate(newEnd.getDate() + 60)
+          newEnd.setDate(newEnd.getDate() + visibleDays + 30)
           this.headersStartDate = newStart
           this.headersEndDate = newEnd
-          this.scrollX = Math.floor((visibleLeft.getTime() - newStart.getTime()) / this.ONE_DAY_MS) * this.DAY_CELL_PX
-          this.lastAnchorDays = Math.floor(this.scrollX / this.DAY_CELL_PX)
+          this.scrollX = Math.floor((visibleLeft.getTime() - newStart.getTime()) / this.ONE_DAY_MS) * this.effectiveDayWidth
+          this.lastAnchorDays = Math.floor(this.scrollX / this.effectiveDayWidth)
+          this.ensureRightCapacity(this.scrollX)
           this.scheduleAdjustRange(true)
         }
         return

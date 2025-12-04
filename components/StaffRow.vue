@@ -1,6 +1,6 @@
 <template>
   <div :data-staff-id="staff.id" class="flex border-b border-gray-100 bg-white transition-all duration-300 ease-in-out" :style="dynamicStyle">
-    <div class="w-64 flex-shrink-0 p-4 border-r border-gray-200 flex flex-col justify-center select-none bg-white relative group z-20 transition-colors hover:bg-gray-50/50" @contextmenu.prevent="onContextStaff" @mousedown.stop="onSidebarMouseDown" @click.stop>
+    <div class="flex-shrink-0 p-4 border-r border-gray-200 flex flex-col justify-center select-none bg-white relative group z-20 transition-colors hover:bg-gray-50/50" style="width: 260px" @contextmenu.prevent="onContextStaff" @mousedown.stop="onSidebarMouseDown" @click.stop>
       <div class="absolute left-1 top-1/2 -translate-y-1/2 text-gray-300 p-1 opacity-0 group-hover:opacity-100 rs-staff-handle">≡</div>
       <div class="flex items-center gap-3 pl-4">
         <button class="text-gray-400 hover:text-gray-600" @click="$emit('update-staff', staff.id, { isCollapsed: !staff.isCollapsed })">{{ staff.isCollapsed ? "▸" : "▾" }}</button>
@@ -23,8 +23,8 @@
     </div>
 
     <div class="flex-1 relative overflow-hidden bg-white" @contextmenu.prevent="onContextRow">
-      <div class="relative h-full" :style="{ width: viewMode === 'month' ? headers.length * dayWidth + 'px' : '100%', transform: viewMode === 'month' ? `translateX(${-scrollX}px)` : undefined, willChange: viewMode === 'month' ? 'transform' : undefined }">
-        <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: viewMode === 'month' ? `repeat(${headers.length}, ${dayWidth}px)` : `repeat(${headers.length}, 1fr)` }">
+      <div class="relative h-full" :style="{ width: viewMode === 'year' ? '100%' : viewMode === 'month' ? headers.length * dayWidth + 'px' : headers.length * 120 + 'px', transform: viewMode !== 'year' ? `translateX(${-scrollX}px)` : undefined, willChange: viewMode !== 'year' ? 'transform' : undefined }">
+        <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: viewMode === 'month' ? `repeat(${headers.length}, ${dayWidth}px)` : `repeat(${headers.length}, 120px)` }">
           <div v-for="(h, i) in headers" :key="i" :class="['border-r border-gray-100 h-full', h.isToday ? 'bg-blue-50/60' : h.isWeekend ? 'bg-gray-50/80' : '']"></div>
         </div>
         <div v-show="!staff.isCollapsed" class="relative w-full h-full pt-3 pb-2" @dblclick="onGridDblClick">
@@ -68,6 +68,13 @@ export default {
     return { editingField: null as null | "name" | "role" }
   },
   computed: {
+    rangeDays(): number {
+      if (!this.headers || this.headers.length === 0) return 0
+      const start = new Date(this.headers[0].date).getTime()
+      const end = new Date(this.headers[this.headers.length - 1].date).getTime()
+      const days = Math.max(1, Math.round((end - start) / 86400000) + 1)
+      return days
+    },
     dynamicStyle(): Record<string, string> {
       if (this.staff.isCollapsed) return { height: "64px" }
       const maxRowIndex = this.staff.tasks.length > 0 ? Math.max(...this.staff.tasks.map(t => t.rowOffset)) : 0
@@ -129,7 +136,7 @@ export default {
       const start = sDate.getTime()
       const startOffset = start - this.viewStartDate.getTime()
       const topOffset = (task.rowOffset || 0) * 36
-      if (this.viewMode === "month") {
+      if (this.viewMode === "month" || this.viewMode === "quarter") {
         const baseDate = this.headers && this.headers.length > 0 ? new Date(this.headers[0].date) : new Date(this.viewStartDate)
         baseDate.setHours(0, 0, 0, 0)
         const baseStartMs = baseDate.getTime()
@@ -201,7 +208,7 @@ export default {
       const timelineLeft = rowRect.left + 260
       const relativeX = e.clientX - timelineLeft
       let d: Date
-      if (this.viewMode === "month") {
+      if (this.viewMode === "month" || this.viewMode === "quarter") {
         const baseDate = this.headers && this.headers.length > 0 ? new Date(this.headers[0].date) : new Date(this.viewStartDate as Date)
         baseDate.setHours(0, 0, 0, 0)
         const baseStartMs = baseDate.getTime()
