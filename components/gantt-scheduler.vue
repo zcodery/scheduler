@@ -86,11 +86,6 @@
         <div class="h-[100px]" @click="contextMenu = null"></div>
       </div>
 
-      <!-- 今天 定位 线 -->
-      <div class="pointer-events-none absolute top-0 bottom-0" :style="{ left: 260 + todayLineCalc() + 'px' }" v-if="false">
-        <div class="w-px h-full bg-indigo-500/50"></div>
-      </div>
-
       <div v-if="contextMenu && menuVisible" ref="contextMenuRef" class="fixed z-[1000]" :style="{ left: (contextMenu.clientX || 0) + 2 + 'px', top: (contextMenu.clientY || 0) + 2 + 'px' }">
         <div class="rs-menu">
           <template v-if="contextMenu.type === 'general'">
@@ -463,6 +458,7 @@ export default {
     },
   },
   methods: {
+    // 解析 YYYY-MM-DD 字符串为本地时区的 Date，避免跨月偏移
     parseDateStr(s: string): Date {
       const parts = String(s).split("-")
       const y = Number(parts[0] || 0)
@@ -470,6 +466,7 @@ export default {
       const d = Number(parts[2] || 1)
       return new Date(y, Math.max(0, m - 1), Math.max(1, d))
     },
+    // 将日期映射为横向像素位置，依据当前视图模式（月/季：按天；年：按月列+月内日宽）
     dateToPixel(date: Date): number {
       if (this.viewMode === "year" && this.headers && this.headers.length > 0) {
         const base = new Date(this.headers[0].date)
@@ -492,6 +489,7 @@ export default {
       const msPerPixel = this.viewDurationMs / this.getTimelineWidth()
       return Math.max(0, (date.getTime() - this.viewStartDate) / msPerPixel)
     },
+    // 任务编辑开始：停止自动滚动并标记编辑状态
     onTaskEditStart() {
       this.stopAutoScroll()
       this.interaction = null
@@ -501,6 +499,7 @@ export default {
       this.stopAutoScroll()
       this.isEditingTask = false
     },
+    // 预扩展左缓冲区：向左/右各扩展 30 天并同步滚动基准，防止临界自动滚动/拖拽时画面跳变
     preExtendLeftBuffer() {
       if (!this.headersStartDate || !this.headersEndDate) return
       const add = 30
@@ -528,6 +527,7 @@ export default {
       ne.setDate(ne.getDate() + needDays)
       this.headersEndDate = ne
     },
+    // 确保右侧容量：当目标滚动位置接近内容尾部时，按需扩展 headersEndDate 以避免到达边界
     ensureRightCapacity(nextRaw: number) {
       if (!this.headersStartDate || !this.headersEndDate) return
       const container = this.$refs.containerRef as HTMLDivElement
