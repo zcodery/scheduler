@@ -1,11 +1,5 @@
 <template>
   <gantt-scheduler :readonly="readonly" :task="payload" :title="title" :description="description" @data-change="onDataChange">
-    <!-- <template #title>
-      <h1 class="text-xl font-bold text-gray-900">{{ title }}</h1>
-    </template> -->
-    <template #description>
-      <p class="text-xs text-gray-500 mt-1">{{ description }}</p>
-    </template>
     <!-- <template #avatar="{ staff }">
       <img v-if="staff.avatar" :src="staff.avatar" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
       <img v-else-if="staff.name == '王五'" src="/avatar.jpg" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
@@ -22,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import WorkloadBar from "@/components/WorkloadBar.vue"
+import WorkloadBar from "@/pages/components/WorkloadBar.vue"
 import GanttScheduler from "../common/gantt-scheduler.vue"
 import { MOCK_STAFF_DATA } from "../constants"
 

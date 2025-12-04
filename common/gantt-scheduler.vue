@@ -13,12 +13,12 @@
       <div>
         <slot name="title">
           <h1 class="text-xl font-bold text-gray-900 flex gap-1 items-center">
-            <span>{{ title || "人员排期" }}</span>
+            <span>{{ title }}</span>
             <i v-if="readonly" class="el-icon-lock text-sm"></i>
           </h1>
         </slot>
         <slot name="description">
-          <p class="text-xs text-gray-500 mt-1">{{ description || "拖动图表滑动 • 双击编辑 • 右键管理" }}</p>
+          <p class="text-xs text-gray-500 mt-1">{{ description }}</p>
         </slot>
       </div>
       <div class="flex items-center gap-4">
@@ -181,8 +181,8 @@ export default {
   props: {
     readonly: { type: Boolean, required: false, default: false },
     task: { type: Array as () => Staff[], required: true },
-    title: { type: String, required: false },
-    description: { type: String, required: false },
+    title: { type: String, default: "人员排期" },
+    description: { type: String, default: "" },
   },
   data() {
     return {

@@ -50,10 +50,9 @@
 <script lang="ts">
 import { Staff, Task, DayInfo, ViewMode } from "../types"
 import TaskCard from "./TaskCard.vue"
-import WorkloadBar from "./WorkloadBar.vue"
 
 export default {
-  components: { TaskCard, WorkloadBar },
+  components: { TaskCard },
   props: {
     staff: { type: Object as () => Staff, required: true },
     headers: { type: Array as () => DayInfo[], required: true },
