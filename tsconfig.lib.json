@@ -12,6 +12,7 @@
     "./index.ts",
     "./components/**/*",
     "./types.ts",
-    "./constants.ts"
+    "./constants.ts",
+    "./env.d.ts"
   ]
 }

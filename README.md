@@ -1,6 +1,7 @@
 <div align="center">
   <h1>Resource Scheduler</h1>
-  <p>一个可视化的资源排期组件库与示例应用</p>
+  <p>一个基于 Vue 2.7 的可视化资源排期组件库</p>
+  <img src="./dist/scheduler-demo.png" alt="Scheduler Demo" style="max-width: 820px; width: 100%; margin-top: 12px" />
 </div>
 
 ## 介绍

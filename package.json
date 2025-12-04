@@ -1,7 +1,7 @@
 {
-  "name": "resource-scheduler",
+  "name": "@zcodery/resource-scheduler",
   "private": false,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "license": "MIT",
   "scripts": {
