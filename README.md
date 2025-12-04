@@ -7,7 +7,7 @@
 ## 介绍
 
 本仓库同时包含：
-- 示例应用：基于 Vite + React 的演示页面（使用 Tailwind CDN）。
+- 示例应用：基于 Vite + Vue 2.7 的演示页面（结合 ElementUI 与自定义样式）。
 - 组件库打包：输出 ESM 与 UMD 两种格式，并生成完整 TypeScript 类型声明。
 
 你可以：
@@ -59,7 +59,7 @@
 </template>
 
 <script>
-import { GanttScheduler } from '@basefount/resource-scheduler'
+import { GanttScheduler } from '@zcodery/resource-scheduler'
 export default { components: { GanttScheduler } }
 </script>
 ```
@@ -81,34 +81,32 @@ export default { components: { GanttScheduler } }
 2. 开发启动：`npm run dev`
 3. 访问开发地址（默认）：`http://localhost:3000`
 
-说明：示例应用使用 Tailwind CDN 与 importmap 加载 React，已在 `index.html` 配置，无需本地额外安装 Tailwind。
+说明：示例应用使用 ElementUI 样式与少量 SCSS，自带演示数据与交互，无需额外安装 Tailwind。
 
 ## 作为组件库使用（npm）
 
 安装：
 
-`npm install @basefount/resource-scheduler`
+`npm install @zcodery/resource-scheduler`
 
 导入：
 
-`import { StaffRow, TaskCard, WorkloadBar } from '@basefount/resource-scheduler'`
+`import { StaffRow, TaskCard, WorkloadBar } from '@zcodery/resource-scheduler'`
 
 类型声明：自动随包提供，来自 `dist/types`。
 
 对等依赖（peerDependencies）：
-- `react >= 18`
-- `react-dom >= 18`
-- `lucide-react >= 0.555.0`
+- `vue >= 2.7.0`
 
 ## 通过 CDN 使用
 
 ESM：
 
-`import { StaffRow } from 'https://cdn.jsdelivr.net/npm/@basefount/resource-scheduler@0.1.0/dist/resource-scheduler.es.js'`
+`import { StaffRow } from 'https://cdn.jsdelivr.net/npm/@zcodery/resource-scheduler@0.1.1/dist/resource-scheduler.es.js'`
 
 UMD（全局对象 `window.ResourceScheduler`）：
 
-`<script src="https://cdn.jsdelivr.net/npm/@basefount/resource-scheduler@0.1.0/dist/resource-scheduler.umd.js"></script>`
+`<script src="https://cdn.jsdelivr.net/npm/@zcodery/resource-scheduler@0.1.1/dist/resource-scheduler.umd.js"></script>`
 
 示例：
 
@@ -119,7 +117,7 @@ UMD（全局对象 `window.ResourceScheduler`）：
 ## 组件入口与导出
 
 库入口文件：`index.ts`，导出以下内容：
-- 组件：`StaffRow`、`TaskCard`、`WorkloadBar`、`EditTaskModal`、`EditStaffModal`、`ColorPresetPicker`、`Confirm`、`PopoverColorPicker`
+- 组件：`StaffRow`、`TaskCard`、`WorkloadBar`、`EditTaskModal`、`EditStaffModal`、`GanttScheduler`
 - 类型：`types.ts` 中的类型
 - 常量：`constants.ts` 中的默认样式常量
 
@@ -136,7 +134,7 @@ UMD（全局对象 `window.ResourceScheduler`）：
 - 交互：任务拖拽移动与左右拉伸（调整工期）、自动边缘滚动、双击网格新增任务、右键上下文菜单（新增/编辑/复制/删除/移动行/调整工期）、定位到任务/人员等（`components/GanttScheduler.vue:448`、`:585`）。
 - 视图控制：支持月/季/年三种视图模式，快速导航到今天或到数据起点；顶部显示当前时间段标签，时间轴显示今日垂线（`components/GanttScheduler.vue:344`、`:402`、`:428`）。
 - 可访问性：使用 `role="region"`、`role="grid"`、`role="columnheader"`、`role="dialog"` 等 ARIA 语义；键盘导航 `←/→` 平移、`Home` 回到今天、`PageUp/PageDown` 切段（`components/GanttScheduler.vue:4`、`:49`、`:97`、`:373`）。
-- 主题与样式：自动侦测系统深色模式切换 `documentElement.classList` 的 `dark` 类；Tailwind CDN 与 ElementUI 风格融合（`components/GanttScheduler.vue:270`、`index.html`、`styles.css`）。
+- 主题与样式：SCSS 优化菜单与导航样式，融合 ElementUI 风格（`components/gantt-scheduler.vue:1409`）。
 - 数据校验与持久化：对 `task` 进行运行时结构校验；`localStorage` 持久化变更并广播 `window` 事件（`components/GanttScheduler.vue:356`、`:235`）。
 - 性能优化：细粒度状态更新、自动滚动、避免不必要重绘，适配较大数据集（`components/GanttScheduler.vue:440`）。
 - 类型：`types.ts` 包含 `Staff`、`Task`、`DayInfo`、`GanttSchedulerProps` 等。
@@ -184,7 +182,7 @@ UMD（全局对象 `window.ResourceScheduler`）：
 - 构建模式：通过 `env.BUILD_LIB` 切换库构建；发布时请确保 `peerDependencies` 与 `exports` 配置正确。
 
 ### 版本信息
-- 当前版本：`0.1.0`（`package.json:4`）
+- 当前版本：`0.1.1`
 - 变更摘要：
   - 新增 `<gantt-scheduler>` 组件与示例路由 `/scheduler`。
   - 完善 Props/Slots/事件文档与 README 使用说明。
@@ -209,18 +207,20 @@ UMD（全局对象 `window.ResourceScheduler`）：
 
 发布到 npm：
 1. 确认登录：`npm whoami`（未登录则 `npm login`）
-2. 包名作用域：当前包名为 `@basefount/resource-scheduler`，请确保作用域与您的 npm 用户/组织匹配；如不匹配，可改为 `@你的作用域/resource-scheduler`，或换成未占用的普通名称。
-3. 发布：`npm publish --access public`
+2. 包名与作用域：当前包名为 `@zcodery/resource-scheduler`，如需更换请修改 `package.json:name` 并确保你拥有该作用域权限。
+3. 构建产物：`npm run build:pkg`（生成 `dist/*` 与 `dist/types/*`）
+4. 发布：`npm publish --access public`
 
 常见错误：
 - `E403 You do not have permission`：该包名已被占用或你不是该包名所有者；请使用你拥有的作用域或更换包名。
+- `You cannot publish over the previously published versions`：请提升版本号（`npm version patch` 或手动更新 `package.json:version`），再重新构建并发布。
 
-更多发布细节与排错见 `docs/PUBLISHING.md`。
+更多发布细节与排错：可通过 `npm pack` 检查打包内容，或查看发布日志中的 `C:\Users\<你的用户名>\AppData\Local\npm-cache\_logs\*.log`。
 
 ## 示例应用说明
 
 - Tailwind：通过 CDN 加载，位于 `index.html` 的 `<script src="https://cdn.tailwindcss.com"></script>`。
-- React/ReactDOM/lucide-react：使用 importmap 指向 CDN，详见 `index.html`。
+- Vue/ElementUI：示例应用采用 Vue 2.7 与 ElementUI，样式位于组件与 `styles.css` 中。
 - Vite 开发服务器端口：`vite.config.ts` 中配置为 `3000`。
 - GitHub Pages 部署：工作流位于 `.github/workflows/deploy.yml`，自动设置 `vite` 的 `base` 路径并上传 `dist`。
 

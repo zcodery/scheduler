@@ -169,10 +169,10 @@
 
 <script lang="ts">
 import { Staff, Task, ViewMode, DayInfo, TooltipState, EditTaskModalState, EditStaffModalState } from "../types"
-import { WEEK_DAYS } from "../constants"
-import StaffRow from "./StaffRow.vue"
-import EditTaskModal from "./EditTaskModal.vue"
-import EditStaffModal from "./EditStaffModal.vue"
+import { WEEK_DAYS } from "@/constants"
+import StaffRow from "@/components/StaffRow.vue"
+import EditTaskModal from "@/components/EditTaskModal.vue"
+import EditStaffModal from "@/components/EditStaffModal.vue"
 import draggable from "vuedraggable"
 
 export default {
