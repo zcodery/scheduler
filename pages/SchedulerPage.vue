@@ -33,11 +33,8 @@ export default {
     }
   },
   created() {
-    const params = new URLSearchParams(window.location.search)
-    const ro = params.get("readonly")
-    this.readonly = ro === "1" || ro === "true"
-    let initialData = MOCK_STAFF_DATA
     try {
+      let initialData = MOCK_STAFF_DATA
       const saved = localStorage.getItem("scheduler:data")
       if (saved) initialData = JSON.parse(saved)
       this.payload = initialData
@@ -63,5 +60,3 @@ export default {
   },
 }
 </script>
-
-<style scoped></style>

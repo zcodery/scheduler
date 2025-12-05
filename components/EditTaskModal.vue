@@ -21,12 +21,12 @@
 
         <el-col :span="8">
           <el-form-item label="背景色">
-            <el-color-picker v-model="bgColor" :predefine="presetHexes" show-alpha size="mini" @change="onBgChange" />
+            <el-color-picker v-model="bgColor" :predefine="presetHexes" show-alpha size="mini" />
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="文字颜色">
-            <el-color-picker v-model="textColor" :predefine="presetHexes" show-alpha size="mini" @change="onTextChange" />
+            <el-color-picker v-model="textColor" :predefine="presetHexes" show-alpha size="mini" />
           </el-form-item>
         </el-col>
         <el-col :span="8">
@@ -55,7 +55,7 @@ export default {
     task: { type: Object as () => Task | null, required: false },
   },
   data() {
-    return { name: "", startDate: "", endDate: "", duration: 1, bgColor: "", textColor: "", presets: PRESET_TASK_COLORS, DEFAULT_TASK_BG, DEFAULT_TASK_TEXT }
+    return { name: "", startDate: "", endDate: "", duration: 1, bgColor: "", textColor: "", presets: PRESET_TASK_COLORS }
   },
   computed: {
     presetHexes(): string[] {
@@ -68,6 +68,23 @@ export default {
     },
   },
   watch: {
+    isOpen(val: boolean) {
+      if (val && this.task) {
+        this.name = this.task.name
+        this.startDate = this.task.startDate
+        this.duration = this.task.duration
+        this.endDate = calcEnd(this.task.startDate, this.task.duration)
+        this.bgColor = this.task.bgColor || DEFAULT_TASK_BG
+        this.textColor = this.task.textColor || DEFAULT_TASK_TEXT
+      } else {
+        this.name = ""
+        this.startDate = ""
+        this.duration = 1
+        this.endDate = ""
+        this.bgColor = DEFAULT_TASK_BG
+        this.textColor = DEFAULT_TASK_TEXT
+      }
+    },
     task: {
       immediate: true,
       handler(t: Task | null) {
@@ -92,14 +109,6 @@ export default {
     handleEndDate() {
       if (this.startDate) this.duration = calcDuration(this.startDate, this.endDate)
     },
-    onBgChange(val: string) {
-      if (!this.task) return
-      this.$emit("save", this.task.id, { bgColor: val })
-    },
-    onTextChange(val: string) {
-      if (!this.task) return
-      this.$emit("save", this.task.id, { textColor: val })
-    },
     submit() {
       if (!this.task) return
       this.$emit("save", this.task.id, { name: this.name, startDate: this.startDate, duration: Number(this.duration), bgColor: this.bgColor || undefined, textColor: this.textColor || undefined })
@@ -108,5 +117,3 @@ export default {
   },
 }
 </script>
-
-<style scoped></style>

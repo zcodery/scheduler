@@ -183,6 +183,7 @@ export default {
     task: { type: Array as () => Staff[], required: true },
     title: { type: String, default: "人员排期" },
     description: { type: String, default: "" },
+    staffConfig: { type: Array, default: () => [] },
   },
   data() {
     return {
@@ -1026,7 +1027,7 @@ export default {
       this.menuVisible = true
     },
     addStaff() {
-      const newStaff: Staff = { id: Date.now().toString(), name: "新员工", role: "职位待定", avatarColor: "bg-gray-200 text-gray-600", workloadPercentage: 0, tasks: [], isCollapsed: false }
+      const newStaff: Staff = { id: Date.now().toString(), name: "新员工", role: "职位待定", avatarColor: "bg-gray-200 text-gray-600", tasks: [], isCollapsed: false }
       this.staffData = [...this.staffData, newStaff]
       this.contextMenu = null
     },

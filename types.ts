@@ -16,7 +16,6 @@ export interface Staff {
   role: string
   avatar?: string
   avatarColor: string
-  workloadPercentage: number
   tasks: Task[]
   isCollapsed?: boolean
 }
