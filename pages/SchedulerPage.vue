@@ -1,5 +1,5 @@
 <template>
-  <gantt-scheduler :readonly="readonly" :task="payload" :title="title" :description="description" @data-change="onDataChange">
+  <gantt-scheduler :readonly="readonly" :task="payload" :title="title" :description="description" :staffConfig="staffConfig" @data-change="onDataChange">
     <!-- <template #avatar="{ staff }">
       <img v-if="staff.avatar" :src="staff.avatar" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
       <img v-else-if="staff.name == '王五'" src="/avatar.jpg" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
@@ -30,6 +30,11 @@ export default {
       payload: [],
       withdynamicIcon: "",
       loading: false,
+      staffConfig: [
+        { prop: "role", label: "职位", type: "picker", component: "el-select", params: { placeholder: "选择职位", options: ["前端工程师", "后端工程师", "测试工程师", "产品经理", "设计师", "项目经理"], class: "!w-full" } },
+        { prop: "workloadPercentage", label: "进度(%)", type: "field", component: "el-input-number", params: { min: 0, max: 100, step: 1, class: "!w-full" } },
+        { prop: "hobby", label: "爱好", type: "field", component: "el-select", params: { placeholder: "选择爱好", options: ["篮球", "足球", "跑步", "游泳", "旅游", "其他"], class: "!w-full", multiple: true, allowCreate: true, filterable: true } },
+      ],
     }
   },
   created() {

@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-white text-slate-800 flex flex-col select-none h-screen overflow-hidden" @mousemove="onGlobalMouseMove" @mouseup="onGlobalMouseUp" @mouseleave="onGlobalMouseUp">
     <EditTaskModal :isOpen="editModal.isOpen" :task="editModal.task" @close="editModal.isOpen = false" @save="onSaveTask" />
-    <EditStaffModal :isOpen="editStaffModal.isOpen" :staff="editStaffModal.staff" @close="editStaffModal.isOpen = false" @save="onSaveStaff" />
+    <EditStaffModal :isOpen="editStaffModal.isOpen" :staff="editStaffModal.staff" :staffConfig="staffConfig" @close="editStaffModal.isOpen = false" @save="onSaveStaff" />
 
     <div v-if="tooltip && tooltip.visible" class="fixed z-[9999] bg-gray-900 text-white text-xs px-2 py-1.5 rounded shadow-lg pointer-events-none space-y-0.5" :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }">
       <div>开始: {{ tooltip.startDate }}</div>
@@ -179,10 +179,10 @@ export default {
   name: "gantt-scheduler",
   components: { StaffRow, EditTaskModal, EditStaffModal, draggable },
   props: {
-    readonly: { type: Boolean, required: false, default: false },
-    task: { type: Array as () => Staff[], required: true },
     title: { type: String, default: "人员排期" },
     description: { type: String, default: "" },
+    readonly: { type: Boolean, required: false, default: false },
+    task: { type: Array as () => Staff[], required: true },
     staffConfig: { type: Array, default: () => [] },
   },
   data() {
@@ -329,7 +329,6 @@ export default {
     headers(): DayInfo[] {
       const headers: DayInfo[] = []
       const startDate = new Date(this.viewStartDate)
-      const count = this.viewMode === "year" ? 12 : this.viewMode === "quarter" ? 13 : 31
       const isSameDay = (d1: Date, d2: Date) => d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear()
       const today = new Date()
       if (this.viewMode === "month") {

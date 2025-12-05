@@ -13,7 +13,6 @@ export interface Task {
 export interface Staff {
   id: string
   name: string
-  role: string
   avatar?: string
   avatarColor: string
   tasks: Task[]
@@ -70,6 +69,14 @@ export interface GanttSchedulerProps {
   task: Staff[]
   title?: string
   description?: string
+  staffConfig?: StaffFieldConfig[]
 }
 
 export type GanttSchedulerDataChangePayload = Staff[]
+export interface StaffFieldConfig {
+  prop: string
+  label: string
+  type: "field" | "picker" | "checkbox"
+  params?: any
+  component?: string
+}
