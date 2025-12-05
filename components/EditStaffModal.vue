@@ -10,18 +10,19 @@
       <el-form-item label="头像颜色">
         <el-color-picker v-model="avatarColor" :predefine="presetHexes" show-alpha size="mini" @change="onAvatarChange" />
       </el-form-item>
-      <div class="flex justify-end gap-2 pt-2">
-        <el-button size="mini" @click="$emit('close')">取消</el-button>
-        <el-button size="mini" type="primary" @click="submit">保存</el-button>
-      </div>
     </el-form>
+
+    <template v-slot:footer>
+      <el-button size="mini" @click="$emit('close')">取消</el-button>
+      <el-button size="mini" type="primary" @click="submit">保存</el-button>
+    </template>
   </el-dialog>
 </template>
 
 <script lang="ts">
-import { Staff } from "../types"
-import { PRESET_TASK_COLORS } from "../constants"
-import { rgbTextToHex } from "../utils"
+import { PRESET_TASK_COLORS } from "@/utils/constants"
+import { rgbTextToHex } from "@/utils/index"
+import { Staff } from "@/types"
 
 export default {
   props: { isOpen: { type: Boolean, required: true }, staff: { type: Object as () => Staff | null, required: false } },

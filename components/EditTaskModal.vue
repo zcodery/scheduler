@@ -37,7 +37,7 @@
       </el-row>
     </el-form>
 
-    <template #footer>
+    <template v-slot:footer>
       <el-button size="mini" @click="$emit('close')">取消</el-button>
       <el-button size="mini" type="primary" @click="submit">保存</el-button>
     </template>
@@ -45,9 +45,9 @@
 </template>
 
 <script lang="ts">
-import { Task } from "../types"
-import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT, PRESET_TASK_COLORS } from "../constants"
-import { rgbTextToHex, calcEnd, calcDuration } from "../utils"
+import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT, PRESET_TASK_COLORS } from "@/utils/constants"
+import { rgbTextToHex, calcEnd, calcDuration } from "@/utils/index"
+import { Task } from "@/types"
 
 export default {
   props: {
@@ -75,7 +75,7 @@ export default {
           this.name = t.name
           this.startDate = t.startDate
           this.duration = t.duration
-          this.endDate = this.calcEnd(t.startDate, t.duration)
+          this.endDate = calcEnd(t.startDate, t.duration)
           this.bgColor = t.bgColor || DEFAULT_TASK_BG
           this.textColor = t.textColor || DEFAULT_TASK_TEXT
         }
@@ -83,20 +83,14 @@ export default {
     },
   },
   methods: {
-    calcEnd(start: string, dur: number) {
-      return calcEnd(start, dur)
-    },
-    calcDuration(start: string, end: string) {
-      return calcDuration(start, end)
-    },
     handleStartDate() {
-      if (this.duration > 0) this.endDate = this.calcEnd(this.startDate, this.duration)
+      if (this.duration > 0) this.endDate = calcEnd(this.startDate, this.duration)
     },
     handleDuration() {
-      if (this.startDate) this.endDate = this.calcEnd(this.startDate, this.duration)
+      if (this.startDate) this.endDate = calcEnd(this.startDate, this.duration)
     },
     handleEndDate() {
-      if (this.startDate) this.duration = this.calcDuration(this.startDate, this.endDate)
+      if (this.startDate) this.duration = calcDuration(this.startDate, this.endDate)
     },
     onBgChange(val: string) {
       if (!this.task) return

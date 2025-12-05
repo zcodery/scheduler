@@ -32,7 +32,7 @@
             <el-popover trigger="hover" popper-class="!p-0" :visible-arrow="false" :disabled="!readonly">
               <div class="bg-gray-900 text-white text-xs px-2 py-1.5 rounded">
                 <div>开始: {{ t.startDate }}</div>
-                <div>结束: {{ displyEndDate(t.startDate, t.duration) }}</div>
+                <div>结束: {{ calcEnd(t.startDate, t.duration) }}</div>
                 <div>工期: {{ t.duration }} 天</div>
               </div>
               <TaskCard slot="reference" :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" @editing-start="onTaskEditingStart" @editing-end="onTaskEditingEnd" />
@@ -50,8 +50,8 @@
 <script lang="ts">
 import { Staff, Task, DayInfo, ViewMode } from "../types"
 import TaskCard from "./TaskCard.vue"
-import { AVATAR_COLOR_CLASSES } from "../constants"
-import { rgbTextToHex, luminance } from "../utils"
+import { AVATAR_COLOR_CLASSES } from "../utils/constants"
+import { rgbTextToHex, luminance, calcEnd, parseDateStr } from "../utils"
 
 export default {
   components: { TaskCard },
@@ -100,13 +100,7 @@ export default {
     },
   },
   methods: {
-    parseDateStr(s: string): Date {
-      const parts = String(s).split("-")
-      const y = Number(parts[0] || 0)
-      const m = Number(parts[1] || 1)
-      const d = Number(parts[2] || 1)
-      return new Date(y, Math.max(0, m - 1), Math.max(1, d))
-    },
+    calcEnd,
     onSidebarMouseDown(e: MouseEvent) {
       return
     },
@@ -128,7 +122,7 @@ export default {
       return px
     },
     taskStyle(task: Task) {
-      const sDate = this.parseDateStr(task.startDate)
+      const sDate = parseDateStr(task.startDate)
       sDate.setHours(0, 0, 0, 0)
       const start = sDate.getTime()
       const startOffset = start - this.viewStartDate.getTime()
@@ -252,22 +246,17 @@ export default {
       this.$emit("add-task-at", this.staff.id, dateStr)
     },
     isConflict(t: Task): boolean {
-      const startA = this.parseDateStr(t.startDate).getTime()
+      const startA = parseDateStr(t.startDate).getTime()
       const endA = startA + t.duration * 86400000
       return this.staff.tasks.some(
         x =>
           x.id !== t.id &&
           (() => {
-            const startB = this.parseDateStr(x.startDate).getTime()
+            const startB = parseDateStr(x.startDate).getTime()
             const endB = startB + x.duration * 86400000
             return Math.max(startA, startB) < Math.min(endA, endB)
           })()
       )
-    },
-    displyEndDate(startDate: string, duration: number) {
-      const dEnd = this.parseDateStr(startDate)
-      dEnd.setDate(dEnd.getDate() + duration)
-      return `${dEnd.getFullYear()}-${String(dEnd.getMonth() + 1).padStart(2, "0")}-${String(dEnd.getDate()).padStart(2, "0")}`
     },
     onTaskEditingStart() {
       this.$emit("task-edit-start")

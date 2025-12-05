@@ -95,9 +95,9 @@
             </div>
           </template>
           <template v-else-if="contextMenu.type === 'staff' && contextMenu.staffId">
-            <div class="rs-item" @click="ctxAddTask">
-              <i class="el-icon-plus"></i>
-              <span>新增任务</span>
+            <div class="rs-item" @click="ctxOpenEditStaff">
+              <i class="el-icon-edit"></i>
+              <span>编辑人员</span>
             </div>
             <div class="rs-item" @click="ctxFocusStaff">
               <i class="el-icon-location"></i>
@@ -108,9 +108,9 @@
               <span>{{ staffCollapseLabel() }}</span>
             </div>
             <div class="rs-sep"></div>
-            <div class="rs-item" @click="ctxOpenEditStaff">
-              <i class="el-icon-edit"></i>
-              <span>编辑人员</span>
+            <div class="rs-item" @click="ctxAddTask">
+              <i class="el-icon-plus"></i>
+              <span>新增任务</span>
             </div>
             <div class="rs-sep"></div>
             <div class="rs-item rs-item-danger" @click="ctxDeleteStaff">
@@ -169,7 +169,7 @@
 
 <script lang="ts">
 import { Staff, Task, ViewMode, DayInfo, TooltipState, EditTaskModalState, EditStaffModalState } from "../types"
-import { WEEK_DAYS } from "@/constants"
+import { WEEK_DAYS } from "@/utils/constants"
 import StaffRow from "@/components/StaffRow.vue"
 import EditTaskModal from "@/components/EditTaskModal.vue"
 import EditStaffModal from "@/components/EditStaffModal.vue"

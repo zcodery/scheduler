@@ -16,7 +16,6 @@
 ## Gantt Scheduler 组件
 
 - 组件名：`<gantt-scheduler>`
-- 路径：访问 `http://localhost:3000/scheduler` 以查看演示页面
 
 ### Props
 

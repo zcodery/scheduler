@@ -18,7 +18,7 @@
 
 <script lang="ts">
 import { Task, ViewMode } from "../types"
-import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT } from "../constants"
+import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT } from "../utils/constants"
 
 export default {
   props: {
