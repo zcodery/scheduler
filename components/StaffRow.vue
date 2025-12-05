@@ -13,7 +13,7 @@
             <el-input ref="nameInput" autofocus size="mini" v-model="staff.name" @blur="saveEdit('name', $event)" @keydown.enter.prevent="blurInput" />
           </div>
           <div v-else class="text-sm font-bold text-gray-900 truncate cursor-pointer" @dblclick="startEdit('name')" @click.stop="emitFocus">{{ staff.name }}</div>
-          <slot name="staffDescription" :staff="staff" :role="staff.role"></slot>
+          <slot name="staffDescription" :staff="staff"></slot>
         </div>
       </div>
       <slot name="workload" v-if="!staff.isCollapsed" :staff="staff"></slot>
@@ -145,26 +145,21 @@ export default {
       let width = (durationMs / this.viewDurationMs) * 100
       return { left: `${left}%`, width: `${Math.max(width, 0.5)}%`, top: `${12 + topOffset}px` }
     },
-    startEdit(field: "name" | "role") {
+    startEdit(field: "name") {
       if (this.readonly) return
       this.$emit("focus-staff", this.staff.id)
       this.editingField = field
       this.$nextTick(() => {
-        if (field === "name") {
-          const r = (this.$refs as any).nameInput
-          if (r && typeof r.focus === "function") r.focus()
-        } else {
-          const r = (this.$refs as any).roleInput
-          if (r && typeof r.focus === "function") r.focus()
-        }
+        const r = (this.$refs as any).nameInput
+        if (r && typeof r.focus === "function") r.focus()
       })
     },
     blurInput(e: Event) {
       ;(e.target as HTMLInputElement).blur()
     },
-    saveEdit(field: "name" | "role", e: any) {
+    saveEdit(field: "name", e: any) {
       const v = String(e.target.value || "").trim()
-      if (v) this.$emit("update-staff", this.staff.id, field === "name" ? { name: v } : { role: v })
+      if (v) this.$emit("update-staff", this.staff.id, { name: v })
       this.editingField = null
     },
     emitFocus() {

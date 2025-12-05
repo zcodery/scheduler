@@ -38,6 +38,7 @@ export default {
         { span: 12, prop: "hobby", label: "爱好", type: "field", component: "el-select", params: { placeholder: "选择爱好", options: ["篮球", "足球", "跑步", "游泳", "旅游", "其他"], class: "!w-full", multiple: true, allowCreate: true, filterable: true } },
         { prop: "workloadPercentage", label: "进度(%)", type: "field", component: "el-input-number", params: { min: 0, max: 100, step: 1, class: "!w-full" } },
       ],
+      realTasks: [],
     }
   },
   created() {
@@ -46,20 +47,25 @@ export default {
       const saved = localStorage.getItem("scheduler:data")
       if (saved) initialData = JSON.parse(saved)
       this.payload = initialData
+      this.realTasks = structuredClone(this.payload)
     } catch {}
   },
   methods: {
     onDataChange(payload: any) {
       this.withdynamicIcon = "el-icon-refresh"
+      this.realTasks = structuredClone(payload)
       console.log(structuredClone(payload))
+      // this.payload = structuredClone(payload)
       // localStorage.setItem("scheduler:data", JSON.stringify(payload))
     },
     onSave() {
       this.loading = true
       setTimeout(() => {
-        localStorage.setItem("scheduler:data", JSON.stringify(this.payload))
+        console.log(structuredClone(this.realTasks))
+        localStorage.setItem("scheduler:data", JSON.stringify(this.realTasks))
         this.loading = false
         this.withdynamicIcon = "el-icon-finished"
+        this.$message.success("保存成功")
         setTimeout(() => {
           this.withdynamicIcon = ""
         }, 1000)
