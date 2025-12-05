@@ -13,10 +13,7 @@
             <el-input ref="nameInput" autofocus size="mini" v-model="staff.name" @blur="saveEdit('name', $event)" @keydown.enter.prevent="blurInput" />
           </div>
           <div v-else class="text-sm font-bold text-gray-900 truncate cursor-pointer" @dblclick="startEdit('name')" @click.stop="emitFocus">{{ staff.name }}</div>
-          <div v-if="editingField === 'role'" class="w-full">
-            <el-input ref="roleInput" autofocus size="mini" v-model="staff.role" @blur="saveEdit('role', $event)" @keydown.enter.prevent="blurInput" />
-          </div>
-          <div v-else class="text-xs text-gray-500 truncate cursor-text" @dblclick="startEdit('role')">{{ staff.role }}</div>
+          <slot name="staffDescription" :staff="staff" :role="staff.role"></slot>
         </div>
       </div>
       <slot name="workload" v-if="!staff.isCollapsed" :staff="staff"></slot>

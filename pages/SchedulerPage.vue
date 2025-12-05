@@ -5,6 +5,9 @@
       <img v-else-if="staff.name == '王五'" src="/avatar.jpg" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
       <div v-else :class="staff.avatarColor" class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold">{{ staff.name.charAt(0) }}</div>
     </template> -->
+    <template #staffDescription="{ staff }">
+      <el-tag size="mini" type="primary" effect="plain">{{ staff.role || "未设置职位" }}</el-tag>
+    </template>
     <template #workloadBar="{ staff }">
       <workload-bar :percentage="staff.workloadPercentage"></workload-bar>
     </template>

@@ -76,6 +76,7 @@
           <StaffRow v-for="s in displayStaffs" :key="s.id" :staff="s" :headers="headers" :viewStartDate="new Date(headers[0].date)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" :dayWidth="effectiveDayWidth" :scrollX="scrollX" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff" @task-edit-start="onTaskEditStart" @task-edit-end="onTaskEditEnd">
             <template #avatar="{ staff }"><slot name="avatar" :staff="staff"></slot></template>
             <template #workload="{ staff }"><slot name="workloadBar" :staff="staff"></slot></template>
+            <template #staffDescription="{ staff }"><slot name="staffDescription" :staff="staff"></slot></template>
           </StaffRow>
         </draggable>
         <div v-if="quickJumpDir" class="absolute top-1/2 -translate-y-1/2 z-50 pointer-events-none flex justify-between px-6" :style="{ left: '260px', right: '0' }">
