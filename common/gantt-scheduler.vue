@@ -379,7 +379,8 @@ export default {
           weekEnd.setDate(weekEnd.getDate() + 6)
           const sub = `${weekStart.getMonth() + 1}/${weekStart.getDate()} ~ ${weekEnd.getMonth() + 1}/${weekEnd.getDate()}`
           const dd = new Date(d)
-          headers.push({ date: dd, label: `Q${Math.floor(dd.getMonth() / 3) + 1}/W${Math.ceil(dd.getDate() / 7)}`, subLabel: sub, isToday: isSameDay(dd, today), isWeekend: false })
+          const inWeek = today.getTime() >= weekStart.getTime() && today.getTime() <= weekEnd.getTime()
+          headers.push({ date: dd, label: `Q${Math.floor(dd.getMonth() / 3) + 1}/W${Math.ceil(dd.getDate() / 7)}`, subLabel: sub, isToday: inWeek, isWeekend: false })
         }
       } else {
         const container = this.$refs.containerRef as HTMLDivElement
