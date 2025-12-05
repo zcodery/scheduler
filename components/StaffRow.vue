@@ -63,7 +63,7 @@ export default {
     scrollX: { type: Number, required: false, default: 0 },
   },
   data() {
-    return { editingField: null as null | "name" | "role" }
+    return { editingField: null as null | "name" }
   },
   computed: {
     rangeDays(): number {
