@@ -28,3 +28,6 @@ bun.lockb
 *.njsproj
 *.sln
 *.sw?
+
+# tgz files
+*.tgz
