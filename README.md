@@ -82,11 +82,15 @@ export default {
 
 安装：
 
-`npm install @zcodery/resource-scheduler`
+```sh
+npm install @zcodery/resource-scheduler
+```
 
 导入：
 
-`import { GanttScheduler } from '@zcodery/resource-scheduler'`
+```javascript
+import { GanttScheduler } from '@zcodery/resource-scheduler'
+```
 
 类型声明：自动随包提供，来自 `dist/types`。
 
@@ -97,15 +101,21 @@ export default {
 
 ESM：
 
-`import { GanttScheduler } from 'https://cdn.jsdelivr.net/npm/@zcodery/resource-scheduler@latest/dist/resource-scheduler.es.js'`
+```sh
+import { GanttScheduler } from 'https://cdn.jsdelivr.net/npm/@zcodery/resource-scheduler@latest/dist/resource-scheduler.es.js'
+```
 
 UMD（全局对象 `window.ResourceScheduler`）：
 
-`<script src="https://cdn.jsdelivr.net/npm/@zcodery/resource-scheduler@latest/dist/resource-scheduler.umd.js"></script>`
+```html
+<script src="https://cdn.jsdelivr.net/npm/@zcodery/resource-scheduler@latest/dist/resource-scheduler.umd.js"></script>
+```
 
 示例：
 
-`const { GanttScheduler } = window.ResourceScheduler`
+```javascript
+const { GanttScheduler } = window.ResourceScheduler
+```
 
 可选镜像：将上面 CDN 域名替换为 `unpkg.com` 亦可。
 
