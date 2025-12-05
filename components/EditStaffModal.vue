@@ -16,7 +16,7 @@
         <el-col v-for="item in staffConfig" :key="item.prop" :span="item.span || 24">
           <el-form-item :key="item.prop" :label="item.label">
             <template v-if="item.component === 'el-select'">
-              <el-select v-model="form[item.prop]" v-bind="item.params || {}" @change="onFieldChange(item.prop, form[item.prop])">
+              <el-select v-model="form[item.prop]" v-bind="item.params || {}">
                 <el-option v-for="opt in (item.params && item.params.options) || []" :key="opt.value || opt" :label="opt.label || opt" :value="opt.value || opt" />
               </el-select>
             </template>
