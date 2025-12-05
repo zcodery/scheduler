@@ -45,16 +45,36 @@
 
 ```html
 <template>
-  <gantt-scheduler :readonly="false" :task="staffs" title="人员排期" description="支持拖拽与编辑">
-    <template #avatar="{ staff }">
-      <img :src="staff.avatar" :alt="staff.name" class="w-8 h-8 rounded-full" />
+  <gantt-scheduler :readonly="readonly" :task="staffs" :title="title" :description="description" :staffConfig="staffConfig" @data-change="onDataChange">
+    <template #staffDescription="{ staff }">
+      <el-tag size="mini" type="primary" effect="plain">{{ staff.role || '未设置职位' }}</el-tag>
+    </template>
+    <template #extra>
+      <el-button v-if="!readonly" size="mini" type="success" @click="onSave">保存</el-button>
+      <el-switch size="mini" v-model="readonly" active-color="#13ce66" inactive-color="#409eff" :active-text="readonly ? '只读模式' : '编辑模式'"></el-switch>
     </template>
   </gantt-scheduler>
+  
 </template>
 
 <script>
 import { GanttScheduler } from '@zcodery/resource-scheduler'
-export default { components: { GanttScheduler } }
+export default {
+  components: { GanttScheduler },
+  data() {
+    return {
+      title: '人员排期',
+      description: '拖动图表滑动 • 双击编辑 • 右键管理',
+      readonly: false,
+      staffs: [],
+      staffConfig: [
+        { span: 12, prop: 'role', label: '职位', type: 'picker', component: 'el-select', params: { placeholder: '选择职位', options: ['前端工程师','后端工程师','测试工程师','产品经理','设计师','项目经理'], class: '!w-full' } },
+        { span: 12, prop: 'hobby', label: '爱好', type: 'field', component: 'el-select', params: { placeholder: '选择爱好', options: ['篮球','足球','跑步','游泳','旅游','其他'], class: '!w-full', multiple: true, allowCreate: true, filterable: true } },
+        { prop: 'workloadPercentage', label: '进度(%)', type: 'field', component: 'el-input-number', params: { min: 0, max: 100, step: 1, class: '!w-full' } },
+      ],
+    }
+  },
+}
 </script>
 ```
 
