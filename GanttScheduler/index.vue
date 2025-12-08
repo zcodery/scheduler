@@ -80,7 +80,7 @@
             <template #staffDescription="{ staff }"><slot name="staffDescription" :staff="staff"></slot></template>
           </StaffRow>
         </draggable>
-        <div v-if="quickJumpDir" class="absolute top-1/2 -translate-y-1/2 z-50 pointer-events-none flex justify-between px-6" :style="{ left: consts.SIDEBAR_WIDTH + 'px', right: '0' }">
+        <div v-if="quickJumpDir" class="absolute top-1/2 -translate-y-1/2 z-50 pointer-events-none flex justify-between px-6" :style="{ left: consts.SIDEBAR_WIDTH + 16 + 'px', right: '0' }">
           <el-button v-if="quickJumpDir === 'left'" type="primary" plain circle icon="el-icon-d-arrow-left" class="pointer-events-auto" @click="jumpToData('right')"></el-button>
           <div class="flex-1"></div>
           <el-button v-if="quickJumpDir === 'right'" type="primary" plain circle icon="el-icon-d-arrow-right" class="pointer-events-auto" @click="jumpToData('left')"></el-button>
