@@ -344,8 +344,6 @@ export default {
               e.setDate(0)
               return e
             })()
-        console.log(rangeStart, rangeEnd)
-
         for (let d = new Date(rangeStart); d <= rangeEnd; ) {
           const dd = new Date(d)
           headers.push({ date: dd, label: `${dd.getMonth() + 1}月${dd.getDate()}`, subLabel: WEEK_DAYS[dd.getDay()], isToday: isSameDay(dd, today), isWeekend: dd.getDay() === 0 || dd.getDay() === 6 })
