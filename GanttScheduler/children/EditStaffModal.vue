@@ -34,9 +34,9 @@
 </template>
 
 <script lang="ts">
-import { PRESET_TASK_COLORS } from "@/utils/constants"
-import { rgbTextToHex } from "@/utils/index"
-import { Staff } from "@/types"
+import { PRESET_TASK_COLORS } from "../utils/constants"
+import { rgbTextToHex } from "../utils/index"
+import { Staff } from "../types"
 
 export default {
   props: {

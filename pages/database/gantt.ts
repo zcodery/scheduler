@@ -1,4 +1,4 @@
-import { Staff } from "@/types"
+import { Staff } from "@/GanttScheduler/types"
 
 // Helper to create dates relative to today
 const getRelativeDate = (offsetDays: number) => {

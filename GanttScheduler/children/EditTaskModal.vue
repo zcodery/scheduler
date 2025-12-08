@@ -45,9 +45,9 @@
 </template>
 
 <script lang="ts">
-import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT, PRESET_TASK_COLORS } from "@/utils/constants"
-import { rgbTextToHex, calcEnd, calcDuration } from "@/utils/index"
-import { Task } from "@/types"
+import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT, PRESET_TASK_COLORS } from "../utils/constants"
+import { rgbTextToHex, calcEnd, calcDuration } from "../utils/index"
+import { Task } from "../types"
 
 export default {
   props: {
@@ -117,9 +117,3 @@ export default {
   },
 }
 </script>
-
-<style scoped>
-.rs-full-width {
-  width: 100% !important;
-}
-</style>

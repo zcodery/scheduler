@@ -2,9 +2,9 @@ import Vue from "vue"
 import App from "./App.vue"
 import ElementUI from "element-ui"
 import "element-ui/lib/theme-chalk/index.css"
-import "./styles.css"
 import VueRouter from "vue-router"
 import SchedulerPage from "./pages/SchedulerPage.vue"
+import "./styles/index.css"
 
 Vue.use(ElementUI)
 Vue.use(VueRouter)
