@@ -21,12 +21,12 @@
 
         <el-col :span="8">
           <el-form-item label="背景色">
-            <el-color-picker v-model="bgColor" :predefine="presetHexes" show-alpha size="mini" @change="onBgChange" />
+            <el-color-picker v-model="bgColor" :predefine="presetHexes" show-alpha size="mini" />
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="文字颜色">
-            <el-color-picker v-model="textColor" :predefine="presetHexes" show-alpha size="mini" @change="onTextChange" />
+            <el-color-picker v-model="textColor" :predefine="presetHexes" show-alpha size="mini" />
           </el-form-item>
         </el-col>
         <el-col :span="8">
@@ -37,7 +37,7 @@
       </el-row>
     </el-form>
 
-    <template #footer>
+    <template v-slot:footer>
       <el-button size="mini" @click="$emit('close')">取消</el-button>
       <el-button size="mini" type="primary" @click="submit">保存</el-button>
     </template>
@@ -45,8 +45,9 @@
 </template>
 
 <script lang="ts">
-import { Task } from "../types"
-import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT, PRESET_TASK_COLORS } from "../constants"
+import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT, PRESET_TASK_COLORS } from "@/utils/constants"
+import { rgbTextToHex, calcEnd, calcDuration } from "@/utils/index"
+import { Task } from "@/types"
 
 export default {
   props: {
@@ -54,25 +55,36 @@ export default {
     task: { type: Object as () => Task | null, required: false },
   },
   data() {
-    return { name: "", startDate: "", endDate: "", duration: 1, bgColor: "", textColor: "", presets: PRESET_TASK_COLORS, DEFAULT_TASK_BG, DEFAULT_TASK_TEXT }
+    return { name: "", startDate: "", endDate: "", duration: 1, bgColor: "", textColor: "", presets: PRESET_TASK_COLORS }
   },
   computed: {
     presetHexes(): string[] {
-      const toHex = (rgb: string) => {
-        const m = rgb.match(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+)\s*)?\)/i)
-        if (!m) return rgb
-        const to2 = (n: number) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0")
-        return `#${to2(Number(m[1]))}${to2(Number(m[2]))}${to2(Number(m[3]))}`
-      }
       const arr: string[] = (this.presets || []).map(p => {
         if ((p as any).hex) return (p as any).hex as string
-        else if (p.color) return toHex(p.color)
+        else if (p.color) return rgbTextToHex(p.color)
         return ""
       })
       return arr?.filter(Boolean)
     },
   },
   watch: {
+    isOpen(val: boolean) {
+      if (val && this.task) {
+        this.name = this.task.name
+        this.startDate = this.task.startDate
+        this.duration = this.task.duration
+        this.endDate = calcEnd(this.task.startDate, this.task.duration)
+        this.bgColor = this.task.bgColor || DEFAULT_TASK_BG
+        this.textColor = this.task.textColor || DEFAULT_TASK_TEXT
+      } else {
+        this.name = ""
+        this.startDate = ""
+        this.duration = 1
+        this.endDate = ""
+        this.bgColor = DEFAULT_TASK_BG
+        this.textColor = DEFAULT_TASK_TEXT
+      }
+    },
     task: {
       immediate: true,
       handler(t: Task | null) {
@@ -80,7 +92,7 @@ export default {
           this.name = t.name
           this.startDate = t.startDate
           this.duration = t.duration
-          this.endDate = this.calcEnd(t.startDate, t.duration)
+          this.endDate = calcEnd(t.startDate, t.duration)
           this.bgColor = t.bgColor || DEFAULT_TASK_BG
           this.textColor = t.textColor || DEFAULT_TASK_TEXT
         }
@@ -88,41 +100,14 @@ export default {
     },
   },
   methods: {
-    calcEnd(start: string, dur: number) {
-      if (!start) return ""
-      const d = new Date(start)
-      d.setHours(0, 0, 0, 0)
-      d.setDate(d.getDate() + Math.round(dur))
-      const y = d.getFullYear()
-      const m = String(d.getMonth() + 1).padStart(2, "0")
-      const day = String(d.getDate()).padStart(2, "0")
-      return `${y}-${m}-${day}`
-    },
-    calcDuration(start: string, end: string) {
-      if (!start || !end) return 0
-      const d1 = new Date(start)
-      const d2 = new Date(end)
-      d1.setHours(0, 0, 0, 0)
-      d2.setHours(0, 0, 0, 0)
-      const diff = d2.getTime() - d1.getTime()
-      return Math.max(1, Math.round(diff / 86400000))
-    },
     handleStartDate() {
-      if (this.duration > 0) this.endDate = this.calcEnd(this.startDate, this.duration)
+      if (this.duration > 0) this.endDate = calcEnd(this.startDate, this.duration)
     },
     handleDuration() {
-      if (this.startDate) this.endDate = this.calcEnd(this.startDate, this.duration)
+      if (this.startDate) this.endDate = calcEnd(this.startDate, this.duration)
     },
     handleEndDate() {
-      if (this.startDate) this.duration = this.calcDuration(this.startDate, this.endDate)
-    },
-    onBgChange(val: string) {
-      if (!this.task) return
-      this.$emit("save", this.task.id, { bgColor: val })
-    },
-    onTextChange(val: string) {
-      if (!this.task) return
-      this.$emit("save", this.task.id, { textColor: val })
+      if (this.startDate) this.duration = calcDuration(this.startDate, this.endDate)
     },
     submit() {
       if (!this.task) return
@@ -132,5 +117,3 @@ export default {
   },
 }
 </script>
-
-<style scoped></style>

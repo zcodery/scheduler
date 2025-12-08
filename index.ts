@@ -1,8 +1,14 @@
-export { default as TaskCard } from "./components/TaskCard.vue"
-export { default as WorkloadBar } from "./components/WorkloadBar.vue"
-export { default as StaffRow } from "./components/StaffRow.vue"
-export { default as EditTaskModal } from "./components/EditTaskModal.vue"
-export { default as EditStaffModal } from "./components/EditStaffModal.vue"
-export { default as GanttScheduler } from "./components/gantt-scheduler.vue"
+import GanttScheduler from "./common/gantt-scheduler.vue"
+export { GanttScheduler }
 export * from "./types"
-export * from "./constants"
+export * from "./utils/constants"
+
+export const ResourceSchedulerPlugin = {
+  install(Vue: any) {
+    if (Vue && typeof Vue.component === "function") {
+      Vue.component("gantt-scheduler", GanttScheduler)
+    }
+  },
+}
+
+export default GanttScheduler

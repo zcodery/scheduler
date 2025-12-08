@@ -1,16 +1,13 @@
 <template>
-  <gantt-scheduler :readonly="readonly" :task="payload" :title="title" :description="description" @data-change="onDataChange">
-    <!-- <template #title>
-      <h1 class="text-xl font-bold text-gray-900">{{ title }}</h1>
-    </template> -->
-    <template #description>
-      <p class="text-xs text-gray-500 mt-1">{{ description }}</p>
-    </template>
+  <gantt-scheduler :readonly="readonly" :task="payload" :title="title" :description="description" :staffConfig="staffConfig" @data-change="onDataChange">
     <!-- <template #avatar="{ staff }">
       <img v-if="staff.avatar" :src="staff.avatar" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
       <img v-else-if="staff.name == '王五'" src="/avatar.jpg" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
       <div v-else :class="staff.avatarColor" class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold">{{ staff.name.charAt(0) }}</div>
     </template> -->
+    <template #staffDescription="{ staff }">
+      <el-tag size="mini" type="primary" effect="plain">{{ staff.role || "未设置职位" }}</el-tag>
+    </template>
     <template #workloadBar="{ staff }">
       <workload-bar :percentage="staff.workloadPercentage"></workload-bar>
     </template>
@@ -22,9 +19,9 @@
 </template>
 
 <script lang="ts">
-import WorkloadBar from "@/components/WorkloadBar.vue"
-import GanttScheduler from "../components/gantt-scheduler.vue"
-import { MOCK_STAFF_DATA } from "../constants"
+import WorkloadBar from "@/pages/components/WorkloadBar.vue"
+import GanttScheduler from "../common/gantt-scheduler.vue"
+import { MOCK_STAFF_DATA } from "./database/gantt"
 
 export default {
   components: { "gantt-scheduler": GanttScheduler, WorkloadBar },
@@ -36,31 +33,39 @@ export default {
       payload: [],
       withdynamicIcon: "",
       loading: false,
+      staffConfig: [
+        { span: 12, prop: "role", label: "职位", type: "picker", component: "el-select", params: { placeholder: "选择职位", options: ["前端工程师", "后端工程师", "测试工程师", "产品经理", "设计师", "项目经理"], class: "!w-full" } },
+        { span: 12, prop: "hobby", label: "爱好", type: "field", component: "el-select", params: { placeholder: "选择爱好", options: ["篮球", "足球", "跑步", "游泳", "旅游", "其他"], class: "!w-full", multiple: true, allowCreate: true, filterable: true } },
+        { prop: "workloadPercentage", label: "进度(%)", type: "field", component: "el-input-number", params: { min: 0, max: 100, step: 1, class: "!w-full" } },
+      ],
+      realTasks: [],
     }
   },
   created() {
-    const params = new URLSearchParams(window.location.search)
-    const ro = params.get("readonly")
-    this.readonly = ro === "1" || ro === "true"
-    let initialData = MOCK_STAFF_DATA
     try {
+      let initialData = MOCK_STAFF_DATA
       const saved = localStorage.getItem("scheduler:data")
       if (saved) initialData = JSON.parse(saved)
       this.payload = initialData
+      this.realTasks = structuredClone(this.payload)
     } catch {}
   },
   methods: {
     onDataChange(payload: any) {
       this.withdynamicIcon = "el-icon-refresh"
+      this.realTasks = structuredClone(payload)
       console.log(structuredClone(payload))
+      // this.payload = structuredClone(payload)
       // localStorage.setItem("scheduler:data", JSON.stringify(payload))
     },
     onSave() {
       this.loading = true
       setTimeout(() => {
-        localStorage.setItem("scheduler:data", JSON.stringify(this.payload))
+        console.log(structuredClone(this.realTasks))
+        localStorage.setItem("scheduler:data", JSON.stringify(this.realTasks))
         this.loading = false
         this.withdynamicIcon = "el-icon-finished"
+        this.$message.success("保存成功")
         setTimeout(() => {
           this.withdynamicIcon = ""
         }, 1000)
@@ -69,5 +74,3 @@ export default {
   },
 }
 </script>
-
-<style scoped></style>

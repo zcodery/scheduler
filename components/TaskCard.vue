@@ -1,14 +1,16 @@
 <template>
-  <div class="task-card group relative flex items-center h-7 rounded px-1 transition-shadow shadow-sm" :class="conflict ? 'border border-rose-400' : ''" :style="{ overflow: 'visible', backgroundColor: bg }" @dblclick.stop="startEdit" @contextmenu.stop.prevent="$emit('contextmenu', task)" @mousedown="onMouseDown" @mouseenter="$emit('mouse-move', task)" @mousemove="$emit('mouse-move', task)" name="123">
+  <div class="task-card group relative flex items-center h-7 rounded px-1 transition-shadow shadow-sm" :class="conflict ? 'border border-rose-400' : ''" :style="{ overflow: 'visible', backgroundColor: bg }" @dblclick.stop="startEdit" @contextmenu.stop.prevent="$emit('contextmenu', task)" @mousedown="onMouseDown" @mouseenter="$emit('mouse-move', task)" @mousemove="$emit('mouse-move', task)" :aria-id="task.id" :aria-name="task.name" :aria-description="`开始时间:${task.startDate}，持续${task.duration}天`">
     <div v-if="!editing && !readonly" class="absolute left-0 top-0 bottom-0 w-2 cursor-w-resize z-20 hover:bg-indigo-400/50 rounded-l" @mousedown.stop="emitResize('left', $event)"></div>
     <span class="text-[10px] font-bold mr-1.5 whitespace-nowrap select-none ml-1 flex-shrink-0 z-10" :style="{ color: text }">{{ task.id }}</span>
-    <input v-if="editing" ref="inputRef" type="text" v-model="editValue" @blur="commit" @keydown.enter.prevent="commit" @keydown.esc.prevent="cancel" class="flex-1 bg-white text-[10px] px-1 py-0.5 border-none outline-none text-indigo-900 rounded h-5 min-w-0 z-10" />
-    <template v-else>
-      <div v-if="showOutside" class="absolute left-full ml-1 top-1/2 -translate-y-1/2 whitespace-nowrap text-[10px] font-medium pointer-events-none z-0" :style="{ color: text }">{{ task.name }}</div>
-      <div v-else class="flex-1 overflow-hidden relative h-full flex items-center z-10">
-        <div class="whitespace-nowrap text-[10px] font-medium truncate" :style="{ color: text }">{{ task.name }}</div>
-      </div>
-    </template>
+    <el-popover placement="top-start" trigger="manual" v-model="editing" :visible-arrow="true" class="flex-1 whitespace-nowrap text-[10px] font-medium truncate">
+      <el-input ref="inputRef" size="mini" v-model="editValue" @blur="commit" @keydown.enter.prevent="commit" @keydown.esc.prevent="cancel" />
+      <template slot="reference">
+        <div v-if="showOutside" class="absolute left-full ml-1 top-1/2 -translate-y-1/2 whitespace-nowrap text-[10px] font-medium pointer-events-none z-0" :style="{ color: text }">{{ task.name }}</div>
+        <div v-else class="overflow-hidden relative h-full flex items-center z-10">
+          <div class="whitespace-nowrap text-[10px] font-medium truncate" :style="{ color: text }">{{ task.name }}</div>
+        </div>
+      </template>
+    </el-popover>
     <div v-if="!editing && !readonly" class="absolute right-0 top-0 bottom-0 w-2 cursor-e-resize z-20 hover:bg-indigo-400/50 rounded-r" @mousedown.stop="emitResize('right', $event)"></div>
     <span v-show="!showOutside" class="text-[10px] font-bold mr-1.5 whitespace-nowrap select-none ml-1 flex-shrink-0 z-10" :style="{ color: text }">{{ task.duration }}天</span>
   </div>
@@ -16,7 +18,7 @@
 
 <script lang="ts">
 import { Task, ViewMode } from "../types"
-import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT } from "../constants"
+import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT } from "../utils/constants"
 
 export default {
   props: {
@@ -53,14 +55,16 @@ export default {
       })
     },
     commit() {
-      this.editing = false
       if (this.readonly) return
-      const v = this.editValue.trim()
+      const i = this.$refs.inputRef as HTMLInputElement
+      const raw = i ? i.value : this.editValue
+      const v = String(raw || "").trim()
+      this.editing = false
       if (v && v !== this.task.name) this.$emit("update", this.task, v)
     },
     cancel() {
-      this.editing = false
       this.editValue = this.task.name
+      this.editing = false
     },
     onMouseDown(e: MouseEvent) {
       if (this.readonly || this.editing || (e as any).button !== 0) return

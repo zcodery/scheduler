@@ -1,7 +1,7 @@
 {
-  "name": "resource-scheduler",
+  "name": "@zcodery/resource-scheduler",
   "private": false,
-  "version": "0.1.0",
+  "version": "0.1.11",
   "type": "module",
   "license": "MIT",
   "scripts": {
@@ -32,14 +32,15 @@
   "dependencies": {
     "element-ui": "2.15.14",
     "vue": ">=2.7.0",
-    "vuedraggable": "^2.24.3",
-    "vue-router": "^3.6.5"
+    "vue-router": "^3.6.5",
+    "vuedraggable": "^2.24.3"
   },
   "peerDependencies": {
     "vue": ">=2.7.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "sass": "^1.94.2",
     "typescript": "~5.8.2",
     "vite": "^4.5.3",
     "vite-plugin-vue2": "^2.0.3",
