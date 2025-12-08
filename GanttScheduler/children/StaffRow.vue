@@ -1,6 +1,6 @@
 <template>
   <div :data-staff-id="staff.id" class="flex border-b border-gray-100 bg-white transition-all duration-300 ease-in-out" :style="dynamicStyle">
-    <div class="flex-shrink-0 p-4 border-r border-gray-200 flex flex-col justify-center select-none bg-white relative group z-20 transition-colors hover:bg-gray-50/50" style="width: 260px" @contextmenu.prevent="onContextStaff" @mousedown.stop="onSidebarMouseDown" @click.stop>
+    <div class="flex-shrink-0 p-4 border-r border-gray-200 flex flex-col justify-center select-none bg-white relative group z-20 transition-colors hover:bg-gray-50/50" :style="{ width: sidebarWidth + 'px' }" @contextmenu.prevent="onContextStaff" @mousedown.stop="onSidebarMouseDown" @click.stop>
       <div class="absolute left-1 top-1/2 -translate-y-1/2 text-gray-300 p-1 opacity-0 group-hover:opacity-100 rs-staff-handle">≡</div>
       <div class="flex items-center gap-3 pl-4">
         <i class="text-xs text-gray-400 hover:text-gray-600 cursor-pointer" :class="[staff.isCollapsed ? 'el-icon-arrow-right' : 'el-icon-arrow-down']" @click="$emit('update-staff', staff.id, { isCollapsed: !staff.isCollapsed })"></i>
@@ -20,8 +20,8 @@
     </div>
 
     <div class="flex-1 relative overflow-hidden bg-white" @contextmenu.prevent="onContextRow">
-      <div class="relative h-full" :style="{ width: viewMode === 'month' ? headers.length * dayWidth + 'px' : headers.length * 120 + 'px', transform: `translateX(${-scrollX}px)`, willChange: 'transform' }">
-        <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: viewMode === 'month' ? `repeat(${headers.length}, ${dayWidth}px)` : `repeat(${headers.length}, 120px)` }">
+      <div class="relative h-full" :style="{ width: viewMode === 'month' ? headers.length * dayWidth + 'px' : headers.length * MONTH_COLUMN_PX + 'px', transform: `translateX(${-scrollX}px)`, willChange: 'transform' }">
+        <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: viewMode === 'month' ? `repeat(${headers.length}, ${dayWidth}px)` : `repeat(${headers.length}, ${MONTH_COLUMN_PX}px)` }">
           <div v-for="(h, i) in headers" :key="i" :class="['border-r border-gray-100 h-full', h.isToday ? 'bg-blue-50/60' : h.isWeekend ? 'bg-gray-50/80' : '']"></div>
         </div>
         <div v-show="!staff.isCollapsed" class="relative w-full h-full pt-3 pb-2" @dblclick="onGridDblClick">
@@ -47,7 +47,7 @@
 <script lang="ts">
 import TaskCard from "./TaskCard.vue"
 import { Staff, Task, DayInfo, ViewMode } from "../types"
-import { AVATAR_COLOR_CLASSES } from "../utils/constants"
+import { AVATAR_COLOR_CLASSES, SIDEBAR_WIDTH, ONE_DAY_MS, MONTH_COLUMN_PX } from "../utils/constants"
 import { rgbTextToHex, luminance, calcEnd, parseDateStr } from "../utils/index"
 
 export default {
@@ -70,7 +70,7 @@ export default {
       if (!this.headers || this.headers.length === 0) return 0
       const start = new Date(this.headers[0].date).getTime()
       const end = new Date(this.headers[this.headers.length - 1].date).getTime()
-      const days = Math.max(1, Math.round((end - start) / 86400000) + 1)
+      const days = Math.max(1, Math.round((end - start) / ONE_DAY_MS) + 1)
       return days
     },
     dynamicStyle(): Record<string, string> {
@@ -95,6 +95,12 @@ export default {
       const color = l > 0.6 ? "#1f2937" : "#ffffff"
       return { backgroundColor: hex, color }
     },
+    sidebarWidth(): number {
+      return SIDEBAR_WIDTH
+    },
+    MONTH_COLUMN_PX(): number {
+      return MONTH_COLUMN_PX
+    },
   },
   methods: {
     calcEnd,
@@ -110,12 +116,12 @@ export default {
       let px = 0
       let cur = new Date(base)
       while (cur.getFullYear() < d.getFullYear() || cur.getMonth() < d.getMonth()) {
-        px += 120
+        px += MONTH_COLUMN_PX
         cur.setMonth(cur.getMonth() + 1)
       }
       const dim = this.daysInMonth(cur)
       const dayIndex = Math.max(0, Math.min(dim - 1, d.getDate() - 1))
-      px += dayIndex * (120 / dim)
+      px += dayIndex * (MONTH_COLUMN_PX / dim)
       return px
     },
     taskStyle(task: Task) {
@@ -205,16 +211,16 @@ export default {
       if (this.readonly) return
       if ((e.target as HTMLElement).closest(".task-card")) return
       const rowRect = (this.$el as HTMLElement).getBoundingClientRect()
-      const timelineLeft = rowRect.left + 260
+      const timelineLeft = rowRect.left + this.sidebarWidth
       const relativeX = e.clientX - timelineLeft
       let d: Date
       if (this.viewMode === "year" && this.headers && this.headers.length > 0) {
         const x = Math.max(0, this.scrollX + relativeX)
-        const monthIndex = Math.min(this.headers.length - 1, Math.floor(x / 120))
+        const monthIndex = Math.min(this.headers.length - 1, Math.floor(x / MONTH_COLUMN_PX))
         const monthStart = new Date(this.headers[monthIndex].date)
         const dim = this.daysInMonth(monthStart)
-        const within = x - monthIndex * 120
-        const dayOffset = Math.max(0, Math.floor(within / (120 / dim)))
+        const within = x - monthIndex * MONTH_COLUMN_PX
+        const dayOffset = Math.max(0, Math.floor(within / (MONTH_COLUMN_PX / dim)))
         d = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1)
         d.setDate(d.getDate() + dayOffset)
       } else if (this.viewMode === "month" || this.viewMode === "quarter") {
@@ -222,9 +228,9 @@ export default {
         baseDate.setHours(0, 0, 0, 0)
         const baseStartMs = baseDate.getTime()
         const daysOffset = Math.floor((this.scrollX + relativeX) / this.dayWidth)
-        d = new Date(baseStartMs + daysOffset * 86400000)
+        d = new Date(baseStartMs + daysOffset * ONE_DAY_MS)
       } else {
-        const timelineWidth = Math.max(1, rowRect.width - 260)
+        const timelineWidth = Math.max(1, rowRect.width - this.sidebarWidth)
         const msPerPixel = this.viewDurationMs / timelineWidth
         const startMs = (this.viewStartDate as Date).getTime()
         const newStart = startMs + relativeX * msPerPixel
@@ -239,13 +245,13 @@ export default {
     },
     isConflict(t: Task): boolean {
       const startA = parseDateStr(t.startDate).getTime()
-      const endA = startA + t.duration * 86400000
+      const endA = startA + t.duration * ONE_DAY_MS
       return this.staff.tasks.some(
         x =>
           x.id !== t.id &&
           (() => {
             const startB = parseDateStr(x.startDate).getTime()
-            const endB = startB + x.duration * 86400000
+            const endB = startB + x.duration * ONE_DAY_MS
             return Math.max(startA, startB) < Math.min(endA, endB)
           })()
       )

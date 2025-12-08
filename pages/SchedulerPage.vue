@@ -1,5 +1,5 @@
 <template>
-  <gantt-scheduler :readonly="readonly" :task="payload" :title="title" :description="description" :staffConfig="staffConfig" @data-change="onDataChange">
+  <gantt-scheduler class="min-h-screen h-screen" :readonly="readonly" :task="payload" :title="title" :description="description" :staffConfig="staffConfig" @data-change="onDataChange">
     <!-- <template #avatar="{ staff }">
       <img v-if="staff.avatar" :src="staff.avatar" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
       <img v-else-if="staff.name == '王五'" src="/avatar.jpg" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
@@ -74,3 +74,12 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+.min-h-screen {
+  min-height: 100vh;
+}
+.h-screen {
+  height: 100vh;
+}
+</style>

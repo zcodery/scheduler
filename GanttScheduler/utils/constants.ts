@@ -3,6 +3,15 @@ export const WEEK_DAYS = ["日", "一", "二", "三", "四", "五", "六"]
 export const DEFAULT_TASK_BG = "#e0e7ff"
 export const DEFAULT_TASK_TEXT = "#3730a3"
 
+export const SIDEBAR_WIDTH = 260
+
+// 单天的毫秒数，用于日期换算与像素换算
+export const ONE_DAY_MS = 86400000
+// 月/季视图下单天网格宽度（像素），影响时间轴栅格和任务宽度
+export const DAY_CELL_PX = 50
+// 年/季视图下单月列宽（像素），用于按月布局和日内宽度计算
+export const MONTH_COLUMN_PX = 120
+
 export const AVATAR_COLOR_CLASSES = ["bg-blue-100 text-blue-600", "bg-emerald-100 text-emerald-600", "bg-purple-100 text-purple-600", "bg-orange-100 text-orange-600", "bg-rose-100 text-rose-600", "bg-indigo-100 text-indigo-600"]
 
 export const PRESET_TASK_COLORS = [
