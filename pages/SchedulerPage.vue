@@ -34,9 +34,9 @@ export default {
       withdynamicIcon: "",
       loading: false,
       staffConfig: [
-        { span: 12, prop: "role", label: "职位", type: "picker", component: "el-select", params: { placeholder: "选择职位", options: ["前端工程师", "后端工程师", "测试工程师", "产品经理", "设计师", "项目经理"], class: "!w-full" } },
-        { span: 12, prop: "hobby", label: "爱好", type: "field", component: "el-select", params: { placeholder: "选择爱好", options: ["篮球", "足球", "跑步", "游泳", "旅游", "其他"], class: "!w-full", multiple: true, allowCreate: true, filterable: true } },
-        { prop: "workloadPercentage", label: "进度(%)", type: "field", component: "el-input-number", params: { min: 0, max: 100, step: 1, class: "!w-full" } },
+        { span: 12, prop: "role", label: "职位", type: "picker", component: "el-select", params: { placeholder: "选择职位", options: ["前端工程师", "后端工程师", "测试工程师", "产品经理", "设计师", "项目经理"], class: "rs-full-width" } },
+        { span: 12, prop: "hobby", label: "爱好", type: "field", component: "el-select", params: { placeholder: "选择爱好", options: ["篮球", "足球", "跑步", "游泳", "旅游", "其他"], class: "rs-full-width", multiple: true, allowCreate: true, filterable: true } },
+        { prop: "workloadPercentage", label: "进度(%)", type: "field", component: "el-input-number", params: { min: 0, max: 100, step: 1, class: "rs-full-width" } },
       ],
       realTasks: [],
     }

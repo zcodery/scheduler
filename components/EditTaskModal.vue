@@ -10,12 +10,12 @@
 
         <el-col :span="12">
           <el-form-item label="开始日期">
-            <el-date-picker v-model="startDate" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" @change="handleStartDate" class="!w-full" />
+            <el-date-picker v-model="startDate" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" @change="handleStartDate" class="rs-full-width" />
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="结束日期">
-            <el-date-picker v-model="endDate" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" @change="handleEndDate" class="!w-full" />
+            <el-date-picker v-model="endDate" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" @change="handleEndDate" class="rs-full-width" />
           </el-form-item>
         </el-col>
 
@@ -31,7 +31,7 @@
         </el-col>
         <el-col :span="8">
           <el-form-item label="工期 (天)">
-            <el-input-number v-model="duration" :min="1" :step="1" @change="handleDuration" class="!w-full" />
+            <el-input-number v-model="duration" :min="1" :step="1" @change="handleDuration" class="rs-full-width" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -117,3 +117,9 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.rs-full-width {
+  width: 100% !important;
+}
+</style>

@@ -9,7 +9,7 @@
       <div>工期: {{ tooltip.duration }} 天</div>
     </div>
 
-    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white z-50 relative shadow-sm shrink-0">
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white z-50 relative shadow-sm flex-shrink-0">
       <div>
         <slot name="title">
           <h1 class="text-xl font-bold text-gray-900 flex gap-1 items-center">
@@ -52,7 +52,7 @@
 
     <div ref="containerRef" class="flex-1 overflow-y-auto overflow-x-hidden relative" @mousedown="onPanMouseDown" @contextmenu.prevent @wheel="onWheel">
       <div class="sticky top-0 z-40 flex border-b border-gray-200 bg-gray-50 shadow-sm header-row">
-        <div class="flex-shrink-0 p-3 border-r border-gray-200 text-xs font-semibold text-gray-500 flex items-center bg-gray-50" style="width: 260px" @contextmenu.prevent="onHeaderSidebarContext" @mousedown.stop>人员 / 饱和度</div>
+        <div class="flex-shrink-0 p-4 border-r border-gray-200 text-xs font-semibold text-gray-500 flex items-center bg-gray-50" style="width: 260px" @contextmenu.prevent="onHeaderSidebarContext" @mousedown.stop>人员 / 饱和度</div>
         <div class="flex-1 overflow-hidden">
           <div
             class="grid"
@@ -1499,5 +1499,211 @@ $icon-color-hover: #303133;
       color: $icon-color-hover;
     }
   }
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+.h-screen {
+  height: 100vh;
+}
+.bg-white {
+  background: #ffffff;
+}
+.text-slate-800 {
+  color: #1f2937;
+}
+.flex {
+  display: flex;
+}
+.flex-col {
+  flex-direction: column;
+}
+.items-center {
+  align-items: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.select-none {
+  user-select: none;
+}
+.overflow-hidden {
+  overflow: hidden;
+}
+.relative {
+  position: relative;
+}
+.absolute {
+  position: absolute;
+}
+.fixed {
+  position: fixed;
+}
+.sticky {
+  position: sticky;
+}
+.top-0 {
+  top: 0;
+}
+.top-1\/2 {
+  top: 50%;
+}
+.\-translate-y-1\/2 {
+  transform: translateY(-50%);
+}
+.z-40 {
+  z-index: 40;
+}
+.z-50 {
+  z-index: 50;
+}
+.z-\[9999\] {
+  z-index: 9999;
+}
+.z-\[1000\] {
+  z-index: 1000;
+}
+.border-b {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+.border-r {
+  border-right-width: 1px;
+  border-right-style: solid;
+}
+.border-gray-200 {
+  border-color: #e5e7eb;
+}
+.bg-gray-50 {
+  background: #f9fafb;
+}
+.bg-gray-900 {
+  background: #111827;
+}
+.shadow-sm {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.shadow-lg {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+.rounded {
+  border-radius: 0.25rem;
+}
+.text-white {
+  color: #ffffff;
+}
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.py-1\.5 {
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+}
+.space-y-0\.5 > * + * {
+  margin-top: 2px;
+}
+.px-6 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+.py-4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.p-4 {
+  padding: 1rem;
+}
+.gap-1 {
+  gap: 0.25rem;
+}
+.gap-2 {
+  gap: 0.5rem;
+}
+.gap-4 {
+  gap: 1rem;
+}
+.text-xl {
+  font-size: 20px;
+  line-height: calc(1.75 / 1.25);
+}
+.text-sm {
+  font-size: 14px;
+  line-height: calc(1.25 / 0.875);
+}
+.text-xs {
+  font-size: 12px;
+  line-height: calc(1 / 0.75);
+}
+.font-bold {
+  font-weight: 700;
+}
+.font-medium {
+  font-weight: 500;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.text-gray-900 {
+  color: #111827;
+}
+.text-gray-700 {
+  color: #374151;
+}
+.text-gray-500 {
+  color: #6b7280;
+}
+.text-gray-400 {
+  color: #9ca3af;
+}
+.mt-1 {
+  margin-top: 0.25rem;
+}
+.flex-1 {
+  flex: 1 1 auto;
+}
+.overflow-x-hidden {
+  overflow-x: hidden;
+}
+.overflow-y-auto {
+  overflow-y: auto;
+}
+.grid {
+  display: grid;
+}
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.h-\[100px\] {
+  height: 100px;
+}
+.pointer-events-none {
+  pointer-events: none;
+}
+.pointer-events-auto {
+  pointer-events: auto;
+}
+.bg-blue-100\/50 {
+  background: rgba(219, 234, 254, 0.5);
+}
+.bg-gray-200\/50 {
+  background: rgba(229, 231, 235, 0.5);
+}
+.text-blue-600 {
+  color: #2563eb;
+}
+.text-\[10px\] {
+  font-size: 10px;
+}
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+.hover\:text-orange-600:hover {
+  color: #ea580c;
+}
+.flex-shrink-0 {
+  flex-shrink: 0;
 }
 </style>

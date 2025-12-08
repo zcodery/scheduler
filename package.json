@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "build:lib": "vite build -c vite.lib.config.ts",
     "build:types": "tsc -p tsconfig.lib.json",
-    "build:pkg": "npm run build:lib && npm run build:types"
+    "build:pkg": "npm run build:lib && npm run build:types",
+    "publish": "npm unpublish @zcodery/resource-scheduler@0.1.11 --force && npm run build:pkg && npm publish --access public"
   },
   "main": "dist/resource-scheduler.umd.js",
   "module": "dist/resource-scheduler.es.js",

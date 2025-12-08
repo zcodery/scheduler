@@ -22,4 +22,16 @@ export default {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.w-full { width: 100%; }
+.mt-4 { margin-top: 1rem; }
+.flex { display: flex; }
+.justify-between { justify-content: space-between; }
+.items-end { align-items: flex-end; }
+.mb-1 { margin-bottom: 0.25rem; }
+.text-xs { font-size: 12px; }
+.text-gray-400 { color: #9ca3af; }
+.font-bold { font-weight: 700; }
+.text-rose-500 { color: #f43f5e; }
+.text-emerald-600 { color: #059669; }
+</style>
