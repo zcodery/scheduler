@@ -1,3 +1,4 @@
+@use "sass:string";
 $color-white: #ffffff;
 $color-slate-800: #1f2937;
 $color-gray-50: #f9fafb;
@@ -48,6 +49,10 @@ $shadow-navbox: 0 2px 6px rgba(16, 24, 40, 0.06);
 
 .rs-full-width {
   width: 100% !important;
+}
+
+.opacity-0 {
+  opacity: 0;
 }
 
 $bg-colors: (
@@ -120,15 +125,70 @@ $gap-map: (
   }
 }
 
+$overflow-map: (
+  "hidden": hidden,
+  "auto": auto,
+);
+@each $k, $v in $overflow-map {
+  .overflow-#{$k} {
+    overflow: $v;
+  }
+  .overflow-x-#{$k} {
+    overflow-x: $v;
+  }
+  .overflow-y-#{$k} {
+    overflow-y: $v;
+  }
+}
+
+$pointer-events: (
+  "none": none,
+  "auto": auto,
+);
+@each $k, $v in $pointer-events {
+  .pointer-events-#{$k} {
+    pointer-events: $v;
+  }
+}
+
+$cursor-map: (
+  "pointer": pointer,
+  "w-resize": w-resize,
+  "e-resize": e-resize,
+);
+@each $name, $val in $cursor-map {
+  .cursor-#{$name} {
+    cursor: $val;
+  }
+}
+
+$radius-map: (
+  "rounded": 0.25rem,
+  "rounded-full": 9999px,
+);
+@each $name, $val in $radius-map {
+  .#{$name} {
+    border-radius: $val;
+  }
+}
+
+$positions: (absolute, relative, fixed, sticky);
+@each $v in $positions {
+  .#{$v} {
+    position: $v;
+  }
+}
+
 @function str-replace($string, $search, $replace: "") {
-  $index: str-index($string, $search);
+  $index: string.index($string, $search);
   @if $index {
-    @return str-slice($string, 1, $index - 1) + $replace + str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
+    @return string.slice($string, 1, $index - 1) + $replace + str-replace(string.slice($string, $index + string.length($search)), $search, $replace);
   }
   @return $string;
 }
 
 $space: (
+  "0": 0,
   "1": 0.25rem,
   "1\\.5": 0.375rem,
   "2": 0.5rem,
@@ -136,6 +196,9 @@ $space: (
   "4": 1rem,
   "5": 1.25rem,
   "6": 1.5rem,
+  "7": 1.75rem,
+  "10": 2.5rem,
+  "full": 100%,
 );
 @each $k, $v in $space {
   .p-#{$k} {
@@ -185,6 +248,26 @@ $space: (
   .mb-#{$k} {
     margin-bottom: #{$v};
   }
+
+  .w-#{$k} {
+    width: #{$v};
+  }
+  .h-#{$k} {
+    height: #{$v};
+  }
+
+  .left-#{$k} {
+    left: #{$v};
+  }
+  .right-#{$k} {
+    right: #{$v};
+  }
+  .top-#{$k} {
+    top: #{$v};
+  }
+  .bottom-#{$k} {
+    bottom: #{$v};
+  }
 }
 
 $font-sizes: (
@@ -208,15 +291,20 @@ $font-sizes: (
   }
 }
 
-$zindex: (
-  0: 0,
-  10: 10,
-  20: 20,
-  40: 40,
-  50: 50,
+$font-weights: (
+  bold: 700,
+  medium: 500,
+  semibold: 600,
 );
-@each $k, $v in $zindex {
-  .z-#{$k} {
+@each $name, $val in $font-weights {
+  .font-#{$name} {
+    font-weight: $val;
+  }
+}
+
+$zindex: (0, 10, 20, 40, 50);
+@each $v in $zindex {
+  .z-#{$v} {
     z-index: $v;
   }
 }
@@ -245,36 +333,7 @@ $zindex: (
 .select-none {
   user-select: none;
 }
-.overflow-hidden {
-  overflow: hidden;
-}
-.relative {
-  position: relative;
-}
-.absolute {
-  position: absolute;
-}
-.left-0 {
-  left: 0;
-}
-.right-0 {
-  right: 0;
-}
-.top-0 {
-  top: 0;
-}
-.bottom-0 {
-  bottom: 0;
-}
-.left-full {
-  left: 100%;
-}
-.fixed {
-  position: fixed;
-}
-.sticky {
-  position: sticky;
-}
+
 .top-1\/2 {
   top: 50%;
 }
@@ -299,12 +358,6 @@ $zindex: (
   border-width: 1px;
   border-style: solid;
 }
-.rounded {
-  border-radius: 0.25rem;
-}
-.rounded-full {
-  border-radius: 9999px;
-}
 .space-y-0\.5 > * + * {
   margin-top: 2px;
 }
@@ -314,23 +367,11 @@ $zindex: (
 .flex-shrink-0 {
   flex-shrink: 0;
 }
-.overflow-x-hidden {
-  overflow-x: hidden;
-}
-.overflow-y-auto {
-  overflow-y: auto;
-}
 .grid {
   display: grid;
 }
 .h-\[100px\] {
   height: 100px;
-}
-.pointer-events-none {
-  pointer-events: none;
-}
-.pointer-events-auto {
-  pointer-events: auto;
 }
 .bg-blue-100\/50 {
   background: $rgba-blue-100-50;
@@ -350,21 +391,7 @@ $zindex: (
 .hover\:bg-gray-50\/50:hover {
   background-color: rgba(249, 250, 251, 0.5);
 }
-.mt-1 {
-  margin-top: 0.25rem;
-}
-.w-full {
-  width: 100%;
-}
-.w-10 {
-  width: 2.5rem;
-}
-.h-full {
-  height: 100%;
-}
-.h-10 {
-  height: 2.5rem;
-}
+
 .bg-white\/80 {
   background: $rgba-white-80;
 }
@@ -375,13 +402,6 @@ $zindex: (
   background: $rgba-gray-50-80;
 }
 
-/* Task card utilities */
-.h-7 {
-  height: 1.75rem;
-}
-.w-2 {
-  width: 0.5rem;
-}
 .rounded-l {
   border-top-left-radius: 0.25rem;
   border-bottom-left-radius: 0.25rem;
@@ -389,12 +409,6 @@ $zindex: (
 .rounded-r {
   border-top-right-radius: 0.25rem;
   border-bottom-right-radius: 0.25rem;
-}
-.cursor-w-resize {
-  cursor: w-resize;
-}
-.cursor-e-resize {
-  cursor: e-resize;
 }
 .transition-shadow {
   transition: box-shadow 0.2s ease;
@@ -418,24 +432,16 @@ $zindex: (
   bottom: 0;
   left: 0;
 }
-.left-1 {
-  left: 0.25rem;
+
+.rs-staff-handle {
+  cursor: grab;
+  line-height: 1;
+  border-radius: 4px;
 }
-.min-w-0 {
-  min-width: 0;
+.rs-staff-handle:active {
+  cursor: grabbing;
 }
-.pt-3 {
-  padding-top: 0.75rem;
-}
-.pb-2 {
-  padding-bottom: 0.5rem;
-}
-.cursor-pointer {
-  cursor: pointer;
-}
-.opacity-0 {
-  opacity: 0;
-}
+
 .transition-colors {
   transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
@@ -448,7 +454,7 @@ $zindex: (
 .ease-in-out {
   transition-timing-function: ease-in-out;
 }
-.hover\:text-gray-600 {
+.hover\:text-gray-600:hover {
   color: #4b5563;
 }
 .group:hover .group-hover\:opacity-100 {
