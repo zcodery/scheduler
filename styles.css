@@ -14,6 +14,11 @@
   width: 100% !important;
 }
 
+* {
+  margin: 0;
+  padding: 0;
+}
+
 /* Avatar color utility classes (Tailwind equivalents) */
 .bg-blue-100 {
   background-color: #dbeafe;
@@ -50,9 +55,4 @@
 }
 .text-indigo-600 {
   color: #4f46e5;
-}
-
-body {
-  margin: 0;
-  padding: 0;
 }

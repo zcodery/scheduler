@@ -61,6 +61,7 @@
               width: viewMode === 'month' ? headers.length * DAY_CELL_PX + 'px' : headers.length * 120 + 'px',
               transform: `translateX(${-scrollX}px)`,
               willChange: 'transform',
+              height: '100%',
             }"
           >
             <div v-for="(h, i) in headers" :key="i" :class="['flex flex-col items-center justify-center py-2 border-r border-gray-200 text-xs', h.isToday ? 'bg-blue-100/50' : h.isWeekend ? 'bg-gray-200/50' : '']">
@@ -1473,7 +1474,7 @@ $icon-color-hover: #303133;
   border: 1px solid $nav-border;
   border-radius: 4px;
   box-shadow: $nav-shadow;
-  padding: 6px 8px;
+  padding: 3px 6px;
 
   .rs-navbox-label {
     line-height: 1;

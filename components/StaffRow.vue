@@ -3,7 +3,7 @@
     <div class="flex-shrink-0 p-4 border-r border-gray-200 flex flex-col justify-center select-none bg-white relative group z-20 transition-colors hover:bg-gray-50/50" style="width: 260px" @contextmenu.prevent="onContextStaff" @mousedown.stop="onSidebarMouseDown" @click.stop>
       <div class="absolute left-1 top-1/2 -translate-y-1/2 text-gray-300 p-1 opacity-0 group-hover:opacity-100 rs-staff-handle">≡</div>
       <div class="flex items-center gap-3 pl-4">
-        <button class="text-gray-400 hover:text-gray-600" @click="$emit('update-staff', staff.id, { isCollapsed: !staff.isCollapsed })">{{ staff.isCollapsed ? "▸" : "▾" }}</button>
+        <i class="text-xs text-gray-400 hover:text-gray-600 cursor-pointer" :class="[staff.isCollapsed ? 'el-icon-arrow-right' : 'el-icon-arrow-down']" @click="$emit('update-staff', staff.id, { isCollapsed: !staff.isCollapsed })"></i>
         <slot name="avatar" :staff="staff">
           <img v-if="staff.avatar" :src="staff.avatar" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
           <div v-else :class="avatarClass" :style="avatarStyle" @click.stop="cycleAvatarColor">{{ staff.name.charAt(0) }}</div>
@@ -496,5 +496,13 @@ export default {
 }
 .rounded-full {
   border-radius: 9999px;
+}
+.rs-toggle {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.rs-toggle:focus {
+  outline: none;
 }
 </style>
