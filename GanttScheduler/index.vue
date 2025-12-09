@@ -12,13 +12,13 @@
     <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white z-50 relative shadow-sm flex-shrink-0">
       <div>
         <slot name="title">
-          <h1 class="text-xl font-bold text-gray-900 flex gap-1 items-center">
+          <h1 class="text-xl font-bold text-gray-900 flex gap-1 items-center my-0">
             <span>{{ title }}</span>
             <i v-if="readonly" class="el-icon-lock text-sm"></i>
           </h1>
         </slot>
         <slot name="description">
-          <p class="text-xs text-gray-500 mt-1">{{ description }}</p>
+          <p class="text-xs text-gray-500 mt-1 mb-0">{{ description }}</p>
         </slot>
       </div>
       <div class="flex items-center gap-4">
