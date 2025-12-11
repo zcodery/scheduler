@@ -28,10 +28,12 @@
           <div v-for="t in visibleTasks" :key="t.id" class="absolute z-10" :style="taskStyle(t)">
             <el-popover trigger="hover" popper-class="rs-nopadding" :visible-arrow="false" :disabled="!readonly">
               <div class="bg-gray-900 text-white text-xs px-2 py-1.5 rounded">
-                <div>名称: {{ t.name }}</div>
-                <div>开始: {{ t.startDate }}</div>
-                <div>结束: {{ calcEnd(t.startDate, t.duration) }}</div>
-                <div>工期: {{ t.duration }} 天</div>
+                <slot name="tooltip" :task="{ ...t, endDate: calcEnd(t.startDate, t.duration) }">
+                  <div>名称: {{ t.name }}</div>
+                  <div>开始: {{ t.startDate }}</div>
+                  <div>结束: {{ calcEnd(t.startDate, t.duration) }}</div>
+                  <div>工期: {{ t.duration }} 天</div>
+                </slot>
               </div>
               <TaskCard slot="reference" :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" @editing-start="onTaskEditingStart" @editing-end="onTaskEditingEnd" />
             </el-popover>

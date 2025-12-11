@@ -6,11 +6,18 @@
       <div v-else :class="staff.avatarColor" class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold">{{ staff.name.charAt(0) }}</div>
     </template> -->
     <template #staffDescription="{ staff }">
-      <el-tag size="mini" type="primary" effect="plain" v-if="staff.role">{{ staff.role || "未设置职位" }}</el-tag>
+      <el-tag size="mini" type="primary" effect="plain" v-if="staff.role">{{ staff.role }}</el-tag>
     </template>
     <template #workloadBar="{ staff }">
       <workload-bar :percentage="staff.workloadPercentage" v-if="staff.workloadPercentage"></workload-bar>
     </template>
+    <!-- <template #tooltip="{ task }">
+      <div>ID: {{ task && task.id }}</div>
+      <div>名称: {{ task && task.name }}</div>
+      <div>开始: {{ task && task.startDate }}</div>
+      <div>结束: {{ task && task.endDate }}</div>
+      <div>工期: {{ task && task.duration }} 天</div>
+    </template> -->
     <template #extra>
       <el-dropdown size="mini" @command="onRefresh" split-button type="primary" :disabled="idleAnimationFrame">
         <span class="el-dropdown-link">{{ idleAnimationFrame ? `正则加载数据中(${payload.length}/${realSize})` : `刷新数据(${realSize})` }}</span>

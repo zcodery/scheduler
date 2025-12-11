@@ -4,9 +4,12 @@
     <EditStaffModal :isOpen="editStaffModal.isOpen" :staff="editStaffModal.staff" :staffConfig="staffConfig" @close="editStaffModal.isOpen = false" @save="onSaveStaff" />
 
     <div v-if="tooltip && tooltip.visible" class="fixed z-[9999] bg-gray-900 text-white text-xs px-2 py-1.5 rounded shadow-lg pointer-events-none space-y-0.5" :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }">
-      <div>开始: {{ tooltip.startDate }}</div>
-      <div>结束: {{ tooltip.endDate }}</div>
-      <div>工期: {{ tooltip.duration }} 天</div>
+      <slot name="tooltip" :task="tooltipTask">
+        <div>名称: {{ tooltipTask && tooltipTask.name }}</div>
+        <div>开始: {{ tooltipTask && tooltipTask.startDate }}</div>
+        <div>结束: {{ tooltipTask && tooltipTask.endDate }}</div>
+        <div>工期: {{ tooltipTask && tooltipTask.duration }} 天</div>
+      </slot>
     </div>
 
     <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white z-50 relative shadow-sm flex-shrink-0">
@@ -79,6 +82,7 @@
             <template #avatar="{ staff }"><slot name="avatar" :staff="staff"></slot></template>
             <template #workload="{ staff }"><slot name="workloadBar" :staff="staff"></slot></template>
             <template #staffDescription="{ staff }"><slot name="staffDescription" :staff="staff"></slot></template>
+            <template #tooltip="{ task }"><slot name="tooltip" :task="task"></slot></template>
           </StaffRow>
           <div :style="{ height: bottomSpacerHeight + 'px' }"></div>
         </draggable>
@@ -174,6 +178,7 @@
 <script lang="ts">
 import { Staff, Task, ViewMode, DayInfo, TooltipState, EditTaskModalState, EditStaffModalState } from "./types"
 import { WEEK_DAYS, SIDEBAR_WIDTH, ONE_DAY_MS, DAY_CELL_PX, MONTH_COLUMN_PX } from "./utils/constants"
+import { calcEnd } from "./utils/index"
 import StaffRow from "./children/StaffRow.vue"
 import EditTaskModal from "./children/EditTaskModal.vue"
 import EditStaffModal from "./children/EditStaffModal.vue"
@@ -433,6 +438,17 @@ export default {
     headersStartMs(): number {
       return this.headers && this.headers.length > 0 ? this.headers[0].date.getTime() : this.viewStartDate
     },
+    tooltipTask(): Task | null {
+      const sid = this.dragState && this.dragState.staffId
+      const tid = this.dragState && this.dragState.taskId
+      if (!sid || !tid) return null
+      const s = this.staffData.find(x => x.id === sid)
+      const t = s && s.tasks.find(y => y.id === tid)
+      if (!t) return null
+      const start = this.tooltip && this.tooltip.startDate ? this.tooltip.startDate : t.startDate
+      const dur = this.tooltip && this.tooltip.duration ? this.tooltip.duration : t.duration
+      return { ...t, startDate: start, duration: dur, endDate: calcEnd(start, dur) }
+    },
     visibleLeftDate(): Date {
       if (this.viewMode === "year" && this.headers && this.headers.length > 0) {
         const startMonth = new Date(this.headers[0].date)
@@ -508,6 +524,7 @@ export default {
     },
   },
   methods: {
+    calcEnd,
     // 解析 YYYY-MM-DD 字符串为本地时区的 Date，避免跨月偏移
     parseDateStr(s: string): Date {
       const parts = String(s).split("-")
