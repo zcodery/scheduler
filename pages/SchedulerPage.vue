@@ -12,6 +12,7 @@
       <workload-bar :percentage="staff.workloadPercentage"></workload-bar>
     </template>
     <template #extra>
+      <el-button size="mini" type="info" icon="el-icon-refresh" @click="onRefresh(true)" :loading="loading">刷新数据</el-button>
       <el-button v-if="!readonly" size="mini" type="success" :icon="withdynamicIcon" @click="onSave" :loading="loading">保存</el-button>
       <el-switch size="mini" v-model="readonly" active-color="#13ce66" inactive-color="#409eff" :active-text="readonly ? '只读模式' : '编辑模式'"></el-switch>
     </template>
@@ -21,7 +22,8 @@
 <script lang="ts">
 import WorkloadBar from "./components/WorkloadBar.vue"
 import GanttScheduler from "@/GanttScheduler/index.vue"
-import { MOCK_STAFF_DATA } from "./database/gantt"
+import { getMockStaffData, MOCK_ROLE_DATA } from "./database/gantt"
+import { Staff } from "@/GanttScheduler/types"
 
 export default {
   components: { "gantt-scheduler": GanttScheduler, WorkloadBar },
@@ -30,27 +32,37 @@ export default {
       title: "人员排期",
       description: "拖动图表滑动 • 双击编辑 • 右键管理",
       readonly: false,
-      payload: [],
+      payload: [] as Staff[],
       withdynamicIcon: "",
       loading: false,
       staffConfig: [
-        { span: 12, prop: "role", label: "职位", type: "picker", component: "el-select", params: { placeholder: "选择职位", options: ["前端工程师", "后端工程师", "测试工程师", "产品经理", "设计师", "项目经理"], class: "rs-full-width" } },
+        { span: 12, prop: "role", label: "职位", type: "picker", component: "el-select", params: { placeholder: "选择职位", options: MOCK_ROLE_DATA, class: "rs-full-width" } },
         { span: 12, prop: "hobby", label: "爱好", type: "field", component: "el-select", params: { placeholder: "选择爱好", options: ["篮球", "足球", "跑步", "游泳", "旅游", "其他"], class: "rs-full-width", multiple: true, allowCreate: true, filterable: true } },
         { prop: "workloadPercentage", label: "进度(%)", type: "field", component: "el-input-number", params: { min: 0, max: 100, step: 1, class: "rs-full-width" } },
       ],
-      realTasks: [],
+      realTasks: [] as Staff[],
     }
   },
   created() {
-    try {
-      let initialData = MOCK_STAFF_DATA
-      const saved = localStorage.getItem("scheduler:data")
-      if (saved) initialData = JSON.parse(saved)
-      this.payload = initialData
-      this.realTasks = structuredClone(this.payload)
-    } catch {}
+    this.onRefresh(false)
   },
   methods: {
+    onRefresh(isReplacement: boolean = true) {
+      let initialData: Staff[] = getMockStaffData()
+      try {
+        // if(isReplacement) {
+        //   this.$confirm("确认刷新数据吗？", "提示", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" }).then(() => {
+        //     this.onRefresh(true)
+        //   })
+        // }
+        if (!isReplacement) {
+          const saved = localStorage.getItem("scheduler:data")
+          if (saved) initialData = JSON.parse(saved)
+        }
+      } catch {}
+      this.payload = initialData
+      this.realTasks = structuredClone(this.payload)
+    },
     onDataChange(payload: any) {
       this.withdynamicIcon = "el-icon-refresh"
       this.realTasks = structuredClone(payload)
