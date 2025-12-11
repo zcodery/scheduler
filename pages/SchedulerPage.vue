@@ -64,7 +64,7 @@ export default {
           if (saved) initialData = JSON.parse(saved)
         }
       } catch {}
-      this.payload = initialData?.length ? initialData : isReplacementRole === "real" ? REAL_STAFF_DATA : getMockStaffData(isReplacementRole === "large" ? 1000 : Math.ceil(Math.random() * 100))
+      this.payload = initialData?.length ? initialData : isReplacementRole === "real" ? REAL_STAFF_DATA : getMockStaffData(isReplacementRole === "large" ? 1000 : Math.ceil(Math.random() * 200))
       this.realTasks = structuredClone(this.payload)
       console.timeEnd("on-refresh")
 

@@ -25,7 +25,7 @@ export const getMockStaffData = (count: number = 0): Staff[] => {
     avatarColor: "bg-blue-100 text-blue-600",
     workloadPercentage: Math.ceil(Math.random() * 100),
     isCollapsed: false,
-    tasks: Array.from({ length: Math.ceil(Math.random() * count) }, (_, i) => ({ id: `T${(i + 1).toString().padStart(3, "0")}`, name: MOCK_TASK_NAME_DATA[Math.floor(Math.random() * MOCK_TASK_NAME_DATA.length)], startDate: getRelativeDate(Math.random() < 0.3 ? -Math.ceil(Math.random() * 10) : Math.ceil(Math.random() * 10)), duration: Math.ceil(Math.random() * 10), rowOffset: Math.floor(Math.random() * 5) })),
+    tasks: Array.from({ length: Math.ceil(Math.random() * count) }, (_, i) => ({ id: `T${(i + 1).toString().padStart(4, "0")}`, name: MOCK_TASK_NAME_DATA[Math.floor(Math.random() * MOCK_TASK_NAME_DATA.length)], startDate: getRelativeDate(Math.random() < 0.3 ? -Math.ceil(Math.random() * 100) : Math.ceil(Math.random() * 100)), duration: Math.ceil(Math.random() * 30), rowOffset: Math.floor(Math.random() * 10) })),
   }))
 }
 
