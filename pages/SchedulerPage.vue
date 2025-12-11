@@ -6,13 +6,20 @@
       <div v-else :class="staff.avatarColor" class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold">{{ staff.name.charAt(0) }}</div>
     </template> -->
     <template #staffDescription="{ staff }">
-      <el-tag size="mini" type="primary" effect="plain">{{ staff.role || "未设置职位" }}</el-tag>
+      <el-tag size="mini" type="primary" effect="plain" v-if="staff.role">{{ staff.role || "未设置职位" }}</el-tag>
     </template>
     <template #workloadBar="{ staff }">
-      <workload-bar :percentage="staff.workloadPercentage"></workload-bar>
+      <workload-bar :percentage="staff.workloadPercentage" v-if="staff.workloadPercentage"></workload-bar>
     </template>
     <template #extra>
-      <el-button size="mini" type="info" icon="el-icon-refresh" @click="onRefresh(true)" :loading="loading">刷新数据</el-button>
+      <el-dropdown size="mini" @command="onRefresh" split-button type="primary">
+        <span class="el-dropdown-link">刷新数据({{ payload.length }}人)</span>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item command="small">少量虚拟数据</el-dropdown-item>
+          <el-dropdown-item command="large">大量虚拟数据</el-dropdown-item>
+          <el-dropdown-item command="real">真实数据</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
       <el-button v-if="!readonly" size="mini" type="success" :icon="withdynamicIcon" @click="onSave" :loading="loading">保存</el-button>
       <el-switch size="mini" v-model="readonly" active-color="#13ce66" inactive-color="#409eff" :active-text="readonly ? '只读模式' : '编辑模式'"></el-switch>
     </template>
@@ -22,7 +29,7 @@
 <script lang="ts">
 import WorkloadBar from "./components/WorkloadBar.vue"
 import GanttScheduler from "@/GanttScheduler/index.vue"
-import { getMockStaffData, MOCK_ROLE_DATA } from "./database/gantt"
+import { getMockStaffData, MOCK_ROLE_DATA, REAL_STAFF_DATA } from "./database/gantt"
 import { Staff } from "@/GanttScheduler/types"
 
 export default {
@@ -41,27 +48,30 @@ export default {
         { prop: "workloadPercentage", label: "进度(%)", type: "field", component: "el-input-number", params: { min: 0, max: 100, step: 1, class: "rs-full-width" } },
       ],
       realTasks: [] as Staff[],
+      timer: null,
     }
   },
   created() {
-    this.onRefresh(false)
+    this.onRefresh()
   },
   methods: {
-    onRefresh(isReplacement: boolean = true) {
-      let initialData: Staff[] = getMockStaffData()
+    onRefresh(isReplacementRole: string = "") {
+      console.time("on-refresh")
+      let initialData: Staff[] = []
       try {
-        // if(isReplacement) {
-        //   this.$confirm("确认刷新数据吗？", "提示", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" }).then(() => {
-        //     this.onRefresh(true)
-        //   })
-        // }
-        if (!isReplacement) {
+        if (!isReplacementRole) {
           const saved = localStorage.getItem("scheduler:data")
           if (saved) initialData = JSON.parse(saved)
         }
       } catch {}
-      this.payload = initialData
+      this.payload = initialData?.length ? initialData : isReplacementRole === "real" ? REAL_STAFF_DATA : getMockStaffData(isReplacementRole === "large" ? 1000 : Math.ceil(Math.random() * 100))
       this.realTasks = structuredClone(this.payload)
+      console.timeEnd("on-refresh")
+
+      if (this.timer) clearInterval(this.timer)
+      this.timer = setInterval(() => {
+        console.log(`${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`)
+      }, 1000)
     },
     onDataChange(payload: any) {
       this.withdynamicIcon = "el-icon-refresh"
