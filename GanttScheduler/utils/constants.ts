@@ -12,7 +12,7 @@ export const DAY_CELL_PX = 50
 // 年/季视图下单月列宽（像素），用于按月布局和日内宽度计算
 export const MONTH_COLUMN_PX = 120
 
-export const AVATAR_COLOR_CLASSES = ["bg-blue-100 text-blue-600", "bg-emerald-100 text-emerald-600", "bg-purple-100 text-purple-600", "bg-orange-100 text-orange-600", "bg-rose-100 text-rose-600", "bg-indigo-100 text-indigo-600"]
+export const AVATAR_COLOR_CLASSES = ["bg-blue-100 text-blue-600", "bg-green-100 text-green-600", "bg-yellow-100 text-yellow-600", "bg-orange-100 text-orange-600", "bg-red-100 text-red-600", "bg-purple-100 text-purple-600", "bg-pink-100 text-pink-600", "bg-gray-100 text-gray-600", "bg-emerald-100 text-emerald-600", "bg-indigo-100 text-indigo-600", "bg-rose-100 text-rose-600"]
 
 export const PRESET_TASK_COLORS = [
   { color: "rgb(255, 255, 255)", name: "白色" },

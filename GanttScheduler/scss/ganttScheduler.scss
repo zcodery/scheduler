@@ -11,6 +11,15 @@ $color-gray-700: #374151;
 $color-gray-900: #111827;
 $color-blue-100: #dbeafe;
 $color-blue-600: #2563eb;
+$color-green-100: #dcfce7;
+$color-green-600: #16a34a;
+$color-yellow-100: #fef9c3;
+$color-yellow-600: #ca8a04;
+$color-red-100: #fee2e2;
+$color-red-600: #dc2626;
+$color-pink-100: #fce7f3;
+$color-pink-600: #db2777;
+$color-gray-600: #4b5563;
 $color-emerald-100: #d1fae5;
 $color-emerald-600: #059669;
 $color-purple-100: #f3e8ff;
@@ -58,11 +67,16 @@ $shadow-navbox: 0 2px 6px rgba(16, 24, 40, 0.06);
 $bg-colors: (
   "white": $color-white,
   "gray-50": $color-gray-50,
+  "gray-100": $color-gray-100,
   "gray-900": $color-gray-900,
   "blue-100": $color-blue-100,
+  "green-100": $color-green-100,
+  "yellow-100": $color-yellow-100,
   "emerald-100": $color-emerald-100,
   "purple-100": $color-purple-100,
   "orange-100": $color-orange-100,
+  "red-100": $color-red-100,
+  "pink-100": $color-pink-100,
   "rose-100": $color-rose-100,
   "indigo-100": $color-indigo-100,
 );
@@ -76,14 +90,19 @@ $text-colors: (
   "white": $color-white,
   "slate-800": $color-slate-800,
   "gray-900": $color-gray-900,
+  "gray-600": $color-gray-600,
   "gray-700": $color-gray-700,
   "gray-500": $color-gray-500,
   "gray-400": $color-gray-400,
   "gray-300": $color-gray-300,
   "blue-600": $color-blue-600,
+  "green-600": $color-green-600,
+  "yellow-600": $color-yellow-600,
   "emerald-600": $color-emerald-600,
   "purple-600": $color-purple-600,
   "orange-600": $color-orange-600,
+  "red-600": $color-red-600,
+  "pink-600": $color-pink-600,
   "rose-600": $color-rose-600,
   "indigo-600": $color-indigo-600,
 );
