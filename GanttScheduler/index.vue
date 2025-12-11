@@ -74,13 +74,15 @@
 
       <div class="relative">
         <draggable v-model="staffData" item-key="id" :disabled="readonly || isEditingTask" handle=".rs-staff-handle" :animation="150">
-          <StaffRow v-for="s in displayStaffs" :key="s.id" :staff="s" :headers="headers" :viewStartDate="headers.length ? new Date(headers[0].date) : new Date(viewStartDate)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" :dayWidth="effectiveDayWidth" :scrollX="scrollX" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff" @task-edit-start="onTaskEditStart" @task-edit-end="onTaskEditEnd">
+          <div :style="{ height: topSpacerHeight + 'px' }"></div>
+          <StaffRow v-for="s in visibleStaffs" :key="s.id" :staff="s" :headers="headers" :viewStartDate="headers.length ? new Date(headers[0].date) : new Date(viewStartDate)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" :dayWidth="effectiveDayWidth" :scrollX="scrollX" :dragState="dragState" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff" @task-edit-start="onTaskEditStart" @task-edit-end="onTaskEditEnd">
             <template #avatar="{ staff }"><slot name="avatar" :staff="staff"></slot></template>
             <template #workload="{ staff }"><slot name="workloadBar" :staff="staff"></slot></template>
             <template #staffDescription="{ staff }"><slot name="staffDescription" :staff="staff"></slot></template>
           </StaffRow>
+          <div :style="{ height: bottomSpacerHeight + 'px' }"></div>
         </draggable>
-        <div v-if="quickJumpDir" class="absolute top-1/2 -translate-y-1/2 z-50 pointer-events-none flex justify-between px-6" :style="{ left: consts.SIDEBAR_WIDTH + 16 + 'px', right: '0' }">
+        <div v-if="quickJumpDir" class="fixed top-1/2 -translate-y-1/2 z-50 pointer-events-none flex justify-between px-6" :style="jumpOverlayStyle">
           <el-button v-if="quickJumpDir === 'left'" type="primary" plain circle icon="el-icon-d-arrow-left" class="pointer-events-auto" @click="jumpToData('right')"></el-button>
           <div class="flex-1"></div>
           <el-button v-if="quickJumpDir === 'right'" type="primary" plain circle icon="el-icon-d-arrow-right" class="pointer-events-auto" @click="jumpToData('left')"></el-button>
@@ -194,6 +196,14 @@ export default {
       viewMode: "month" as ViewMode,
       scrollX: 0,
       consts: { ONE_DAY_MS, DAY_CELL_PX, MONTH_COLUMN_PX, SIDEBAR_WIDTH },
+      dragState: null as null | { taskId: string; staffId: string; type: "move" | "resize"; dateStr?: string; duration?: number; rowOffset?: number },
+      dragRaf: null as number | null,
+      lastDragEvent: null as null | { clientX: number; clientY: number },
+      visibleStartIndex: 0,
+      visibleEndIndex: 20,
+      overscanRows: 3,
+      rowHeights: [] as number[],
+      rowOffsets: [] as number[],
       headersStartDate: null as Date | null,
       headersEndDate: null as Date | null,
       tooltip: null as TooltipState | null,
@@ -238,6 +248,8 @@ export default {
         try {
           window.dispatchEvent(new CustomEvent("scheduler:data-change", { detail: val }))
         } catch {}
+        this.computeRowMetrics()
+        this.updateVisibleRange()
       },
     },
     viewMode() {
@@ -300,6 +312,12 @@ export default {
     ;(this as any)._onKey = onKey
     ;(this as any)._onDocClick = onDocClick
     ;(this as any)._onDocMouseMove = onDocMouseMove
+    this.$nextTick(() => {
+      this.computeRowMetrics()
+      this.updateVisibleRange()
+      const container = this.$refs.containerRef as HTMLDivElement
+      if (container) container.addEventListener("scroll", this.onScrollUpdate)
+    })
   },
   beforeDestroy() {
     const onKey = (this as any)._onKey as (e: KeyboardEvent) => void
@@ -312,6 +330,8 @@ export default {
       window.clearTimeout(this.adjustRangeTimer)
       this.adjustRangeTimer = null
     }
+    const container = this.$refs.containerRef as HTMLDivElement
+    if (container) container.removeEventListener("scroll", this.onScrollUpdate)
   },
   computed: {
     effectiveDayWidth(): number {
@@ -450,8 +470,29 @@ export default {
     quickJumpDir(): "left" | "right" | null {
       return this.getQuickJumpDirection()
     },
-    displayStaffs(): Staff[] {
-      return this.staffData
+    jumpOverlayStyle(): Record<string, string> {
+      const container = this.$refs.containerRef as HTMLDivElement
+      const rect = container ? container.getBoundingClientRect() : ({ left: 0, right: window.innerWidth } as any)
+      void this.scrollX
+      const left = rect.left + this.consts.SIDEBAR_WIDTH + 16
+      const right = Math.max(0, window.innerWidth - rect.right)
+      return { left: left + "px", right: right + "px" }
+    },
+    visibleStaffs(): Staff[] {
+      const start = Math.max(0, Math.min(this.staffData.length, this.visibleStartIndex))
+      const end = Math.max(start, Math.min(this.staffData.length, this.visibleEndIndex + 1))
+      return this.staffData.slice(start, end)
+    },
+    topSpacerHeight(): number {
+      const idx = Math.max(0, Math.min(this.rowOffsets.length - 1, this.visibleStartIndex))
+      return this.rowOffsets[idx] || 0
+    },
+    bottomSpacerHeight(): number {
+      const total = this.rowOffsets.length > 0 ? this.rowOffsets[this.rowOffsets.length - 1] + (this.rowHeights[this.rowHeights.length - 1] || 0) : 0
+      const endIdx = Math.max(0, Math.min(this.rowOffsets.length - 1, this.visibleEndIndex))
+      const renderedBottom = this.rowOffsets[endIdx] + (this.rowHeights[endIdx] || 0)
+      const rem = Math.max(0, total - renderedBottom)
+      return rem
     },
   },
   methods: {
@@ -485,6 +526,44 @@ export default {
       }
       const msPerPixel = this.viewDurationMs / this.getTimelineWidth()
       return Math.max(0, (date.getTime() - this.viewStartDate) / msPerPixel)
+    },
+    onScrollUpdate() {
+      this.updateVisibleRange()
+    },
+    computeRowMetrics() {
+      const heights: number[] = []
+      const offsets: number[] = []
+      let acc = 0
+      this.staffData.forEach(s => {
+        const h = s.isCollapsed ? 64 : Math.max(128, ((s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : 0) + 2) * 36 + 20)
+        heights.push(h)
+        offsets.push(acc)
+        acc += h
+      })
+      this.rowHeights = heights
+      this.rowOffsets = offsets
+    },
+    updateVisibleRange() {
+      const container = this.$refs.containerRef as HTMLDivElement
+      const scrollTop = container ? container.scrollTop : 0
+      const viewport = container ? container.clientHeight : window.innerHeight
+      let start = 0
+      for (let i = 0; i < this.rowOffsets.length; i++) {
+        if (this.rowOffsets[i] + (this.rowHeights[i] || 0) >= scrollTop) {
+          start = i
+          break
+        }
+      }
+      let end = start
+      let y = this.rowOffsets[start] + (this.rowHeights[start] || 0)
+      while (end + 1 < this.rowOffsets.length && y < scrollTop + viewport) {
+        end++
+        y += this.rowHeights[end] || 0
+      }
+      start = Math.max(0, start - this.overscanRows)
+      end = Math.min(this.staffData.length - 1, end + this.overscanRows)
+      this.visibleStartIndex = start
+      this.visibleEndIndex = end
     },
     // 任务编辑开始：停止自动滚动并标记编辑状态
     onTaskEditStart() {
@@ -640,8 +719,8 @@ export default {
       visibleRight.setDate(visibleRight.getDate() + Math.max(1, viewportDays - 1))
       const start = new Date(this.headersStartDate)
       const end = new Date(this.headersEndDate)
-      const leftGap = Math.round((visibleLeft.getTime() - start.getTime()) / this.ONE_DAY_MS)
-      const rightGap = Math.round((end.getTime() - visibleRight.getTime()) / this.ONE_DAY_MS)
+      const leftGap = Math.round((visibleLeft.getTime() - start.getTime()) / this.consts.ONE_DAY_MS)
+      const rightGap = Math.round((end.getTime() - visibleRight.getTime()) / this.consts.ONE_DAY_MS)
       if (leftGap < 20) {
         const ns = new Date(start)
         ns.setDate(ns.getDate() - 30)
@@ -687,7 +766,7 @@ export default {
         this.scheduleAdjustRange(true)
         return
       }
-      let shiftMs = this.ONE_DAY_MS * 365 * shift
+      let shiftMs = this.consts.ONE_DAY_MS * 365 * shift
       this.viewStartDate = this.viewStartDate + shiftMs
     },
     jumpToToday() {
@@ -824,7 +903,10 @@ export default {
       e.stopPropagation()
       const taskStartMs = this.parseDateStr(task.startDate).getTime()
       const mouseTime = this.getDateAtMouse((e as any).clientX)
-      this.interaction = { type: "resize", taskId: task.id, staffId, direction, initialX: (e as any).clientX, initialY: (e as any).clientY, initialStartTime: taskStartMs, initialDuration: task.duration, offsetMs: taskStartMs - mouseTime }
+      const staffIdx = this.staffData.findIndex(s => s.id === staffId)
+      const taskIdx = staffIdx !== -1 ? this.staffData[staffIdx].tasks.findIndex(t => t.id === task.id) : -1
+      const msPerPixel = this.viewDurationMs / this.getTimelineWidth()
+      this.interaction = { type: "resize", taskId: task.id, staffId, direction, initialX: (e as any).clientX, initialY: (e as any).clientY, initialStartTime: taskStartMs, initialDuration: task.duration, offsetMs: taskStartMs - mouseTime, staffIdx, taskIdx, msPerPixel }
       document.body.classList.add(direction === "left" ? "resizing-left" : "resizing-right")
     },
     handleTaskMouseDown(task: Task, staffId: string, e: MouseEvent) {
@@ -833,7 +915,10 @@ export default {
       const taskStartMs = this.parseDateStr(task.startDate).getTime()
       const mouseTime = this.getDateAtMouse(initialX)
       const offsetMs = taskStartMs - mouseTime
-      this.interaction = { type: "move", taskId: task.id, staffId, initialX, initialY, initialStartTime: taskStartMs, initialRowOffset: task.rowOffset, offsetMs }
+      const staffIdx = this.staffData.findIndex(s => s.id === staffId)
+      const taskIdx = staffIdx !== -1 ? this.staffData[staffIdx].tasks.findIndex(t => t.id === task.id) : -1
+      const msPerPixel = this.viewDurationMs / this.getTimelineWidth()
+      this.interaction = { type: "move", taskId: task.id, staffId, initialX, initialY, initialStartTime: taskStartMs, initialRowOffset: task.rowOffset, offsetMs, staffIdx, taskIdx, msPerPixel }
       document.body.style.cursor = "move"
     },
     onGlobalMouseMove(e: MouseEvent) {
@@ -846,66 +931,65 @@ export default {
         if (e.clientX < this.consts.SIDEBAR_WIDTH + edgeThreshold) this.startAutoScroll("left")
         else if (e.clientX > window.innerWidth - edgeThreshold) this.startAutoScroll("right")
         else this.stopAutoScroll()
-        const staffIndex = this.staffData.findIndex(s => s.id === this.interaction!.staffId)
-        if (staffIndex === -1) return
-        const tasks = [...this.staffData[staffIndex].tasks]
-        const taskIndex = tasks.findIndex(t => t.id === this.interaction!.taskId)
-        if (taskIndex === -1) return
-        const currentTask = tasks[taskIndex]
-        const currentMouseTime = this.getDateAtMouse(e.clientX)
-        if (this.interaction.type === "resize" && this.interaction.initialDuration !== undefined) {
-          const deltaX = e.clientX - this.interaction.initialX
-          const deltaDays = (deltaX * msPerPixel) / this.ONE_DAY_MS
-          let newDuration = currentTask.duration
-          let newStartDate = currentTask.startDate
-          if (this.interaction.direction === "right") {
-            const rawNewDuration = (this.interaction.initialDuration || 0) + deltaDays
-            newDuration = Math.max(1, Math.round(rawNewDuration))
-          } else {
-            const rawShiftDays = Math.round(deltaDays)
-            newDuration = Math.max(1, (this.interaction.initialDuration || 0) - rawShiftDays)
-            if (newDuration !== currentTask.duration) {
-              const newStartMs = (this.interaction.initialStartTime || 0) + deltaDays * this.ONE_DAY_MS
+        this.lastDragEvent = { clientX: e.clientX, clientY: e.clientY }
+        if (this.dragRaf == null) {
+          this.dragRaf = requestAnimationFrame(() => {
+            this.dragRaf = null
+            const ev = this.lastDragEvent
+            if (!ev) return
+            const staffIndex = (this.interaction as any).staffIdx
+            const taskIndex = (this.interaction as any).taskIdx
+            if (staffIndex == null || taskIndex == null || staffIndex === -1 || taskIndex === -1) return
+            const currentTask = this.staffData[staffIndex].tasks[taskIndex]
+            const currentMouseTime = this.getDateAtMouse(ev.clientX)
+            const curMsPerPixel = (this.interaction as any).msPerPixel || msPerPixel
+            if (this.interaction!.type === "resize" && this.interaction!.initialDuration !== undefined) {
+              const deltaX = ev.clientX - this.interaction!.initialX
+              const deltaDays = (deltaX * curMsPerPixel) / this.consts.ONE_DAY_MS
+              let newDuration = currentTask.duration
+              let newStartDate = currentTask.startDate
+              if (this.interaction!.direction === "right") {
+                const rawNewDuration = (this.interaction!.initialDuration || 0) + deltaDays
+                newDuration = Math.max(1, Math.round(rawNewDuration))
+              } else {
+                const rawShiftDays = Math.round(deltaDays)
+                newDuration = Math.max(1, (this.interaction!.initialDuration || 0) - rawShiftDays)
+                if (newDuration !== currentTask.duration) {
+                  const newStartMs = (this.interaction!.initialStartTime || 0) + deltaDays * this.consts.ONE_DAY_MS
+                  const d = new Date(newStartMs)
+                  d.setHours(0, 0, 0, 0)
+                  const y = d.getFullYear()
+                  const m = String(d.getMonth() + 1).padStart(2, "0")
+                  const day = String(d.getDate()).padStart(2, "0")
+                  newStartDate = `${y}-${m}-${day}`
+                }
+              }
+              this.dragState = { taskId: currentTask.id, staffId: this.interaction!.staffId, type: "resize", dateStr: newStartDate, duration: newDuration }
+              const dStart = new Date(newStartDate)
+              const dEnd = new Date(dStart)
+              dEnd.setDate(dEnd.getDate() + newDuration)
+              const endStr = `${dEnd.getFullYear()}-${String(dEnd.getMonth() + 1).padStart(2, "0")}-${String(dEnd.getDate()).padStart(2, "0")}`
+              this.tooltip = { visible: true, x: ev.clientX + 15, y: ev.clientY + 15, startDate: newStartDate, endDate: endStr, duration: newDuration }
+              return
+            }
+            if (this.interaction!.type === "move" && this.interaction!.initialRowOffset !== undefined && this.interaction!.offsetMs !== undefined) {
+              let newStartMs = currentMouseTime + this.interaction!.offsetMs
               const d = new Date(newStartMs)
               d.setHours(0, 0, 0, 0)
               const y = d.getFullYear()
               const m = String(d.getMonth() + 1).padStart(2, "0")
               const day = String(d.getDate()).padStart(2, "0")
-              newStartDate = `${y}-${m}-${day}`
+              const dateStr = `${y}-${m}-${day}`
+              const deltaY = ev.clientY - this.interaction!.initialY
+              const rowShift = Math.round(deltaY / 36)
+              const newRowOffset = Math.max(0, (this.interaction!.initialRowOffset || 0) + rowShift)
+              this.dragState = { taskId: currentTask.id, staffId: this.interaction!.staffId, type: "move", dateStr, rowOffset: newRowOffset }
+              const dEnd = new Date(d)
+              dEnd.setDate(dEnd.getDate() + currentTask.duration)
+              const endStr = `${dEnd.getFullYear()}-${String(dEnd.getMonth() + 1).padStart(2, "0")}-${String(dEnd.getDate()).padStart(2, "0")}`
+              this.tooltip = { visible: true, x: ev.clientX + 15, y: ev.clientY + 15, startDate: dateStr, endDate: endStr, duration: currentTask.duration }
             }
-          }
-          const newStaffData = [...this.staffData]
-          newStaffData[staffIndex].tasks[taskIndex] = { ...currentTask, duration: newDuration, startDate: newStartDate }
-          this.staffData = newStaffData
-          const dStart = new Date(newStartDate)
-          const dEnd = new Date(dStart)
-          dEnd.setDate(dEnd.getDate() + newDuration)
-          const endStr = `${dEnd.getFullYear()}-${String(dEnd.getMonth() + 1).padStart(2, "0")}-${String(dEnd.getDate()).padStart(2, "0")}`
-          this.tooltip = { visible: true, x: e.clientX + 15, y: e.clientY + 15, startDate: newStartDate, endDate: endStr, duration: newDuration }
-          return
-        }
-        if (this.interaction.type === "move" && this.interaction.initialRowOffset !== undefined && this.interaction.offsetMs !== undefined) {
-          let newStartMs = currentMouseTime + this.interaction.offsetMs
-          const d = new Date(newStartMs)
-          d.setHours(0, 0, 0, 0)
-          const y = d.getFullYear()
-          const m = String(d.getMonth() + 1).padStart(2, "0")
-          const day = String(d.getDate()).padStart(2, "0")
-          const dateStr = `${y}-${m}-${day}`
-          const deltaY = e.clientY - this.interaction.initialY
-          const rowShift = Math.round(deltaY / 36)
-          const newRowOffset = Math.max(0, (this.interaction.initialRowOffset || 0) + rowShift)
-          const newStaffData = [...this.staffData]
-          let currentStaffIdx = newStaffData.findIndex(s => s.tasks.find(t => t.id === this.interaction!.taskId))
-          if (currentStaffIdx !== -1) {
-            let taskToMove = newStaffData[currentStaffIdx].tasks.find(t => t.id === this.interaction!.taskId) as Task
-            newStaffData[currentStaffIdx].tasks = newStaffData[currentStaffIdx].tasks.map(t => (t.id === taskToMove.id ? { ...t, startDate: dateStr, rowOffset: newRowOffset } : t))
-            this.staffData = newStaffData
-            const dEnd = new Date(d)
-            dEnd.setDate(dEnd.getDate() + taskToMove.duration)
-            const endStr = `${dEnd.getFullYear()}-${String(dEnd.getMonth() + 1).padStart(2, "0")}-${String(dEnd.getDate()).padStart(2, "0")}`
-            this.tooltip = { visible: true, x: e.clientX + 15, y: e.clientY + 15, startDate: dateStr, endDate: endStr, duration: taskToMove.duration }
-          }
+          })
         }
         return
       }
@@ -942,6 +1026,21 @@ export default {
     onGlobalMouseUp() {
       this.stopAutoScroll()
       if (this.interaction) {
+        if (this.dragState && this.dragState.taskId && this.dragState.staffId) {
+          const sIdx = this.staffData.findIndex(s => s.id === this.dragState!.staffId)
+          if (sIdx !== -1) {
+            const tasks = this.staffData[sIdx].tasks.map(t => {
+              if (t.id !== this.dragState!.taskId) return t
+              const nextStart = this.dragState!.dateStr != null ? this.dragState!.dateStr : t.startDate
+              const nextDur = this.dragState!.duration != null ? this.dragState!.duration : t.duration
+              const nextRow = this.dragState!.rowOffset != null ? this.dragState!.rowOffset : t.rowOffset
+              return { ...t, startDate: nextStart, duration: nextDur, rowOffset: nextRow }
+            })
+            const nextStaff = { ...this.staffData[sIdx], tasks }
+            this.staffData = this.staffData.map((s, i) => (i === sIdx ? nextStaff : s))
+          }
+        }
+        this.dragState = null
         this.interaction = null
         this.tooltip = null
         document.body.classList.remove("resizing-left", "resizing-right")

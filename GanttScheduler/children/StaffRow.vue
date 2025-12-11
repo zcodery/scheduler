@@ -28,6 +28,7 @@
           <div v-for="t in staff.tasks" :key="t.id" class="absolute z-10" :style="taskStyle(t)">
             <el-popover trigger="hover" popper-class="rs-nopadding" :visible-arrow="false" :disabled="!readonly">
               <div class="bg-gray-900 text-white text-xs px-2 py-1.5 rounded">
+                <div>名称: {{ t.name }}</div>
                 <div>开始: {{ t.startDate }}</div>
                 <div>结束: {{ calcEnd(t.startDate, t.duration) }}</div>
                 <div>工期: {{ t.duration }} 天</div>
@@ -61,6 +62,7 @@ export default {
     readonly: { type: Boolean, required: false, default: false },
     dayWidth: { type: Number, required: false, default: 50 },
     scrollX: { type: Number, required: false, default: 0 },
+    dragState: { type: Object as () => { taskId: string; staffId: string; type: "move" | "resize"; dateStr?: string; duration?: number; rowOffset?: number } | null, required: false, default: null },
   },
   data() {
     return { editingField: null as null | "name" }
@@ -125,28 +127,32 @@ export default {
       return px
     },
     taskStyle(task: Task) {
-      const sDate = parseDateStr(task.startDate)
+      const isDraggingThis = this.dragState && this.dragState.staffId === this.staff.id && this.dragState.taskId === task.id
+      const startStr = isDraggingThis && this.dragState!.dateStr ? this.dragState!.dateStr! : task.startDate
+      const durationVal = isDraggingThis && this.dragState!.duration != null ? this.dragState!.duration! : task.duration
+      const rowOffsetVal = isDraggingThis && this.dragState!.rowOffset != null ? this.dragState!.rowOffset! : task.rowOffset || 0
+      const sDate = parseDateStr(startStr)
       sDate.setHours(0, 0, 0, 0)
       const start = sDate.getTime()
       const startOffset = start - this.viewStartDate.getTime()
-      const topOffset = (task.rowOffset || 0) * 36
+      const topOffset = rowOffsetVal * 36
       if (this.viewMode === "year") {
         const leftPx = this.dateToPixelYear(sDate)
         const end = new Date(sDate)
-        end.setDate(end.getDate() + task.duration)
+        end.setDate(end.getDate() + durationVal)
         const rightPx = this.dateToPixelYear(end)
         const widthPx = Math.max(1, rightPx - leftPx)
-        return { left: `${leftPx}px`, width: `${widthPx}px`, top: `${12 + topOffset}px` }
+        return { transform: `translate3d(${leftPx}px, ${12 + topOffset}px, 0)`, width: `${widthPx}px`, willChange: "transform" }
       }
       if (this.viewMode === "month" || this.viewMode === "quarter") {
         const baseDate = this.headers && this.headers.length > 0 ? new Date(this.headers[0].date) : new Date(this.viewStartDate)
         baseDate.setHours(0, 0, 0, 0)
         const baseStartMs = baseDate.getTime()
         const leftPx = ((start - baseStartMs) / 86400000) * this.dayWidth
-        const widthPx = Math.max(1, task.duration * this.dayWidth)
-        return { left: `${leftPx}px`, width: `${widthPx}px`, top: `${12 + topOffset}px` }
+        const widthPx = Math.max(1, durationVal * this.dayWidth)
+        return { transform: `translate3d(${leftPx}px, ${12 + topOffset}px, 0)`, width: `${widthPx}px`, willChange: "transform" }
       }
-      const durationMs = task.duration * 86400000
+      const durationMs = durationVal * 86400000
       let left = (startOffset / this.viewDurationMs) * 100
       let width = (durationMs / this.viewDurationMs) * 100
       return { left: `${left}%`, width: `${Math.max(width, 0.5)}%`, top: `${12 + topOffset}px` }
