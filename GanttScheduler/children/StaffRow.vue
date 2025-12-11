@@ -25,7 +25,7 @@
           <div v-for="(h, i) in headers" :key="i" :class="['border-r border-gray-100 h-full', h.isToday ? 'bg-blue-50/60' : h.isWeekend ? 'bg-gray-50/80' : '']"></div>
         </div>
         <div v-show="!staff.isCollapsed" class="relative w-full h-full pt-3 pb-2" @dblclick="onGridDblClick">
-          <div v-for="t in staff.tasks" :key="t.id" class="absolute z-10" :style="taskStyle(t)">
+          <div v-for="t in visibleTasks" :key="t.id" class="absolute z-10" :style="taskStyle(t)">
             <el-popover trigger="hover" popper-class="rs-nopadding" :visible-arrow="false" :disabled="!readonly">
               <div class="bg-gray-900 text-white text-xs px-2 py-1.5 rounded">
                 <div>名称: {{ t.name }}</div>
@@ -63,11 +63,22 @@ export default {
     dayWidth: { type: Number, required: false, default: 50 },
     scrollX: { type: Number, required: false, default: 0 },
     dragState: { type: Object as () => { taskId: string; staffId: string; type: "move" | "resize"; dateStr?: string; duration?: number; rowOffset?: number } | null, required: false, default: null },
+    visibleLeftDate: { type: Date, required: true },
+    visibleRightDate: { type: Date, required: true },
   },
   data() {
     return { editingField: null as null | "name" }
   },
   computed: {
+    visibleTasks(): Task[] {
+      const left = this.visibleLeftDate ? this.visibleLeftDate.getTime() : 0
+      const right = this.visibleRightDate ? this.visibleRightDate.getTime() : left
+      return (this.staff.tasks || []).filter(t => {
+        const start = parseDateStr(t.startDate).getTime()
+        const end = start + t.duration * ONE_DAY_MS
+        return end >= left && start < right
+      })
+    },
     rangeDays(): number {
       if (!this.headers || this.headers.length === 0) return 0
       const start = new Date(this.headers[0].date).getTime()

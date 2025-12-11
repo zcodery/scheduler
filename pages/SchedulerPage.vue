@@ -12,8 +12,8 @@
       <workload-bar :percentage="staff.workloadPercentage" v-if="staff.workloadPercentage"></workload-bar>
     </template>
     <template #extra>
-      <el-dropdown size="mini" @command="onRefresh" split-button type="primary">
-        <span class="el-dropdown-link">刷新数据({{ payload.length }}人)</span>
+      <el-dropdown size="mini" @command="onRefresh" split-button type="primary" :disabled="idleAnimationFrame">
+        <span class="el-dropdown-link">{{ idleAnimationFrame ? `正则加载数据中(${payload.length}/${realSize})` : `刷新数据(${realSize})` }}</span>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item command="small">少量虚拟数据</el-dropdown-item>
           <el-dropdown-item command="large">大量虚拟数据</el-dropdown-item>
@@ -48,7 +48,10 @@ export default {
         { prop: "workloadPercentage", label: "进度(%)", type: "field", component: "el-input-number", params: { min: 0, max: 100, step: 1, class: "rs-full-width" } },
       ],
       realTasks: [] as Staff[],
+      realSize: 0,
       timer: null,
+      idleAnimationFrame: null,
+      updateData: {},
     }
   },
   created() {
@@ -59,24 +62,50 @@ export default {
       console.time("on-refresh")
       let initialData: Staff[] = []
       try {
-        if (!isReplacementRole) {
-          const saved = localStorage.getItem("scheduler:data")
-          if (saved) initialData = JSON.parse(saved)
-        }
+        // if (!isReplacementRole) {
+        //   const saved = localStorage.getItem("scheduler:data")
+        //   if (saved) initialData = JSON.parse(saved)
+        // }
       } catch {}
-      this.payload = initialData?.length ? initialData : isReplacementRole === "real" ? REAL_STAFF_DATA : getMockStaffData(isReplacementRole === "large" ? 1000 : Math.ceil(Math.random() * 200))
-      this.realTasks = structuredClone(this.payload)
+      const result = initialData?.length ? initialData : isReplacementRole === "real" ? REAL_STAFF_DATA : getMockStaffData(isReplacementRole === "large" ? 1000 : Math.ceil(Math.random() * 200))
+      this.realSize = result.length
+
+      let index = 0
+      this.payload = []
+      this.idleAnimationFrame && window.cancelAnimationFrame(this.idleAnimationFrame)
+      const animationFrame = () => {
+        if (index == result.length || result.length == 0) return (this.idleAnimationFrame = null)
+        if (this.updateData?.id) {
+          const item = this.payload.find(item => item.id === this.updateData.id)
+          if (item) {
+            Object.assign(item, this.updateData)
+            this.updateData = {}
+          }
+        }
+        this.payload.push(result[index])
+        this.realTasks = structuredClone(this.payload)
+        index++
+        this.idleAnimationFrame = requestAnimationFrame(animationFrame)
+      }
+      animationFrame()
+
       console.timeEnd("on-refresh")
 
-      if (this.timer) clearInterval(this.timer)
-      this.timer = setInterval(() => {
-        console.log(`${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`)
-      }, 1000)
+      // if (this.timer) clearInterval(this.timer)
+      // this.timer = setInterval(() => {
+      //   console.log(`${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`)
+      // }, 1000)
     },
-    onDataChange(payload: any) {
+    onDataChange(payload: any, changedStaff?: Staff) {
       this.withdynamicIcon = "el-icon-refresh"
       this.realTasks = structuredClone(payload)
-      console.log(structuredClone(payload))
+      if (changedStaff && changedStaff.id != null) {
+        console.log("changed staff:", structuredClone(changedStaff))
+        this.updateData = changedStaff
+      }
+      if (!this.idleAnimationFrame) {
+        console.log(structuredClone(payload))
+      }
       // this.payload = structuredClone(payload)
       // localStorage.setItem("scheduler:data", JSON.stringify(payload))
     },
