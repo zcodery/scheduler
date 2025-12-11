@@ -1,4 +1,5 @@
 import { Staff } from "@/GanttScheduler/types"
+import { AVATAR_COLOR_CLASSES } from "@/GanttScheduler/utils/constants"
 
 export const MOCK_ROLE_DATA = ["特效师", "合成师", "动画师", "模型师", "导演", "前端工程师", "后端工程师", "测试工程师", "产品经理", "设计师", "项目经理", "运营经理", "客户服务代表"]
 export const MOCK_STAFF_NAME_DATA = ["张三", "李四", "王五", "赵六", "钱七", "孙八", "周九", "吴十"]
@@ -22,7 +23,7 @@ export const getMockStaffData = (count: number = 0): Staff[] => {
     name: MOCK_STAFF_NAME_DATA[Math.floor(Math.random() * MOCK_STAFF_NAME_DATA.length)],
     role: MOCK_ROLE_DATA[Math.floor(Math.random() * MOCK_ROLE_DATA.length)],
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
-    avatarColor: "bg-blue-100 text-blue-600",
+    avatarColor: AVATAR_COLOR_CLASSES[Math.floor(Math.random() * AVATAR_COLOR_CLASSES.length)],
     workloadPercentage: Math.ceil(Math.random() * 100),
     isCollapsed: false,
     tasks: Array.from({ length: Math.ceil(Math.random() * 10) }, (_, i) => ({ id: `T${(i + 1).toString().padStart(4, "0")}`, name: MOCK_TASK_NAME_DATA[Math.floor(Math.random() * MOCK_TASK_NAME_DATA.length)], startDate: getRelativeDate(Math.random() < 0.3 ? -Math.ceil(Math.random() * 100) : Math.ceil(Math.random() * 100)), duration: Math.ceil(Math.random() * 30), rowOffset: Math.floor(Math.random() * 10) })),
