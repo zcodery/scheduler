@@ -1,7 +1,7 @@
 export type ViewMode = "month" | "quarter" | "year"
 
 export interface Task {
-  id: string
+  id: string | Number
   name: string
   startDate: string // YYYY-MM-DD
   duration: number // days
@@ -11,7 +11,7 @@ export interface Task {
 }
 
 export interface Staff {
-  id: string
+  id: string | Number
   name: string
   avatar?: string
   avatarColor: string
