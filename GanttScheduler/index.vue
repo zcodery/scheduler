@@ -1561,5 +1561,5 @@ export default {
 </script>
 
 <style lang="scss">
-@use "./scss/ganttScheduler.scss" as *;
+@import "./scss/ganttScheduler.scss";
 </style>
