@@ -193,12 +193,13 @@ export default {
     readonly: { type: Boolean, required: false, default: false },
     task: { type: Array as () => Staff[], required: true },
     staffConfig: { type: Array, default: () => [] },
+    viewMode: { type: String, default: "month" },
   },
   data() {
     return {
       staffData: (this as any).task as Staff[],
       viewStartDate: new Date().setHours(0, 0, 0, 0) - 86400000 * 2,
-      viewMode: "month" as ViewMode,
+      viewMode: (this as any).viewMode as ViewMode,
       scrollX: 0,
       consts: { ONE_DAY_MS, DAY_CELL_PX, MONTH_COLUMN_PX, SIDEBAR_WIDTH },
       dragState: null as null | { taskId: string; staffId: string; type: "move" | "resize"; dateStr?: string; duration?: number; rowOffset?: number },

@@ -1,5 +1,5 @@
 <template>
-  <gantt-scheduler class="min-h-screen h-screen" :readonly="readonly" :task="payload" :title="title" :description="description" :staffConfig="staffConfig" @data-change="onDataChange">
+  <gantt-scheduler class="min-h-screen h-screen" :readonly="readonly" :task="payload" :view-mode="viewMode" :title="title" :description="description" :staff-config="staffConfig" @data-change="onDataChange">
     <!-- <template #avatar="{ staff }">
       <img v-if="staff.avatar" :src="staff.avatar" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
       <img v-else-if="staff.name == '王五'" src="/avatar.jpg" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
@@ -45,6 +45,7 @@ export default {
     return {
       title: "人员排期",
       description: "拖动图表滑动 • 双击编辑 • 右键管理",
+      viewMode: "month",
       readonly: false,
       payload: [] as Staff[],
       withdynamicIcon: "",
