@@ -21,7 +21,7 @@
           </h1>
         </slot>
         <slot name="description">
-          <p class="text-xs text-gray-500 mt-1 mb-0">{{ description }}</p>
+          <span class="text-xs text-gray-500">{{ description }}</span>
         </slot>
       </div>
       <div class="flex items-center gap-4">
