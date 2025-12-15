@@ -19,24 +19,14 @@
       <slot name="workload" v-if="!staff.isCollapsed" :staff="staff"></slot>
     </div>
 
-    <div class="flex-1 relative overflow-hidden bg-white" @contextmenu.prevent="onContextRow">
+    <div class="flex-1 relative overflow-hidden bg-white" ref="timeline" @contextmenu.prevent="onContextRow">
       <div class="relative h-full" :style="{ width: viewMode === 'month' ? headers.length * dayWidth + 'px' : headers.length * MONTH_COLUMN_PX + 'px', transform: `translateX(${-scrollX}px)`, willChange: 'transform' }">
         <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: viewMode === 'month' ? `repeat(${headers.length}, ${dayWidth}px)` : `repeat(${headers.length}, ${MONTH_COLUMN_PX}px)` }">
           <div v-for="(h, i) in headers" :key="i" :class="['border-r border-gray-100 h-full', h.isToday ? 'bg-blue-50/60' : h.isWeekend ? 'bg-gray-50/80' : '']"></div>
         </div>
         <div v-show="!staff.isCollapsed" class="relative w-full h-full pt-3 pb-2" @dblclick="onGridDblClick">
           <div v-for="t in visibleTasks" :key="t.id" class="absolute z-10" :style="taskStyle(t)">
-            <el-popover trigger="hover" popper-class="rs-nopadding" :visible-arrow="false" :disabled="!readonly">
-              <div class="bg-gray-900 text-white text-xs px-2 py-1.5 rounded">
-                <slot name="tooltip" :task="{ ...t, endDate: calcEnd(t.startDate, t.duration) }">
-                  <div>名称: {{ t.name }}</div>
-                  <div>开始: {{ t.startDate }}</div>
-                  <div>结束: {{ calcEnd(t.startDate, t.duration) }}</div>
-                  <div>工期: {{ t.duration }} 天</div>
-                </slot>
-              </div>
-              <TaskCard slot="reference" :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" @editing-start="onTaskEditingStart" @editing-end="onTaskEditingEnd" />
-            </el-popover>
+            <TaskCard :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" @mouse-move="onTaskMouseMove" @mouse-leave="onTaskMouseLeave" @editing-start="onTaskEditingStart" @editing-end="onTaskEditingEnd" />
           </div>
         </div>
       </div>
@@ -119,6 +109,13 @@ export default {
   },
   methods: {
     calcEnd,
+    onTaskMouseMove(payload: { clientX: number; clientY: number; task: Task; rect: DOMRect }) {
+      if (!this.readonly) return
+      this.$emit("task-mouse-move", { ...payload, staffId: this.staff.id })
+    },
+    onTaskMouseLeave() {
+      this.$emit("task-mouse-leave")
+    },
     onSidebarMouseDown(e: MouseEvent) {
       return
     },

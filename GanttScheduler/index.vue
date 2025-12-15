@@ -3,16 +3,16 @@
     <EditTaskModal :isOpen="editModal.isOpen" :task="editModal.task" @close="editModal.isOpen = false" @save="onSaveTask" />
     <EditStaffModal :isOpen="editStaffModal.isOpen" :staff="editStaffModal.staff" :staffConfig="staffConfig" @close="editStaffModal.isOpen = false" @save="onSaveStaff" />
 
-    <div v-if="tooltip && tooltip.visible" class="fixed z-[9999] bg-gray-900 text-white text-xs px-2 py-1.5 rounded shadow-lg pointer-events-none space-y-0.5" :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }">
+    <div v-if="tooltip && tooltip.visible" ref="tooltipRef" class="fixed z-[9999] bg-gray-900 text-white text-xs px-2 py-1.5 rounded shadow-lg pointer-events-none space-y-0.5" :style="tooltipStyle">
       <slot name="tooltip" :task="tooltipTask">
-        <div>名称: {{ tooltipTask && tooltipTask.name }}</div>
-        <div>开始: {{ tooltipTask && tooltipTask.startDate }}</div>
-        <div>结束: {{ tooltipTask && tooltipTask.endDate }}</div>
-        <div>工期: {{ tooltipTask && tooltipTask.duration }} 天</div>
+        <div>名称1: {{ tooltipTask && tooltipTask.name }}</div>
+        <div>开始2: {{ tooltipTask && tooltipTask.startDate }}</div>
+        <div>结束3: {{ tooltipTask && tooltipTask.endDate }}</div>
+        <div>工期4: {{ tooltipTask && tooltipTask.duration }} 天</div>
       </slot>
     </div>
 
-    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white z-50 relative shadow-sm flex-shrink-0">
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white z-50 relative shadow-sm flex-shrink-0 flex-wrap">
       <div>
         <slot name="title">
           <h1 class="text-xl font-bold text-gray-900 flex gap-1 items-center my-0">
@@ -78,7 +78,7 @@
       <div class="relative">
         <draggable v-model="staffData" item-key="id" :disabled="readonly || isEditingTask" handle=".rs-staff-handle" :animation="150">
           <div :style="{ height: topSpacerHeight + 'px' }"></div>
-          <StaffRow v-for="s in visibleStaffs" :key="s.id" :staff="s" :headers="headers" :viewStartDate="headers.length ? new Date(headers[0].date) : new Date(viewStartDate)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" :dayWidth="effectiveDayWidth" :scrollX="scrollX" :dragState="dragState" :visibleLeftDate="visibleLeftDate" :visibleRightDate="visibleRightDate" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff" @task-edit-start="onTaskEditStart" @task-edit-end="onTaskEditEnd">
+          <StaffRow v-for="s in visibleStaffs" :key="s.id" :staff="s" :headers="headers" :viewStartDate="headers.length ? new Date(headers[0].date) : new Date(viewStartDate)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" :dayWidth="effectiveDayWidth" :scrollX="scrollX" :dragState="dragState" :visibleLeftDate="visibleLeftDate" :visibleRightDate="visibleRightDate" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @task-mouse-move="onTaskMouseMove" @task-mouse-leave="onTaskMouseLeave" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff" @task-edit-start="onTaskEditStart" @task-edit-end="onTaskEditEnd">
             <template #avatar="{ staff }"><slot name="avatar" :staff="staff"></slot></template>
             <template #workload="{ staff }"><slot name="workloadBar" :staff="staff"></slot></template>
             <template #staffDescription="{ staff }"><slot name="staffDescription" :staff="staff"></slot></template>
@@ -234,6 +234,7 @@ export default {
       draggedStaffId: null as string | null,
       menuVisible: false,
       isEditingTask: false,
+      hoverTask: null as Task | null,
     }
   },
   created() {
@@ -440,6 +441,12 @@ export default {
       return this.headers && this.headers.length > 0 ? this.headers[0].date.getTime() : this.viewStartDate
     },
     tooltipTask(): Task | null {
+      if (this.hoverTask) {
+        const t = this.hoverTask
+        const start = this.tooltip && this.tooltip.startDate ? this.tooltip.startDate : t.startDate
+        const dur = this.tooltip && this.tooltip.duration ? this.tooltip.duration : t.duration
+        return { ...t, startDate: start, duration: dur, endDate: calcEnd(start, dur) }
+      }
       const sid = this.dragState && this.dragState.staffId
       const tid = this.dragState && this.dragState.taskId
       if (!sid || !tid) return null
@@ -449,6 +456,29 @@ export default {
       const start = this.tooltip && this.tooltip.startDate ? this.tooltip.startDate : t.startDate
       const dur = this.tooltip && this.tooltip.duration ? this.tooltip.duration : t.duration
       return { ...t, startDate: start, duration: dur, endDate: calcEnd(start, dur) }
+    },
+    tooltipStyle(): Record<string, string> {
+      const tt = this.tooltip
+      const offset = 15
+      const margin = 8
+      let x = (tt?.x || 0) + offset
+      let y = (tt?.y || 0) + offset
+      const container = this.$refs.containerRef as HTMLDivElement
+      const tooltipEl = (this.$refs as any)?.tooltipRef as HTMLDivElement
+      if (tt && container) {
+        const rect = container.getBoundingClientRect()
+        const leftBound = rect.left + this.consts.SIDEBAR_WIDTH + margin
+        const rightBound = rect.left + Math.max(1, container.clientWidth) - margin
+        const width = tooltipEl ? tooltipEl.offsetWidth : 220
+        if (x + width > rightBound) x = rightBound - width
+        if (x < leftBound) x = leftBound
+        const height = tooltipEl ? tooltipEl.offsetHeight : 60
+        const topBound = rect.top + margin
+        const bottomBound = rect.top + Math.max(1, container.clientHeight) - height - margin
+        if (y > bottomBound) y = bottomBound
+        if (y < topBound) y = topBound
+      }
+      return { left: x + "px", top: y + "px" }
     },
     visibleLeftDate(): Date {
       if (this.viewMode === "year" && this.headers && this.headers.length > 0) {
@@ -1098,6 +1128,21 @@ export default {
     onHeaderSidebarContext(e: MouseEvent) {
       if (this.readonly) return
       this.onContextMenu({ clientX: (e as any).clientX, clientY: (e as any).clientY, type: "general" })
+    },
+    onTaskMouseMove(payload: { clientX: number; clientY: number; task: Task; staffId: string | number; rect?: DOMRect }) {
+      if (this.interaction) return
+      const t = payload.task
+      const endStr = calcEnd(t.startDate, t.duration)
+      this.hoverTask = t
+      const r = payload.rect
+      const baseX = r ? r.left + r.width / 2 : payload.clientX
+      const baseY = r ? r.top - 8 : payload.clientY
+      this.tooltip = { visible: true, x: baseX, y: baseY, startDate: t.startDate, endDate: endStr, duration: t.duration }
+    },
+    onTaskMouseLeave() {
+      if (this.interaction) return
+      this.tooltip = null
+      this.hoverTask = null
     },
     onWheel(e: WheelEvent) {
       if (this.isEditingTask) return
