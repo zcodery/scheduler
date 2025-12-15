@@ -5,10 +5,10 @@
 
     <div v-if="tooltip && tooltip.visible" ref="tooltipRef" class="fixed z-[9999] bg-gray-900 text-white text-xs px-2 py-1.5 rounded shadow-lg pointer-events-none space-y-0.5" :style="tooltipStyle">
       <slot name="tooltip" :task="tooltipTask">
-        <div>名称1: {{ tooltipTask && tooltipTask.name }}</div>
-        <div>开始2: {{ tooltipTask && tooltipTask.startDate }}</div>
-        <div>结束3: {{ tooltipTask && tooltipTask.endDate }}</div>
-        <div>工期4: {{ tooltipTask && tooltipTask.duration }} 天</div>
+        <div>名称: {{ tooltipTask && tooltipTask.name }}</div>
+        <div>开始: {{ tooltipTask && tooltipTask.startDate }}</div>
+        <div>结束: {{ tooltipTask && tooltipTask.endDate }}</div>
+        <div>工期: {{ tooltipTask && tooltipTask.duration }} 天</div>
       </slot>
     </div>
 

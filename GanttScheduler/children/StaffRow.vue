@@ -25,7 +25,7 @@
           <div v-for="(h, i) in headers" :key="i" :class="['border-r border-gray-100 h-full', h.isToday ? 'bg-blue-50/60' : h.isWeekend ? 'bg-gray-50/80' : '']"></div>
         </div>
         <div v-show="!staff.isCollapsed" class="relative w-full h-full pt-3 pb-2" @dblclick="onGridDblClick">
-          <div v-for="t in visibleTasks" :key="t.id" class="absolute z-10" :style="taskStyle(t)">
+          <div v-for="t in visibleTasks" :key="t.id" class="absolute z-10" :style="taskStyle(t)" @mouseenter="onTaskWrapperEnter(t, $event)" @mousemove="onTaskWrapperMove(t, $event)" @mouseleave="onTaskWrapperLeave">
             <TaskCard :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" @mouse-move="onTaskMouseMove" @mouse-leave="onTaskMouseLeave" @editing-start="onTaskEditingStart" @editing-end="onTaskEditingEnd" />
           </div>
         </div>
@@ -114,6 +114,19 @@ export default {
       this.$emit("task-mouse-move", { ...payload, staffId: this.staff.id })
     },
     onTaskMouseLeave() {
+      this.$emit("task-mouse-leave")
+    },
+    onTaskWrapperEnter(task: Task, e: MouseEvent) {
+      if (this.readonly) return
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+      this.$emit("task-mouse-move", { clientX: (e as any).clientX, clientY: (e as any).clientY, task, staffId: this.staff.id, rect })
+    },
+    onTaskWrapperMove(task: Task, e: MouseEvent) {
+      if (this.readonly) return
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+      this.$emit("task-mouse-move", { clientX: (e as any).clientX, clientY: (e as any).clientY, task, staffId: this.staff.id, rect })
+    },
+    onTaskWrapperLeave() {
       this.$emit("task-mouse-leave")
     },
     onSidebarMouseDown(e: MouseEvent) {
