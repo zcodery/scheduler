@@ -209,8 +209,10 @@ const getRelativeDate = (offsetDays: number) => {
 
 export const getMockStaffData = (count: number = 0): Staff[] => {
   count = count || Math.ceil(Math.random() * 50)
-  return Array.from({ length: count }, (_, i) => ({
-    id: `${i + 1}`,
+  let taskCount = 1
+  return Array.from({ length: count }, (_, index) => ({
+    uid: `${index + 1}`,
+    id: index + 1,
     name: getMockName(),
     role: MOCK_ROLE_DATA[Math.floor(Math.random() * MOCK_ROLE_DATA.length)],
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -221,7 +223,8 @@ export const getMockStaffData = (count: number = 0): Staff[] => {
       { length: Math.ceil(Math.random() * 10) },
       (_, i) =>
         ({
-          id: `T${(i + 1).toString().padStart(4, "0")}`,
+          uid: `T${(taskCount++).toString().padStart(4, "0")}`,
+          id: i + 1,
           name: MOCK_TASK_NAME_DATA[Math.floor(Math.random() * MOCK_TASK_NAME_DATA.length)],
           startDate: getRelativeDate(Math.random() < 0.3 ? -Math.ceil(Math.random() * 100) : Math.ceil(Math.random() * 100)),
           duration: Math.ceil(Math.random() * 30),
@@ -233,6 +236,7 @@ export const getMockStaffData = (count: number = 0): Staff[] => {
 
 export const REAL_STAFF_DATA: Staff[] = [
   {
+    uid: "1",
     id: 1,
     name: "尼古丁",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -240,14 +244,16 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "mm政企项目1202(EMMAZZ)",
         startDate: "2025-12-16",
         duration: 15,
         rowOffset: 0,
       },
       {
-        id: "T0001",
+        uid: "T0001",
+        id: 2,
         name: "Gaijin皮肤CG2(GJCAYZ)",
         startDate: "2025-09-16",
         duration: 185,
@@ -256,6 +262,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "2",
     id: 2,
     name: "云吞面",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -263,42 +270,48 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "mm政企项目1202(EMMAZZ)",
         startDate: "2025-12-16",
         duration: 15,
         rowOffset: 0,
       },
       {
-        id: "T0001",
+        uid: "T0001",
+        id: 2,
         name: "Gaijin皮肤CG2(GJCAYZ)",
         startDate: "2025-09-16",
         duration: 185,
         rowOffset: 1,
       },
       {
-        id: "T0002",
+        uid: "T0002",
+        id: 3,
         name: "售前外包项目0906940(SIOAYZ)",
         startDate: "2025-09-30",
         duration: 123,
         rowOffset: 2,
       },
       {
-        id: "T0003",
+        uid: "T0003",
+        id: 4,
         name: "平台杯雪番剧正片(SKCBPZ)",
         startDate: "2023-04-27",
         duration: 979,
         rowOffset: 3,
       },
       {
-        id: "T0004",
+        uid: "T0004",
+        id: 5,
         name: "手机端测试分店正片(WPPAPZ)",
         startDate: "2025-11-02",
         duration: 93,
         rowOffset: 4,
       },
       {
-        id: "T0005",
+        uid: "T0005",
+        id: 6,
         name: "手机端测试分店正片(WPPAPZ)",
         startDate: "2025-11-02",
         duration: 93,
@@ -307,6 +320,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "3",
     id: 3,
     name: "火龙果",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -314,7 +328,8 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "售前外包项目0906940(SIOAYZ)",
         startDate: "2025-09-30",
         duration: 123,
@@ -323,6 +338,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "4",
     id: 4,
     name: "三川",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -330,7 +346,8 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "入账测试项目1010(YMLBYZ)",
         startDate: "2025-06-11",
         duration: 203,
@@ -339,6 +356,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "5",
     id: 5,
     name: "洋鸽",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -346,7 +364,8 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "入账测试项目1010(YMLBYZ)",
         startDate: "2025-06-11",
         duration: 203,
@@ -355,6 +374,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "6",
     id: 6,
     name: "雾海",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -362,7 +382,8 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "云顶新春2026(YXLAYZ)",
         startDate: "2025-08-22",
         duration: 146,
@@ -371,6 +392,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "7",
     id: 7,
     name: "黄鱼",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -378,7 +400,8 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "云顶新春2026(YXLAYZ)",
         startDate: "2025-08-22",
         duration: 146,
@@ -387,6 +410,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "8",
     id: 8,
     name: "梨也",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -394,49 +418,56 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "mm政企项目1202(EMMAZZ)",
         startDate: "2025-12-16",
         duration: 15,
         rowOffset: 0,
       },
       {
-        id: "T0001",
+        uid: "T0001",
+        id: 2,
         name: "Gaijin皮肤CG2(GJCAYZ)",
         startDate: "2025-09-16",
         duration: 185,
         rowOffset: 1,
       },
       {
-        id: "T0002",
+        uid: "T0002",
+        id: 3,
         name: "售前外包项目0906940(SIOAYZ)",
         startDate: "2025-09-30",
         duration: 123,
         rowOffset: 2,
       },
       {
-        id: "T0003",
+        uid: "T0003",
+        id: 4,
         name: "meizi外币项目(TYTBYZ)",
         startDate: "2025-06-17",
         duration: 185,
         rowOffset: 3,
       },
       {
-        id: "T0004",
+        uid: "T0004",
+        id: 5,
         name: "思彤预留款项目1015(WCRAYZ)",
         startDate: "2025-10-21",
         duration: 119,
         rowOffset: 4,
       },
       {
-        id: "T0005",
+        uid: "T0005",
+        id: 6,
         name: "jg外币项目1211(WQBAYZ)",
         startDate: "2025-11-07",
         duration: 118,
         rowOffset: 5,
       },
       {
-        id: "T0006",
+        uid: "T0006",
+        id: 7,
         name: "jg外币项目1211(WQBAYZ)",
         startDate: "2025-11-07",
         duration: 118,
@@ -445,6 +476,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "9",
     id: 9,
     name: "天天",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -452,56 +484,64 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "mm政企项目1202(EMMAZZ)",
         startDate: "2025-12-16",
         duration: 15,
         rowOffset: 0,
       },
       {
-        id: "T0001",
+        uid: "T0001",
+        id: 2,
         name: "mm政企项目1202(EMMAZZ)",
         startDate: "2025-12-16",
         duration: 15,
         rowOffset: 1,
       },
       {
-        id: "T0002",
+        uid: "T0002",
+        id: 3,
         name: "Gaijin皮肤CG2(GJCAYZ)",
         startDate: "2025-09-16",
         duration: 185,
         rowOffset: 2,
       },
       {
-        id: "T0003",
+        uid: "T0003",
+        id: 4,
         name: "售前外包项目0906940(SIOAYZ)",
         startDate: "2025-09-30",
         duration: 123,
         rowOffset: 3,
       },
       {
-        id: "T0004",
+        uid: "T0004",
+        id: 5,
         name: "思彤预留款项目1015(WCRAYZ)",
         startDate: "2025-10-21",
         duration: 119,
         rowOffset: 4,
       },
       {
-        id: "T0005",
+        uid: "T0005",
+        id: 6,
         name: "手机端测试分店正片(WPPAPZ)",
         startDate: "2025-11-02",
         duration: 93,
         rowOffset: 5,
       },
       {
-        id: "T0006",
+        uid: "T0006",
+        id: 7,
         name: "手机端测试分店正片(WPPAPZ)",
         startDate: "2025-11-02",
         duration: 93,
         rowOffset: 6,
       },
       {
-        id: "T0007",
+        uid: "T0007",
+        id: 8,
         name: "WR告白气球CG(WRGAYZ)",
         startDate: "2025-12-02",
         duration: 61,
@@ -510,6 +550,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "10",
     id: 10,
     name: "大橡",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -517,14 +558,16 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "mm政企项目1202(EMMAZZ)",
         startDate: "2025-12-16",
         duration: 15,
         rowOffset: 0,
       },
       {
-        id: "T0001",
+        uid: "T0001",
+        id: 2,
         name: "Gaijin皮肤CG2(GJCAYZ)",
         startDate: "2025-09-16",
         duration: 185,
@@ -533,6 +576,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "11",
     id: 11,
     name: "海里",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -540,14 +584,16 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "Gaijin皮肤CG2(GJCAYZ)",
         startDate: "2025-09-16",
         duration: 185,
         rowOffset: 0,
       },
       {
-        id: "T0001",
+        uid: "T0001",
+        id: 2,
         name: "入账测试项目1010(YMLBYZ)",
         startDate: "2025-06-11",
         duration: 203,
@@ -556,6 +602,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "12",
     id: 12,
     name: "丹子",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -563,7 +610,8 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "平台杯雪番剧正片(SKCBPZ)",
         startDate: "2023-04-27",
         duration: 979,
@@ -572,6 +620,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "13",
     id: 13,
     name: "瑀辰",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -579,7 +628,8 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "平台杯雪番剧正片(SKCBPZ)",
         startDate: "2023-04-27",
         duration: 979,
@@ -588,6 +638,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "14",
     id: 14,
     name: "飞龙",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -595,7 +646,8 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "平台杯雪番剧正片(SKCBPZ)",
         startDate: "2023-04-27",
         duration: 979,
@@ -604,6 +656,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "15",
     id: 15,
     name: "乔木",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -611,7 +664,8 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "思彤预留款项目1015(WCRAYZ)",
         startDate: "2025-10-21",
         duration: 119,
@@ -620,6 +674,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "16",
     id: 16,
     name: "老王",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -627,7 +682,8 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "外币项目1113(WNNCYZ)",
         startDate: "2025-08-12",
         duration: 183,
@@ -636,6 +692,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "17",
     id: 17,
     name: "博衍",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -643,7 +700,8 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "WR告白气球CG(WRGAYZ)",
         startDate: "2025-12-02",
         duration: 61,
@@ -652,6 +710,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "18",
     id: 18,
     name: "灵犀",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -659,14 +718,16 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "云顶新春2026(YXLAYZ)",
         startDate: "2025-08-22",
         duration: 146,
         rowOffset: 0,
       },
       {
-        id: "T0001",
+        uid: "T0001",
+        id: 2,
         name: "云顶新春2026(YXLAYZ)",
         startDate: "2025-08-22",
         duration: 146,
@@ -675,6 +736,7 @@ export const REAL_STAFF_DATA: Staff[] = [
     ],
   },
   {
+    uid: "19",
     id: 19,
     name: "坚果",
     avatar: Math.random() > 0.5 ? MOCK_STAFF_AVATAR_DATA[Math.floor(Math.random() * MOCK_STAFF_AVATAR_DATA.length)] : "",
@@ -682,7 +744,8 @@ export const REAL_STAFF_DATA: Staff[] = [
     isCollapsed: false,
     tasks: [
       {
-        id: "T0000",
+        uid: "T0000",
+        id: 1,
         name: "云顶新春2026(YXLAYZ)",
         startDate: "2025-08-22",
         duration: 146,

@@ -103,7 +103,7 @@ export default {
     submit() {
       if (!this.staff) return
       const payload: Record<string, any> = { ...this.form }
-      this.$emit("save", this.staff.id, payload)
+      this.$emit("save", this.staff.uid, payload)
       this.$emit("close")
     },
   },

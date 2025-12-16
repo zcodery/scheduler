@@ -76,9 +76,9 @@
       </div>
 
       <div class="relative">
-        <draggable v-model="staffData" item-key="id" :disabled="readonly || isEditingTask" handle=".rs-staff-handle" :animation="150">
+        <draggable v-model="staffData" item-key="uid" :disabled="readonly || isEditingTask" handle=".rs-staff-handle" :animation="150">
           <div :style="{ height: topSpacerHeight + 'px' }"></div>
-          <StaffRow v-for="s in visibleStaffs" :key="s.id" :staff="s" :headers="headers" :viewStartDate="headers.length ? new Date(headers[0].date) : new Date(viewStartDate)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" :dayWidth="effectiveDayWidth" :scrollX="scrollX" :dragState="dragState" :visibleLeftDate="visibleLeftDate" :visibleRightDate="visibleRightDate" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @task-mouse-move="onTaskMouseMove" @task-mouse-leave="onTaskMouseLeave" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff" @task-edit-start="onTaskEditStart" @task-edit-end="onTaskEditEnd">
+          <StaffRow v-for="s in visibleStaffs" :key="s.uid" :staff="s" :headers="headers" :viewStartDate="headers.length ? new Date(headers[0].date) : new Date(viewStartDate)" :viewDurationMs="viewDurationMs" :viewMode="viewMode" :readonly="readonly" :dayWidth="effectiveDayWidth" :scrollX="scrollX" :dragState="dragState" :visibleLeftDate="visibleLeftDate" :visibleRightDate="visibleRightDate" @context-menu="onContextMenu" @update-task="updateTask" @open-edit-task="openEditTask(s)" @open-edit-staff="openEditStaff(s)" @resize-start="handleResizeStart" @task-mouse-down="handleTaskMouseDown" @task-mouse-move="onTaskMouseMove" @task-mouse-leave="onTaskMouseLeave" @update-staff="updateStaff" @add-task-at="addTaskAtDate" @focus-staff="focusStaff" @task-edit-start="onTaskEditStart" @task-edit-end="onTaskEditEnd">
             <template #avatar="{ staff }"><slot name="avatar" :staff="staff"></slot></template>
             <template #workload="{ staff }"><slot name="workloadBar" :staff="staff"></slot></template>
             <template #staffDescription="{ staff }"><slot name="staffDescription" :staff="staff"></slot></template>
@@ -101,7 +101,7 @@
               <span>新增人员</span>
             </div>
           </template>
-          <template v-else-if="contextMenu.type === 'staff' && contextMenu.staffId">
+          <template v-else-if="contextMenu.type === 'staff' && contextMenu.staffUid">
             <div class="rs-item" @click="ctxOpenEditStaff">
               <i class="el-icon-edit"></i>
               <span>编辑人员</span>
@@ -125,13 +125,13 @@
               <span>删除人员</span>
             </div>
           </template>
-          <template v-else-if="contextMenu.type === 'row' && contextMenu.staffId">
+          <template v-else-if="contextMenu.type === 'row' && contextMenu.staffUid">
             <div class="rs-item" @click="ctxAddTask">
               <i class="el-icon-plus"></i>
               <span>新增任务</span>
             </div>
           </template>
-          <template v-else-if="contextMenu.type === 'task' && contextMenu.staffId && contextMenu.taskId">
+          <template v-else-if="contextMenu.type === 'task' && contextMenu.staffUid && contextMenu.taskUid">
             <div class="rs-item" @click="ctxOpenEditTask">
               <i class="el-icon-edit"></i>
               <span>编辑任务</span>
@@ -201,7 +201,7 @@ export default {
       viewMode: (this as any).viewMode as ViewMode,
       scrollX: 0,
       consts: { ONE_DAY_MS, DAY_CELL_PX, MONTH_COLUMN_PX, SIDEBAR_WIDTH },
-      dragState: null as null | { taskId: string; staffId: string; type: "move" | "resize"; dateStr?: string; duration?: number; rowOffset?: number },
+      dragState: null as null | { taskUid: string; staffUid: string; type: "move" | "resize"; dateStr?: string; duration?: number; rowOffset?: number },
       lastChangedStaff: {} as Staff,
       dragRaf: null as number | null,
       lastDragEvent: null as null | { clientX: number; clientY: number },
@@ -213,14 +213,14 @@ export default {
       headersStartDate: null as Date | null,
       headersEndDate: null as Date | null,
       tooltip: null as TooltipState | null,
-      editModal: { isOpen: false, staffId: "", task: null } as EditTaskModalState,
+      editModal: { isOpen: false, staffUid: "", task: null } as EditTaskModalState,
       editStaffModal: { isOpen: false, staff: null } as EditStaffModalState,
-      contextMenu: null as null | { x: number; y: number; type?: string; staffId?: string; taskId?: string },
+      contextMenu: null as null | { x: number; y: number; type?: string; staffUid?: string; taskUid?: string },
       isPanning: false,
       panStartX: 0,
       panStartDate: 0,
       panStartScrollLeft: 0,
-      interaction: null as null | { type: "resize" | "move"; taskId: string; staffId: string; direction?: "left" | "right"; initialDuration?: number; initialX: number; initialY: number; initialStartTime: number; initialRowOffset?: number; offsetMs?: number },
+      interaction: null as null | { type: "resize" | "move"; taskUid: string; staffUid: string; direction?: "left" | "right"; initialDuration?: number; initialX: number; initialY: number; initialStartTime: number; initialRowOffset?: number; offsetMs?: number },
       autoScrollTimer: null as number | null,
       lastMouseX: 0,
       panRaf: null as number | null,
@@ -230,7 +230,7 @@ export default {
       ANCHOR_STEP_MONTHS: 2,
       adjustRangeTimer: null as number | null,
       ADJUST_DEBOUNCE_MS: 120,
-      draggedStaffId: null as string | null,
+      draggedStaffUid: null as string | null,
       menuVisible: false,
       isEditingTask: false,
       hoverTask: null as Task | null,
@@ -302,8 +302,8 @@ export default {
         document.body.style.cursor = ""
       }
       if (e.key === "Delete" || e.key === "Backspace") {
-        if (this.contextMenu && this.contextMenu.type === "task" && this.contextMenu.staffId && this.contextMenu.taskId) {
-          this.deleteTask(this.contextMenu.staffId, this.contextMenu.taskId)
+        if (this.contextMenu && this.contextMenu.type === "task" && this.contextMenu.staffUid && this.contextMenu.taskUid) {
+          this.deleteTask(this.contextMenu.staffUid, this.contextMenu.taskUid)
         }
       }
     }
@@ -446,11 +446,11 @@ export default {
         const dur = this.tooltip && this.tooltip.duration ? this.tooltip.duration : t.duration
         return { ...t, startDate: start, duration: dur, endDate: calcEnd(start, dur) }
       }
-      const sid = this.dragState && this.dragState.staffId
-      const tid = this.dragState && this.dragState.taskId
+      const sid = this.dragState && this.dragState.staffUid
+      const tid = this.dragState && this.dragState.taskUid
       if (!sid || !tid) return null
-      const s = this.staffData.find(x => x.id === sid)
-      const t = s && s.tasks.find(y => y.id === tid)
+      const s = this.staffData.find(x => x.uid === sid)
+      const t = s && s.tasks.find(y => y.uid === tid)
       if (!t) return null
       const start = this.tooltip && this.tooltip.startDate ? this.tooltip.startDate : t.startDate
       const dur = this.tooltip && this.tooltip.duration ? this.tooltip.duration : t.duration
@@ -957,31 +957,31 @@ export default {
         }
       }, 16)
     },
-    handleResizeStart(e: MouseEvent, direction: "left" | "right", task: Task, staffId: string) {
+    handleResizeStart(e: MouseEvent, direction: "left" | "right", task: Task, staffUid: string) {
       e.preventDefault()
       e.stopPropagation()
-      const s = this.staffData.find(x => x.id === staffId)
+      const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : ({} as Staff)
       const taskStartMs = this.parseDateStr(task.startDate).getTime()
       const mouseTime = this.getDateAtMouse((e as any).clientX)
-      const staffIdx = this.staffData.findIndex(s => s.id === staffId)
-      const taskIdx = staffIdx !== -1 ? this.staffData[staffIdx].tasks.findIndex(t => t.id === task.id) : -1
+      const staffIdx = this.staffData.findIndex(s => s.uid === staffUid)
+      const taskIdx = staffIdx !== -1 ? this.staffData[staffIdx].tasks.findIndex(t => t.uid === task.uid) : -1
       const msPerPixel = this.viewDurationMs / this.getTimelineWidth()
-      this.interaction = { type: "resize", taskId: task.id, staffId, direction, initialX: (e as any).clientX, initialY: (e as any).clientY, initialStartTime: taskStartMs, initialDuration: task.duration, offsetMs: taskStartMs - mouseTime, staffIdx, taskIdx, msPerPixel }
+      this.interaction = { type: "resize", taskUid: String(task.uid), staffUid: String(staffUid), direction, initialX: (e as any).clientX, initialY: (e as any).clientY, initialStartTime: taskStartMs, initialDuration: task.duration, offsetMs: taskStartMs - mouseTime, staffIdx, taskIdx, msPerPixel }
       document.body.classList.add(direction === "left" ? "resizing-left" : "resizing-right")
     },
-    handleTaskMouseDown(task: Task, staffId: string, e: MouseEvent) {
-      const s = this.staffData.find(x => x.id === staffId)
+    handleTaskMouseDown(task: Task, staffUid: string, e: MouseEvent) {
+      const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : ({} as Staff)
       const initialX = e.clientX
       const initialY = e.clientY
       const taskStartMs = this.parseDateStr(task.startDate).getTime()
       const mouseTime = this.getDateAtMouse(initialX)
       const offsetMs = taskStartMs - mouseTime
-      const staffIdx = this.staffData.findIndex(s => s.id === staffId)
-      const taskIdx = staffIdx !== -1 ? this.staffData[staffIdx].tasks.findIndex(t => t.id === task.id) : -1
+      const staffIdx = this.staffData.findIndex(s => s.uid === staffUid)
+      const taskIdx = staffIdx !== -1 ? this.staffData[staffIdx].tasks.findIndex(t => t.uid === task.uid) : -1
       const msPerPixel = this.viewDurationMs / this.getTimelineWidth()
-      this.interaction = { type: "move", taskId: task.id, staffId, initialX, initialY, initialStartTime: taskStartMs, initialRowOffset: task.rowOffset, offsetMs, staffIdx, taskIdx, msPerPixel }
+      this.interaction = { type: "move", taskUid: String(task.uid), staffUid: String(staffUid), initialX, initialY, initialStartTime: taskStartMs, initialRowOffset: task.rowOffset, offsetMs, staffIdx, taskIdx, msPerPixel }
       document.body.style.cursor = "move"
     },
     onGlobalMouseMove(e: MouseEvent) {
@@ -1029,7 +1029,7 @@ export default {
                   newStartDate = `${y}-${m}-${day}`
                 }
               }
-              this.dragState = { taskId: currentTask.id, staffId: intr.staffId, type: "resize", dateStr: newStartDate, duration: newDuration }
+              this.dragState = { taskUid: String(currentTask.uid), staffUid: String(intr.staffUid), type: "resize", dateStr: newStartDate, duration: newDuration }
               const dStart = new Date(newStartDate)
               const dEnd = new Date(dStart)
               dEnd.setDate(dEnd.getDate() + newDuration)
@@ -1048,7 +1048,7 @@ export default {
               const deltaY = ev.clientY - intr.initialY
               const rowShift = Math.round(deltaY / 36)
               const newRowOffset = Math.max(0, (intr.initialRowOffset || 0) + rowShift)
-              this.dragState = { taskId: currentTask.id, staffId: intr.staffId, type: "move", dateStr, rowOffset: newRowOffset }
+              this.dragState = { taskUid: String(currentTask.uid), staffUid: String(intr.staffUid), type: "move", dateStr, rowOffset: newRowOffset }
               const dEnd = new Date(d)
               dEnd.setDate(dEnd.getDate() + currentTask.duration)
               const endStr = `${dEnd.getFullYear()}-${String(dEnd.getMonth() + 1).padStart(2, "0")}-${String(dEnd.getDate()).padStart(2, "0")}`
@@ -1091,11 +1091,11 @@ export default {
     onGlobalMouseUp() {
       this.stopAutoScroll()
       if (this.interaction) {
-        if (this.dragState && this.dragState.taskId && this.dragState.staffId) {
-          const sIdx = this.staffData.findIndex(s => s.id === this.dragState!.staffId)
+        if (this.dragState && this.dragState.taskUid && this.dragState.staffUid) {
+          const sIdx = this.staffData.findIndex(s => s.uid === this.dragState!.staffUid)
           if (sIdx !== -1) {
             const tasks = this.staffData[sIdx].tasks.map(t => {
-              if (t.id !== this.dragState!.taskId) return t
+              if (t.uid !== this.dragState!.taskUid) return t
               const nextStart = this.dragState!.dateStr != null ? this.dragState!.dateStr : t.startDate
               const nextDur = this.dragState!.duration != null ? this.dragState!.duration : t.duration
               const nextRow = this.dragState!.rowOffset != null ? this.dragState!.rowOffset : t.rowOffset
@@ -1128,7 +1128,7 @@ export default {
       if (this.readonly) return
       this.onContextMenu({ clientX: (e as any).clientX, clientY: (e as any).clientY, type: "general" })
     },
-    onTaskMouseMove(payload: { clientX: number; clientY: number; task: Task; staffId: string | number; rect?: DOMRect }) {
+    onTaskMouseMove(payload: { clientX: number; clientY: number; task: Task; staffUid: string | number; rect?: DOMRect }) {
       if (this.interaction) return
       const t = payload.task
       const endStr = calcEnd(t.startDate, t.duration)
@@ -1182,7 +1182,7 @@ export default {
         return
       }
     },
-    onContextMenu(payload: { clientX?: number; clientY?: number; x?: number; y?: number; type?: string; staffId?: string; taskId?: string }) {
+    onContextMenu(payload: { clientX?: number; clientY?: number; x?: number; y?: number; type?: string; staffUid?: string; taskUid?: string }) {
       if (this.readonly) return
       const container = this.$refs.containerRef as HTMLDivElement
       const rect = container.getBoundingClientRect()
@@ -1199,83 +1199,84 @@ export default {
       const mStr = String(d.getMonth() + 1).padStart(2, "0")
       const dayStr = String(d.getDate()).padStart(2, "0")
       const dateStr = `${yStr}-${mStr}-${dayStr}`
-      this.contextMenu = { x: clampedX, y: clampedY, clientX, clientY, type: payload.type, staffId: payload.staffId, taskId: payload.taskId, dateAtMouse: dateStr }
+      this.contextMenu = { x: clampedX, y: clampedY, clientX, clientY, type: payload.type, staffUid: payload.staffUid, taskUid: payload.taskUid, dateAtMouse: dateStr }
       this.menuVisible = true
     },
     addStaff() {
-      const newStaff: Staff = { id: Date.now().toString(), name: "新员工", avatarColor: "bg-gray-200 text-gray-600", tasks: [], isCollapsed: false }
+      const now = Date.now()
+      const newStaff: Staff = { uid: String(now), id: now, name: "新员工", avatarColor: "bg-gray-200 text-gray-600", tasks: [], isCollapsed: false }
       this.lastChangedStaff = newStaff
       this.staffData = [...this.staffData, newStaff]
       this.contextMenu = null
     },
-    addTask(staffId: string) {
+    addTask(staffUid: string) {
       const d = new Date(this.viewStartDate + this.viewDurationMs * 0.1)
       d.setHours(0, 0, 0, 0)
       const y = d.getFullYear()
       const m = String(d.getMonth() + 1).padStart(2, "0")
       const day = String(d.getDate()).padStart(2, "0")
       const dateStr = `${y}-${m}-${day}`
-      const s = this.staffData.find(x => x.id === staffId)
+      const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : ({} as Staff)
       this.staffData = this.staffData.map(s => {
-        if (s.id === staffId) {
+        if (s.uid === staffUid) {
           const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
-          const t: Task = { id: `T${Date.now().toString().slice(-4)}`, name: "新任务", startDate: dateStr, duration: 3, rowOffset: maxRow + 1 }
+          const t: Task = { uid: `T${Date.now().toString().slice(-4)}`, id: Date.now(), name: "新任务", startDate: dateStr, duration: 3, rowOffset: maxRow + 1 }
           return { ...s, tasks: [...s.tasks, t] }
         }
         return s
       })
       this.contextMenu = null
     },
-    addTaskAtDate(staffId: string, dateStr: string) {
-      const s = this.staffData.find(x => x.id === staffId)
+    addTaskAtDate(staffUid: string, dateStr: string) {
+      const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : ({} as Staff)
       this.staffData = this.staffData.map(s => {
-        if (s.id === staffId) {
+        if (s.uid === staffUid) {
           const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
-          const t: Task = { id: `T${Date.now().toString().slice(-4)}`, name: "新任务", startDate: dateStr, duration: 3, rowOffset: maxRow + 1 }
+          const t: Task = { uid: `T${Date.now().toString().slice(-4)}`, id: Date.now(), name: "新任务", startDate: dateStr, duration: 3, rowOffset: maxRow + 1 }
           return { ...s, tasks: [...s.tasks, t] }
         }
         return s
       })
     },
-    updateTask(staffId: string, taskId: string, updates: Partial<Task>) {
-      const s = this.staffData.find(x => x.id === staffId)
+    updateTask(staffUid: string, taskUid: string, updates: Partial<Task>) {
+      const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : ({} as Staff)
       this.staffData = this.staffData.map(s => {
-        if (s.id === staffId) return { ...s, tasks: s.tasks.map(t => (t.id === taskId ? { ...t, ...updates } : t)) }
+        if (s.uid === staffUid) return { ...s, tasks: s.tasks.map(t => (t.uid === taskUid ? { ...t, ...updates } : t)) }
         return s
       })
     },
-    deleteTask(staffId: string, taskId: string) {
-      const s = this.staffData?.find(x => x.id === staffId)
-      const t = s?.tasks.find(y => y.id === taskId)
+    deleteTask(staffUid: string, taskUid: string) {
+      const s = this.staffData?.find(x => x.uid === staffUid)
+      const t = s?.tasks.find(y => y.uid === taskUid)
       ;(this as any)
-        .$confirm(`确定删除「${taskId}： ${t?.name}」任务？`, "删除任务", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
+        .$confirm(`确定删除「${taskUid}： ${t?.name}」任务？`, "删除任务", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
         .then(() => {
-          const s = this.staffData.find(x => x.id === staffId)
+          const s = this.staffData.find(x => x.uid === staffUid)
           this.lastChangedStaff = s ? s : ({} as Staff)
-          this.staffData = this.staffData.map(x => (x.id === staffId ? { ...x, tasks: x.tasks.filter(y => y.id !== taskId) } : x))
+          this.staffData = this.staffData.map(x => (x.uid === staffUid ? { ...x, tasks: x.tasks.filter(y => y.uid !== taskUid) } : x))
           this.contextMenu = null
         })
         .catch(() => {})
     },
-    duplicateTask(staffId: string, taskId: string) {
-      const s = this.staffData.find(x => x.id === staffId)
+    duplicateTask(staffUid: string, taskUid: string) {
+      const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : ({} as Staff)
       this.staffData = this.staffData.map(s => {
-        if (s.id !== staffId) return s
-        const original = s.tasks.find(t => t.id === taskId)
+        if (s.uid !== staffUid) return s
+        const original = s.tasks.find(t => t.uid === taskUid)
         if (!original) return s
         const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
-        const copy: Task = { ...original, id: `T${Date.now().toString().slice(-3)}`, name: `${original.name}(新)`, rowOffset: maxRow + 1 }
+        const copy: Task = { ...original, uid: `T${Date.now().toString().slice(-3)}`, id: Date.now(), name: `${original.name}(新)`, rowOffset: maxRow + 1 }
         return { ...s, tasks: [...s.tasks, copy] }
       })
       this.contextMenu = null
     },
-    focusTask(staffId: string, taskId: string) {
-      const s = this.staffData.find(x => x.id === staffId)
-      const t = s && s.tasks.find(y => y.id === taskId)
+    focusTask(staffUid: string, taskUid: string) {
+      const s = this.staffData.find(x => x.uid === staffUid)
+      const t = s && s.tasks.find(y => y.uid === taskUid)
       if (!t) return
       const d = this.parseDateStr(t.startDate)
       if (this.viewMode === "month" || this.viewMode === "quarter" || this.viewMode === "year") {
@@ -1291,25 +1292,25 @@ export default {
         const start = d.getTime()
         this.viewStartDate = start - this.viewDurationMs * 0.1
       }
-      this.scrollToStaff(staffId)
+      this.scrollToStaff(staffUid)
       this.contextMenu = null
     },
-    scrollToStaff(staffId: string) {
+    scrollToStaff(staffUid: string) {
       const container = this.$refs.containerRef as HTMLDivElement
-      const el = container.querySelector(`[data-staff-id="${staffId}"]`) as HTMLElement | null
+      const el = container.querySelector(`[data-staff-id="${staffUid}"]`) as HTMLElement | null
       if (el) {
         container.scrollTop = el.offsetTop - 40
       }
       this.contextMenu = null
     },
-    focusStaff(staffId: string) {
-      const s = this.staffData.find(x => x.id === staffId)
+    focusStaff(staffUid: string) {
+      const s = this.staffData.find(x => x.uid === staffUid)
       if (!s) {
-        this.scrollToStaff(staffId)
+        this.scrollToStaff(staffUid)
         return
       }
       if (s.tasks.length === 0) {
-        this.scrollToStaff(staffId)
+        this.scrollToStaff(staffUid)
         return
       }
       const targetDate = new Date(Math.min(...s.tasks.map(t => this.parseDateStr(t.startDate).getTime())))
@@ -1326,64 +1327,64 @@ export default {
         const start = targetDate.getTime()
         this.viewStartDate = start - this.viewDurationMs * 0.1
       }
-      this.scrollToStaff(staffId)
+      this.scrollToStaff(staffUid)
     },
     openEditTask(staff: Staff) {
       return (task: Task) => {
         if (this.readonly) return
-        this.editModal = { isOpen: true, staffId: staff.id, task }
+        this.editModal = { isOpen: true, staffUid: String(staff.uid), task }
       }
     },
     openEditStaff(staff: Staff) {
       if (this.readonly) return
       this.editStaffModal = { isOpen: true, staff }
     },
-    onSaveTask(taskId: string, updates: Partial<Task>) {
-      this.updateTask(this.editModal.staffId, taskId, updates)
+    onSaveTask(taskUid: string, updates: Partial<Task>) {
+      this.updateTask(this.editModal.staffUid, taskUid, updates)
     },
-    onSaveStaff(staffId: string, updates: Partial<Staff>) {
-      const s = this.staffData.find(x => x.id === staffId)
+    onSaveStaff(staffUid: string, updates: Partial<Staff>) {
+      const s = this.staffData.find(x => x.uid === staffUid)
       const next = s ? { ...s, ...updates } : ({} as Staff)
       this.lastChangedStaff = next
-      this.staffData = this.staffData.map(s => (s.id === staffId ? { ...s, ...updates } : s))
+      this.staffData = this.staffData.map(s => (s.uid === staffUid ? { ...s, ...updates } : s))
     },
     openEditModal() {
-      if (this.contextMenu && this.contextMenu.staffId && this.contextMenu.taskId) {
-        const staff = this.staffData.find(s => s.id === this.contextMenu!.staffId)
-        const task = staff && staff.tasks.find(t => t.id === this.contextMenu!.taskId)
+      if (this.contextMenu && this.contextMenu.staffUid && this.contextMenu.taskUid) {
+        const staff = this.staffData.find(s => s.uid === this.contextMenu!.staffUid)
+        const task = staff && staff.tasks.find(t => t.uid === this.contextMenu!.taskUid)
         if (staff && task) {
-          this.editModal = { isOpen: true, staffId: staff.id, task }
+          this.editModal = { isOpen: true, staffUid: String(staff.uid), task }
           this.contextMenu = null
         }
       }
     },
     openEditStaffModal() {
-      if (this.contextMenu && this.contextMenu.staffId) {
-        const staff = this.staffData.find(s => s.id === this.contextMenu!.staffId)
+      if (this.contextMenu && this.contextMenu.staffUid) {
+        const staff = this.staffData.find(s => s.uid === this.contextMenu!.staffUid)
         if (staff) {
           this.editStaffModal = { isOpen: true, staff }
           this.contextMenu = null
         }
       }
     },
-    updateStaff(staffId: string, updates: Partial<Staff>) {
+    updateStaff(staffUid: string, updates: Partial<Staff>) {
       const keys = Object.keys(updates || {})
       const onlyCollapse = keys.length === 1 && keys[0] === "isCollapsed"
       if (this.readonly && !onlyCollapse) return
-      const s = this.staffData.find(x => x.id === staffId)
+      const s = this.staffData.find(x => x.uid === staffUid)
       const next = s ? { ...s, ...updates } : ({} as Staff)
       this.lastChangedStaff = next
-      this.staffData = this.staffData.map(s => (s.id === staffId ? { ...s, ...updates } : s))
+      this.staffData = this.staffData.map(s => (s.uid === staffUid ? { ...s, ...updates } : s))
     },
-    deleteStaff(id: string) {
-      const s = this.staffData.find(x => x.id === id)
-      const msg = `确定删除人员「${s ? s.name : id}」及其 ${s ? s.tasks.length : 0} 个任务？`
+    deleteStaff(staffUid: string) {
+      const s = this.staffData.find(x => String(x.uid) === String(staffUid))
+      const msg = `确定删除人员「${s ? s.name : staffUid}」及其 ${s ? s.tasks.length : 0} 个任务？`
       ;(this as any)
         .$confirm(msg, "删除人员", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
         .then(() => {
-          const s2 = this.staffData.find(x => x.id === id)
+          const s2 = this.staffData.find(x => String(x.uid) === String(staffUid))
           this.lastChangedStaff = s2 ? s2 : ({} as Staff)
-          this.staffData = this.staffData.filter(x => x.id !== id)
+          this.staffData = this.staffData.filter(x => String(x.uid) !== String(staffUid))
           this.contextMenu = null
         })
         .catch(() => {})
@@ -1398,31 +1399,31 @@ export default {
     },
     ctxFocusStaff() {
       this.menuVisible = false
-      if (this.contextMenu && this.contextMenu.staffId) this.focusStaff(this.contextMenu.staffId)
+      if (this.contextMenu && this.contextMenu.staffUid) this.focusStaff(this.contextMenu.staffUid)
     },
     ctxToggleCollapse() {
       this.menuVisible = false
-      if (!this.contextMenu || !this.contextMenu.staffId) return
-      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
+      if (!this.contextMenu || !this.contextMenu.staffUid) return
+      const s = this.staffData.find(x => x.uid === this.contextMenu!.staffUid)
       if (!s) return
-      this.updateStaff(s.id, { isCollapsed: !s.isCollapsed })
+      this.updateStaff(String(s.uid), { isCollapsed: !s.isCollapsed })
     },
     staffCollapseLabel(): string {
-      if (!this.contextMenu || !this.contextMenu.staffId) return "折叠/展开人员"
-      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
+      if (!this.contextMenu || !this.contextMenu.staffUid) return "折叠/展开人员"
+      const s = this.staffData.find(x => x.uid === this.contextMenu!.staffUid)
       if (!s) return "折叠/展开人员"
       return s.isCollapsed ? "展开人员" : "折叠人员"
     },
     ctxDeleteStaff() {
       this.menuVisible = false
-      if (this.contextMenu && this.contextMenu.staffId) this.deleteStaff(this.contextMenu.staffId)
+      if (this.contextMenu && this.contextMenu.staffUid) this.deleteStaff(this.contextMenu.staffUid)
     },
     ctxAddTask() {
       this.menuVisible = false
-      if (this.contextMenu && this.contextMenu.staffId) {
+      if (this.contextMenu && this.contextMenu.staffUid) {
         const dateStr = (this.contextMenu as any).dateAtMouse
-        if (dateStr) this.addTaskAtDate(this.contextMenu.staffId, dateStr)
-        else this.addTask(this.contextMenu.staffId)
+        if (dateStr) this.addTaskAtDate(this.contextMenu.staffUid, dateStr)
+        else this.addTask(this.contextMenu.staffUid)
       }
     },
     ctxOpenEditTask() {
@@ -1431,57 +1432,57 @@ export default {
     },
     ctxDeleteTask() {
       this.menuVisible = false
-      if (this.contextMenu && this.contextMenu.staffId && this.contextMenu.taskId) this.deleteTask(this.contextMenu.staffId, this.contextMenu.taskId)
+      if (this.contextMenu && this.contextMenu.staffUid && this.contextMenu.taskUid) this.deleteTask(this.contextMenu.staffUid, this.contextMenu.taskUid)
     },
     ctxDuplicateTask() {
       this.menuVisible = false
-      if (this.contextMenu && this.contextMenu.staffId && this.contextMenu.taskId) this.duplicateTask(this.contextMenu.staffId, this.contextMenu.taskId)
+      if (this.contextMenu && this.contextMenu.staffUid && this.contextMenu.taskUid) this.duplicateTask(this.contextMenu.staffUid, this.contextMenu.taskUid)
     },
     ctxFocusTask() {
       this.menuVisible = false
-      if (this.contextMenu && this.contextMenu.staffId && this.contextMenu.taskId) this.focusTask(this.contextMenu.staffId, this.contextMenu.taskId)
+      if (this.contextMenu && this.contextMenu.staffUid && this.contextMenu.taskUid) this.focusTask(this.contextMenu.staffUid, this.contextMenu.taskUid)
     },
     ctxDurationPlus() {
       this.menuVisible = false
-      if (!this.contextMenu || !this.contextMenu.staffId || !this.contextMenu.taskId) return
-      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
-      const t = s && s.tasks.find(y => y.id === this.contextMenu!.taskId)
+      if (!this.contextMenu || !this.contextMenu.staffUid || !this.contextMenu.taskUid) return
+      const s = this.staffData.find(x => x.uid === this.contextMenu!.staffUid)
+      const t = s && s.tasks.find(y => y.uid === this.contextMenu!.taskUid)
       if (!t) return
       const next = Math.max(1, (t.duration || 1) + 1)
-      this.updateTask(this.contextMenu.staffId, this.contextMenu.taskId, { duration: next })
+      this.updateTask(this.contextMenu.staffUid, this.contextMenu.taskUid, { duration: next })
     },
     ctxDurationMinus() {
       this.menuVisible = false
-      if (!this.contextMenu || !this.contextMenu.staffId || !this.contextMenu.taskId) return
-      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
-      const t = s && s.tasks.find(y => y.id === this.contextMenu!.taskId)
+      if (!this.contextMenu || !this.contextMenu.staffUid || !this.contextMenu.taskUid) return
+      const s = this.staffData.find(x => x.uid === this.contextMenu!.staffUid)
+      const t = s && s.tasks.find(y => y.uid === this.contextMenu!.taskUid)
       if (!t) return
       const next = Math.max(1, (t.duration || 1) - 1)
-      this.updateTask(this.contextMenu.staffId, this.contextMenu.taskId, { duration: next })
+      this.updateTask(this.contextMenu.staffUid, this.contextMenu.taskUid, { duration: next })
     },
     ctxMoveRowUp() {
       this.menuVisible = false
-      if (!this.contextMenu || !this.contextMenu.staffId || !this.contextMenu.taskId) return
+      if (!this.contextMenu || !this.contextMenu.staffUid || !this.contextMenu.taskUid) return
       if (!this.canMoveRowUp()) return
-      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
-      const t = s && s.tasks.find(y => y.id === this.contextMenu!.taskId)
+      const s = this.staffData.find(x => x.uid === this.contextMenu!.staffUid)
+      const t = s && s.tasks.find(y => y.uid === this.contextMenu!.taskUid)
       if (!t) return
       const next = Math.max(0, (t.rowOffset || 0) - 1)
-      this.updateTask(this.contextMenu.staffId, this.contextMenu.taskId, { rowOffset: next })
+      this.updateTask(this.contextMenu.staffUid, this.contextMenu.taskUid, { rowOffset: next })
     },
     ctxMoveRowDown() {
       this.menuVisible = false
-      if (!this.contextMenu || !this.contextMenu.staffId || !this.contextMenu.taskId) return
-      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
-      const t = s && s.tasks.find(y => y.id === this.contextMenu!.taskId)
+      if (!this.contextMenu || !this.contextMenu.staffUid || !this.contextMenu.taskUid) return
+      const s = this.staffData.find(x => x.uid === this.contextMenu!.staffUid)
+      const t = s && s.tasks.find(y => y.uid === this.contextMenu!.taskUid)
       if (!t) return
       const next = (t.rowOffset || 0) + 1
-      this.updateTask(this.contextMenu.staffId, this.contextMenu.taskId, { rowOffset: next })
+      this.updateTask(this.contextMenu.staffUid, this.contextMenu.taskUid, { rowOffset: next })
     },
     canMoveRowUp(): boolean {
-      if (!this.contextMenu || !this.contextMenu.staffId || !this.contextMenu.taskId) return false
-      const s = this.staffData.find(x => x.id === this.contextMenu!.staffId)
-      const t = s && s.tasks.find(y => y.id === this.contextMenu!.taskId)
+      if (!this.contextMenu || !this.contextMenu.staffUid || !this.contextMenu.taskUid) return false
+      const s = this.staffData.find(x => x.uid === this.contextMenu!.staffUid)
+      const t = s && s.tasks.find(y => y.uid === this.contextMenu!.taskUid)
       if (!t) return false
       return (t.rowOffset || 0) > 0
     },

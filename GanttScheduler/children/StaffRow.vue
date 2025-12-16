@@ -1,9 +1,9 @@
 <template>
-  <div :data-staff-id="staff.id" class="flex border-b border-gray-100 bg-white transition-all duration-300 ease-in-out" :style="dynamicStyle">
+  <div :data-staff-id="staff.uid" class="flex border-b border-gray-100 bg-white transition-all duration-300 ease-in-out" :style="dynamicStyle">
     <div class="flex-shrink-0 p-4 border-r border-gray-200 flex flex-col justify-center select-none bg-white relative group z-20 transition-colors hover:bg-gray-50/50" :style="{ width: sidebarWidth + 'px' }" @contextmenu.prevent="onContextStaff" @mousedown.stop="onSidebarMouseDown" @click.stop>
       <div class="absolute left-1 top-1/2 -translate-y-1/2 text-gray-300 p-1 opacity-0 group-hover:opacity-100 rs-staff-handle">≡</div>
       <div class="flex items-center gap-3 pl-4">
-        <i class="text-xs text-gray-400 hover:text-gray-600 cursor-pointer" :class="[staff.isCollapsed ? 'el-icon-arrow-right' : 'el-icon-arrow-down']" @click="$emit('update-staff', staff.id, { isCollapsed: !staff.isCollapsed })"></i>
+        <i class="text-xs text-gray-400 hover:text-gray-600 cursor-pointer" :class="[staff.isCollapsed ? 'el-icon-arrow-right' : 'el-icon-arrow-down']" @click="$emit('update-staff', staff.uid, { isCollapsed: !staff.isCollapsed })"></i>
         <slot name="avatar" :staff="staff">
           <img v-if="staff.avatar" :src="staff.avatar" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
           <div v-else :class="avatarClass" :style="avatarStyle" @click.stop="cycleAvatarColor">{{ staff.name.charAt(0) }}</div>
@@ -25,7 +25,7 @@
           <div v-for="(h, i) in headers" :key="i" :class="['border-r border-gray-100 h-full', h.isToday ? 'bg-blue-50/60' : h.isWeekend ? 'bg-gray-50/80' : '']"></div>
         </div>
         <div v-show="!staff.isCollapsed" class="relative w-full h-full pt-3 pb-2" @dblclick="onGridDblClick">
-          <div v-for="t in visibleTasks" :key="t.id" class="absolute z-10" :style="taskStyle(t)" @mouseenter="onTaskWrapperEnter(t, $event)" @mousemove="onTaskWrapperMove(t, $event)" @mouseleave="onTaskWrapperLeave">
+          <div v-for="t in visibleTasks" :key="t.uid" class="absolute z-10" :style="taskStyle(t)" @mouseenter="onTaskWrapperEnter(t, $event)" @mousemove="onTaskWrapperMove(t, $event)" @mouseleave="onTaskWrapperLeave">
             <TaskCard :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" @mouse-move="onTaskMouseMove" @mouse-leave="onTaskMouseLeave" @editing-start="onTaskEditingStart" @editing-end="onTaskEditingEnd" />
           </div>
         </div>
@@ -54,7 +54,7 @@ export default {
     readonly: { type: Boolean, required: false, default: false },
     dayWidth: { type: Number, required: false, default: 50 },
     scrollX: { type: Number, required: false, default: 0 },
-    dragState: { type: Object as () => { taskId: string; staffId: string; type: "move" | "resize"; dateStr?: string; duration?: number; rowOffset?: number } | null, required: false, default: null },
+    dragState: { type: Object as () => { taskUid: string; staffUid: string; type: "move" | "resize"; dateStr?: string; duration?: number; rowOffset?: number } | null, required: false, default: null },
     visibleLeftDate: { type: Date, required: true },
     visibleRightDate: { type: Date, required: true },
   },
@@ -111,7 +111,7 @@ export default {
     calcEnd,
     onTaskMouseMove(payload: { clientX: number; clientY: number; task: Task; rect: DOMRect }) {
       if (!this.readonly) return
-      this.$emit("task-mouse-move", { ...payload, staffId: this.staff.id })
+      this.$emit("task-mouse-move", { ...payload, staffUid: this.staff.uid })
     },
     onTaskMouseLeave() {
       this.$emit("task-mouse-leave")
@@ -119,12 +119,12 @@ export default {
     onTaskWrapperEnter(task: Task, e: MouseEvent) {
       if (this.readonly) return
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-      this.$emit("task-mouse-move", { clientX: (e as any).clientX, clientY: (e as any).clientY, task, staffId: this.staff.id, rect })
+      this.$emit("task-mouse-move", { clientX: (e as any).clientX, clientY: (e as any).clientY, task, staffUid: this.staff.uid, rect })
     },
     onTaskWrapperMove(task: Task, e: MouseEvent) {
       if (this.readonly) return
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-      this.$emit("task-mouse-move", { clientX: (e as any).clientX, clientY: (e as any).clientY, task, staffId: this.staff.id, rect })
+      this.$emit("task-mouse-move", { clientX: (e as any).clientX, clientY: (e as any).clientY, task, staffUid: this.staff.uid, rect })
     },
     onTaskWrapperLeave() {
       this.$emit("task-mouse-leave")
@@ -150,7 +150,7 @@ export default {
       return px
     },
     taskStyle(task: Task) {
-      const isDraggingThis = this.dragState && this.dragState.staffId === this.staff.id && this.dragState.taskId === task.id
+      const isDraggingThis = this.dragState && this.dragState.staffUid === this.staff.uid && this.dragState.taskUid === task.uid
       const startStr = isDraggingThis && this.dragState!.dateStr ? this.dragState!.dateStr! : task.startDate
       const durationVal = isDraggingThis && this.dragState!.duration != null ? this.dragState!.duration! : task.duration
       const rowOffsetVal = isDraggingThis && this.dragState!.rowOffset != null ? this.dragState!.rowOffset! : task.rowOffset || 0
@@ -182,7 +182,7 @@ export default {
     },
     startEdit(field: "name") {
       if (this.readonly) return
-      this.$emit("focus-staff", this.staff.id)
+      this.$emit("focus-staff", this.staff.uid)
       this.editingField = field
       this.$nextTick(() => {
         const r = (this.$refs as any).nameInput
@@ -194,47 +194,47 @@ export default {
     },
     saveEdit(field: "name", e: any) {
       const v = String(e.target.value || "").trim()
-      if (v) this.$emit("update-staff", this.staff.id, { name: v })
+      if (v) this.$emit("update-staff", this.staff.uid, { name: v })
       this.editingField = null
     },
     emitFocus() {
-      this.$emit("focus-staff", this.staff.id)
+      this.$emit("focus-staff", this.staff.uid)
     },
     cycleAvatarColor() {
       if (this.staff.avatar) return
       const colors = AVATAR_COLOR_CLASSES
       const idx = colors.indexOf(this.staff.avatarColor)
       const next = colors[(idx + 1) % colors.length]
-      this.$emit("update-staff", this.staff.id, { avatarColor: next })
+      this.$emit("update-staff", this.staff.uid, { avatarColor: next })
     },
     onContextStaff(e: MouseEvent) {
       if (this.readonly) return
-      this.$emit("context-menu", { clientX: (e as any).clientX, clientY: (e as any).clientY, type: "staff", staffId: this.staff.id })
+      this.$emit("context-menu", { clientX: (e as any).clientX, clientY: (e as any).clientY, type: "staff", staffUid: this.staff.uid })
     },
     onContextRow(e: MouseEvent) {
       if (this.readonly) return
-      this.$emit("context-menu", { clientX: (e as any).clientX, clientY: (e as any).clientY, type: "row", staffId: this.staff.id })
+      this.$emit("context-menu", { clientX: (e as any).clientX, clientY: (e as any).clientY, type: "row", staffUid: this.staff.uid })
     },
     onContextTask(task: Task, e?: MouseEvent) {
       if (this.readonly) return
       const clientX = e ? (e as any).clientX : 0
       const clientY = e ? (e as any).clientY : 0
-      this.$emit("context-menu", { clientX, clientY, type: "task", staffId: this.staff.id, taskId: task.id })
+      this.$emit("context-menu", { clientX, clientY, type: "task", staffUid: this.staff.uid, taskUid: task.uid })
     },
     openEditTask(task: Task) {
       if (this.readonly) return
       this.$emit("open-edit-task", task)
     },
     onUpdateTaskName(task: Task, newName: string) {
-      this.$emit("update-task", this.staff.id, task.id, { name: newName })
+      this.$emit("update-task", this.staff.uid, task.uid, { name: newName })
     },
     onResizeStart(e: MouseEvent, dir: "left" | "right", task: Task) {
       if (this.readonly) return
-      this.$emit("resize-start", e, dir, task, this.staff.id)
+      this.$emit("resize-start", e, dir, task, this.staff.uid)
     },
     onTaskMouseDown(e: MouseEvent, task: Task) {
       if (this.readonly) return
-      this.$emit("task-mouse-down", task, this.staff.id, e)
+      this.$emit("task-mouse-down", task, this.staff.uid, e)
     },
     onGridDblClick(e: MouseEvent) {
       if (this.readonly) return
@@ -270,14 +270,14 @@ export default {
       const m = String(d.getMonth() + 1).padStart(2, "0")
       const day = String(d.getDate()).padStart(2, "0")
       const dateStr = `${y}-${m}-${day}`
-      this.$emit("add-task-at", this.staff.id, dateStr)
+      this.$emit("add-task-at", this.staff.uid, dateStr)
     },
     isConflict(t: Task): boolean {
       const startA = parseDateStr(t.startDate).getTime()
       const endA = startA + t.duration * ONE_DAY_MS
       return this.staff.tasks.some(
         x =>
-          x.id !== t.id &&
+          x.uid !== t.uid &&
           (() => {
             const startB = parseDateStr(x.startDate).getTime()
             const endB = startB + x.duration * ONE_DAY_MS

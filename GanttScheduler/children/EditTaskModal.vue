@@ -111,7 +111,7 @@ export default {
     },
     submit() {
       if (!this.task) return
-      this.$emit("save", this.task.id, { name: this.name, startDate: this.startDate, duration: Number(this.duration), bgColor: this.bgColor || undefined, textColor: this.textColor || undefined })
+      this.$emit("save", String(this.task.uid), { name: this.name, startDate: this.startDate, duration: Number(this.duration), bgColor: this.bgColor || undefined, textColor: this.textColor || undefined })
       this.$emit("close")
     },
   },

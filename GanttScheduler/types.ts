@@ -1,7 +1,8 @@
 export type ViewMode = "month" | "quarter" | "year"
 
 export interface Task {
-  id: string | Number
+  uid: string | number
+  id: number
   name: string
   startDate: string // YYYY-MM-DD
   duration: number // days
@@ -11,7 +12,8 @@ export interface Task {
 }
 
 export interface Staff {
-  id: string | Number
+  uid: string | number
+  id: number
   name: string
   avatar?: string
   avatarColor: string
@@ -29,8 +31,8 @@ export interface DayInfo {
 
 export interface InteractionState {
   type: "resize" | "move"
-  taskId: string
-  staffId: string
+  taskUid: string
+  staffUid: string
   // For resize
   direction?: "left" | "right"
   initialDuration?: number
@@ -55,7 +57,7 @@ export interface TooltipState {
 
 export interface EditTaskModalState {
   isOpen: boolean
-  staffId: string
+  staffUid: string
   task: Task | null
 }
 
