@@ -111,7 +111,7 @@
               <span>定位到人员</span>
             </div>
             <div class="rs-item" @click="ctxToggleCollapse">
-              <i class="el-icon-menu"></i>
+              <i :class="[staffCollapseLabel()?.includes('展开') ? 'el-icon-s-data' : 'el-icon-s-grid']"></i>
               <span>{{ staffCollapseLabel() }}</span>
             </div>
             <div class="rs-sep"></div>
