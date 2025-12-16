@@ -82,7 +82,6 @@
             <template #avatar="{ staff }"><slot name="avatar" :staff="staff"></slot></template>
             <template #workload="{ staff }"><slot name="workloadBar" :staff="staff"></slot></template>
             <template #staffDescription="{ staff }"><slot name="staffDescription" :staff="staff"></slot></template>
-            <template #tooltip="{ task }"><slot name="tooltip" :task="task"></slot></template>
           </StaffRow>
           <div :style="{ height: bottomSpacerHeight + 'px' }"></div>
         </draggable>
