@@ -77,6 +77,7 @@ export default {
       } catch {}
       const result = initialData?.length ? initialData : isReplacementRole === "real" ? REAL_STAFF_DATA : getMockStaffData(isReplacementRole === "large" ? 1000 : Math.ceil(Math.random() * 200))
       this.realSize = result.length
+      this.updateData = {}
 
       let index = 0
       this.payload = []
