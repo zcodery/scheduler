@@ -78,7 +78,7 @@ $bg-colors: (
   "red-100": $color-red-100,
   "pink-100": $color-pink-100,
   "rose-100": $color-rose-100,
-  "indigo-100": $color-indigo-100,
+  "indigo-100": $color-indigo-100
 );
 @each $name, $val in $bg-colors {
   .bg-#{$name} {
@@ -104,7 +104,7 @@ $text-colors: (
   "red-600": $color-red-600,
   "pink-600": $color-pink-600,
   "rose-600": $color-rose-600,
-  "indigo-600": $color-indigo-600,
+  "indigo-600": $color-indigo-600
 );
 @each $name, $val in $text-colors {
   .text-#{$name} {
@@ -114,7 +114,7 @@ $text-colors: (
 
 $border-colors: (
   "gray-100": $color-gray-100,
-  "gray-200": $color-gray-200,
+  "gray-200": $color-gray-200
 );
 @each $name, $val in $border-colors {
   .border-#{$name} {
@@ -124,7 +124,7 @@ $border-colors: (
 
 $shadow-map: (
   "sm": $shadow-sm,
-  "lg": $shadow-lg,
+  "lg": $shadow-lg
 );
 @each $k, $v in $shadow-map {
   .shadow-#{$k} {
@@ -136,7 +136,7 @@ $gap-map: (
   "1": 0.25rem,
   "2": 0.5rem,
   "3": 0.75rem,
-  "4": 1rem,
+  "4": 1rem
 );
 @each $k, $v in $gap-map {
   .gap-#{$k} {
@@ -146,7 +146,7 @@ $gap-map: (
 
 $overflow-map: (
   "hidden": hidden,
-  "auto": auto,
+  "auto": auto
 );
 @each $k, $v in $overflow-map {
   .overflow-#{$k} {
@@ -162,7 +162,7 @@ $overflow-map: (
 
 $pointer-events: (
   "none": none,
-  "auto": auto,
+  "auto": auto
 );
 @each $k, $v in $pointer-events {
   .pointer-events-#{$k} {
@@ -173,7 +173,7 @@ $pointer-events: (
 $cursor-map: (
   "pointer": pointer,
   "w-resize": w-resize,
-  "e-resize": e-resize,
+  "e-resize": e-resize
 );
 @each $name, $val in $cursor-map {
   .cursor-#{$name} {
@@ -183,7 +183,7 @@ $cursor-map: (
 
 $radius-map: (
   "rounded": 0.25rem,
-  "rounded-full": 9999px,
+  "rounded-full": 9999px
 );
 @each $name, $val in $radius-map {
   .#{$name} {
@@ -217,56 +217,56 @@ $space: (
   "6": 1.5rem,
   "7": 1.75rem,
   "10": 2.5rem,
-  "full": 100%,
+  "full": 100%
 );
 @each $k, $v in $space {
-  .p-#{$k} {
-    padding: #{$v};
-  }
-  .px-#{$k} {
-    padding-left: #{$v};
-    padding-right: #{$v};
-  }
-  .py-#{$k} {
-    padding-top: #{$v};
-    padding-bottom: #{$v};
-  }
-  .pl-#{$k} {
-    padding-left: #{$v};
-  }
-  .pr-#{$k} {
-    padding-right: #{$v};
-  }
-  .pt-#{$k} {
-    padding-top: #{$v};
-  }
-  .pb-#{$k} {
-    padding-bottom: #{$v};
-  }
+  //   .p-#{$k} {
+  //     padding: #{$v};
+  //   }
+  //   .px-#{$k} {
+  //     padding-left: #{$v};
+  //     padding-right: #{$v};
+  //   }
+  //   .py-#{$k} {
+  //     padding-top: #{$v};
+  //     padding-bottom: #{$v};
+  //   }
+  //   .pl-#{$k} {
+  //     padding-left: #{$v};
+  //   }
+  //   .pr-#{$k} {
+  //     padding-right: #{$v};
+  //   }
+  //   .pt-#{$k} {
+  //     padding-top: #{$v};
+  //   }
+  //   .pb-#{$k} {
+  //     padding-bottom: #{$v};
+  //   }
 
-  .m-#{$k} {
-    margin: #{$v};
-  }
-  .mx-#{$k} {
-    margin-left: #{$v};
-    margin-right: #{$v};
-  }
-  .my-#{$k} {
-    margin-top: #{$v};
-    margin-bottom: #{$v};
-  }
-  .ml-#{$k} {
-    margin-left: #{$v};
-  }
-  .mr-#{$k} {
-    margin-right: #{$v};
-  }
-  .mt-#{$k} {
-    margin-top: #{$v};
-  }
-  .mb-#{$k} {
-    margin-bottom: #{$v};
-  }
+  //   .m-#{$k} {
+  //     margin: #{$v};
+  //   }
+  //   .mx-#{$k} {
+  //     margin-left: #{$v};
+  //     margin-right: #{$v};
+  //   }
+  //   .my-#{$k} {
+  //     margin-top: #{$v};
+  //     margin-bottom: #{$v};
+  //   }
+  //   .ml-#{$k} {
+  //     margin-left: #{$v};
+  //   }
+  //   .mr-#{$k} {
+  //     margin-right: #{$v};
+  //   }
+  //   .mt-#{$k} {
+  //     margin-top: #{$v};
+  //   }
+  //   .mb-#{$k} {
+  //     margin-bottom: #{$v};
+  //   }
 
   .w-#{$k} {
     width: #{$v};
@@ -292,16 +292,16 @@ $space: (
 $font-sizes: (
   "xl": (
     size: 20px,
-    lh: calc(1.75 / 1.25),
+    lh: calc(1.75 / 1.25)
   ),
   "sm": (
     size: 14px,
-    lh: calc(1.25 / 0.875),
+    lh: calc(1.25 / 0.875)
   ),
   "xs": (
     size: 12px,
-    lh: calc(1 / 0.75),
-  ),
+    lh: calc(1 / 0.75)
+  )
 );
 @each $k, $conf in $font-sizes {
   .text-#{$k} {
@@ -313,7 +313,7 @@ $font-sizes: (
 $font-weights: (
   bold: 700,
   medium: 500,
-  semibold: 600,
+  semibold: 600
 );
 @each $name, $val in $font-weights {
   .font-#{$name} {

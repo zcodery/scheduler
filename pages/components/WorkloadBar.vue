@@ -8,14 +8,14 @@
   </div>
 </template>
 
-<script lang="ts">
+<script>
 export default {
   props: { percentage: { type: Number, required: true }, render: { type: Function, required: false } },
   computed: {
-    visualPercentage(): number {
+    visualPercentage() {
       return Math.min(this.percentage, 100)
     },
-    isOverload(): boolean {
+    isOverload() {
       return this.percentage > 100
     },
   },

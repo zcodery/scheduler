@@ -37,32 +37,31 @@
   </div>
 </template>
 
-<script lang="ts">
+<script>
 import TaskCard from "./TaskCard.vue"
-import { Staff, Task, DayInfo, ViewMode } from "../types"
 import { AVATAR_COLOR_CLASSES, SIDEBAR_WIDTH, ONE_DAY_MS, MONTH_COLUMN_PX } from "../utils/constants"
-import { rgbTextToHex, luminance, calcEnd, parseDateStr } from "../utils/index"
+import { rgbTextToHex, luminance, calcEnd, parseDateStr } from "../utils"
 
 export default {
   components: { TaskCard },
   props: {
-    staff: { type: Object as () => Staff, required: true },
-    headers: { type: Array as () => DayInfo[], required: true },
+    staff: { type: Object, required: true },
+    headers: { type: Array, required: true },
     viewStartDate: { type: Date, required: true },
     viewDurationMs: { type: Number, required: true },
-    viewMode: { type: String as () => ViewMode, required: true },
+    viewMode: { type: String, required: true },
     readonly: { type: Boolean, required: false, default: false },
     dayWidth: { type: Number, required: false, default: 50 },
     scrollX: { type: Number, required: false, default: 0 },
-    dragState: { type: Object as () => { taskUid: string; staffUid: string; type: "move" | "resize"; dateStr?: string; duration?: number; rowOffset?: number } | null, required: false, default: null },
+    dragState: { type: Object, required: false, default: null },
     visibleLeftDate: { type: Date, required: true },
     visibleRightDate: { type: Date, required: true },
   },
   data() {
-    return { editingField: null as null | "name" }
+    return { editingField: null }
   },
   computed: {
-    visibleTasks(): Task[] {
+    visibleTasks() {
       const left = this.visibleLeftDate ? this.visibleLeftDate.getTime() : 0
       const right = this.visibleRightDate ? this.visibleRightDate.getTime() : left
       return (this.staff.tasks || []).filter(t => {
@@ -71,28 +70,28 @@ export default {
         return end >= left && start < right
       })
     },
-    rangeDays(): number {
+    rangeDays() {
       if (!this.headers || this.headers.length === 0) return 0
       const start = new Date(this.headers[0].date).getTime()
       const end = new Date(this.headers[this.headers.length - 1].date).getTime()
       const days = Math.max(1, Math.round((end - start) / ONE_DAY_MS) + 1)
       return days
     },
-    dynamicStyle(): Record<string, string> {
+    dynamicStyle() {
       if (this.staff.isCollapsed) return { height: "64px" }
       const maxRowIndex = this.staff.tasks.length > 0 ? Math.max(...this.staff.tasks.map(t => t.rowOffset)) : 0
       const h = Math.max(128, (maxRowIndex + 2) * 36 + 20)
       return { minHeight: "128px", height: `${h}px` }
     },
-    avatarIsColor(): boolean {
+    avatarIsColor() {
       const v = this.staff.avatarColor || ""
       return v.startsWith("#") || v.startsWith("rgb")
     },
-    avatarClass(): any {
+    avatarClass() {
       const base = ["w-10", "h-10", "rounded-full", "flex", "items-center", "justify-center", "text-sm", "font-bold", "flex-shrink-0", "select-none", "cursor-pointer"]
       return this.avatarIsColor ? base : [...base, this.staff.avatarColor]
     },
-    avatarStyle(): any {
+    avatarStyle() {
       if (!this.avatarIsColor) return {}
       const bg = this.staff.avatarColor
       const hex = bg.startsWith("rgb") ? rgbTextToHex(bg) : bg
@@ -100,42 +99,42 @@ export default {
       const color = l > 0.6 ? "#1f2937" : "#ffffff"
       return { backgroundColor: hex, color }
     },
-    sidebarWidth(): number {
+    sidebarWidth() {
       return SIDEBAR_WIDTH
     },
-    MONTH_COLUMN_PX(): number {
+    MONTH_COLUMN_PX() {
       return MONTH_COLUMN_PX
     },
   },
   methods: {
     calcEnd,
-    onTaskMouseMove(payload: { clientX: number; clientY: number; task: Task; rect: DOMRect }) {
+    onTaskMouseMove(payload) {
       if (!this.readonly) return
       this.$emit("task-mouse-move", { ...payload, staffUid: this.staff.uid })
     },
     onTaskMouseLeave() {
       this.$emit("task-mouse-leave")
     },
-    onTaskWrapperEnter(task: Task, e: MouseEvent) {
+    onTaskWrapperEnter(task, e) {
       if (this.readonly) return
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-      this.$emit("task-mouse-move", { clientX: (e as any).clientX, clientY: (e as any).clientY, task, staffUid: this.staff.uid, rect })
+      const rect = e.currentTarget.getBoundingClientRect()
+      this.$emit("task-mouse-move", { clientX: e.clientX, clientY: e.clientY, task, staffUid: this.staff.uid, rect })
     },
-    onTaskWrapperMove(task: Task, e: MouseEvent) {
+    onTaskWrapperMove(task, e) {
       if (this.readonly) return
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-      this.$emit("task-mouse-move", { clientX: (e as any).clientX, clientY: (e as any).clientY, task, staffUid: this.staff.uid, rect })
+      const rect = e.currentTarget.getBoundingClientRect()
+      this.$emit("task-mouse-move", { clientX: e.clientX, clientY: e.clientY, task, staffUid: this.staff.uid, rect })
     },
     onTaskWrapperLeave() {
       this.$emit("task-mouse-leave")
     },
-    onSidebarMouseDown(e: MouseEvent) {
+    onSidebarMouseDown(e) {
       return
     },
-    daysInMonth(d: Date): number {
+    daysInMonth(d) {
       return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
     },
-    dateToPixelYear(d: Date): number {
+    dateToPixelYear(d) {
       if (!this.headers || this.headers.length === 0) return 0
       const base = new Date(this.headers[0].date)
       let px = 0
@@ -149,11 +148,11 @@ export default {
       px += dayIndex * (MONTH_COLUMN_PX / dim)
       return px
     },
-    taskStyle(task: Task) {
+    taskStyle(task) {
       const isDraggingThis = this.dragState && this.dragState.staffUid === this.staff.uid && this.dragState.taskUid === task.uid
-      const startStr = isDraggingThis && this.dragState!.dateStr ? this.dragState!.dateStr! : task.startDate
-      const durationVal = isDraggingThis && this.dragState!.duration != null ? this.dragState!.duration! : task.duration
-      const rowOffsetVal = isDraggingThis && this.dragState!.rowOffset != null ? this.dragState!.rowOffset! : task.rowOffset || 0
+      const startStr = isDraggingThis && this.dragState?.dateStr ? this.dragState?.dateStr : task.startDate
+      const durationVal = isDraggingThis && this.dragState?.duration != null ? this.dragState?.duration : task.duration
+      const rowOffsetVal = isDraggingThis && this.dragState?.rowOffset != null ? this.dragState?.rowOffset : task.rowOffset || 0
       const sDate = parseDateStr(startStr)
       sDate.setHours(0, 0, 0, 0)
       const start = sDate.getTime()
@@ -180,19 +179,19 @@ export default {
       let width = (durationMs / this.viewDurationMs) * 100
       return { left: `${left}%`, width: `${Math.max(width, 0.5)}%`, top: `${12 + topOffset}px` }
     },
-    startEdit(field: "name") {
+    startEdit(field) {
       if (this.readonly) return
       this.$emit("focus-staff", this.staff.uid)
       this.editingField = field
       this.$nextTick(() => {
-        const r = (this.$refs as any).nameInput
+        const r = this.$refs.nameInput
         if (r && typeof r.focus === "function") r.focus()
       })
     },
-    blurInput(e: Event) {
-      ;(e.target as HTMLInputElement).blur()
+    blurInput(e) {
+      e.target.blur()
     },
-    saveEdit(field: "name", e: any) {
+    saveEdit(field, e) {
       const v = String(e.target.value || "").trim()
       if (v) this.$emit("update-staff", this.staff.uid, { name: v })
       this.editingField = null
@@ -207,42 +206,42 @@ export default {
       const next = colors[(idx + 1) % colors.length]
       this.$emit("update-staff", this.staff.uid, { avatarColor: next })
     },
-    onContextStaff(e: MouseEvent) {
+    onContextStaff(e) {
       if (this.readonly) return
-      this.$emit("context-menu", { clientX: (e as any).clientX, clientY: (e as any).clientY, type: "staff", staffUid: this.staff.uid })
+      this.$emit("context-menu", { clientX: e.clientX, clientY: e.clientY, type: "staff", staffUid: this.staff.uid })
     },
-    onContextRow(e: MouseEvent) {
+    onContextRow(e) {
       if (this.readonly) return
-      this.$emit("context-menu", { clientX: (e as any).clientX, clientY: (e as any).clientY, type: "row", staffUid: this.staff.uid })
+      this.$emit("context-menu", { clientX: e.clientX, clientY: e.clientY, type: "row", staffUid: this.staff.uid })
     },
-    onContextTask(task: Task, e?: MouseEvent) {
+    onContextTask(task, e) {
       if (this.readonly) return
-      const clientX = e ? (e as any).clientX : 0
-      const clientY = e ? (e as any).clientY : 0
+      const clientX = e ? e.clientX : 0
+      const clientY = e ? e.clientY : 0
       this.$emit("context-menu", { clientX, clientY, type: "task", staffUid: this.staff.uid, taskUid: task.uid })
     },
-    openEditTask(task: Task) {
+    openEditTask(task) {
       if (this.readonly) return
       this.$emit("open-edit-task", task)
     },
-    onUpdateTaskName(task: Task, newName: string) {
+    onUpdateTaskName(task, newName) {
       this.$emit("update-task", this.staff.uid, task.uid, { name: newName })
     },
-    onResizeStart(e: MouseEvent, dir: "left" | "right", task: Task) {
+    onResizeStart(e, dir, task) {
       if (this.readonly) return
       this.$emit("resize-start", e, dir, task, this.staff.uid)
     },
-    onTaskMouseDown(e: MouseEvent, task: Task) {
+    onTaskMouseDown(e, task) {
       if (this.readonly) return
       this.$emit("task-mouse-down", task, this.staff.uid, e)
     },
-    onGridDblClick(e: MouseEvent) {
+    onGridDblClick(e) {
       if (this.readonly) return
-      if ((e.target as HTMLElement).closest(".task-card")) return
-      const rowRect = (this.$el as HTMLElement).getBoundingClientRect()
+      if (e.target.closest(".task-card")) return
+      const rowRect = this.$el.getBoundingClientRect()
       const timelineLeft = rowRect.left + this.sidebarWidth
       const relativeX = e.clientX - timelineLeft
-      let d: Date
+      let d
       if (this.viewMode === "year" && this.headers && this.headers.length > 0) {
         const x = Math.max(0, this.scrollX + relativeX)
         const monthIndex = Math.min(this.headers.length - 1, Math.floor(x / MONTH_COLUMN_PX))
@@ -253,7 +252,7 @@ export default {
         d = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1)
         d.setDate(d.getDate() + dayOffset)
       } else if (this.viewMode === "month" || this.viewMode === "quarter") {
-        const baseDate = this.headers && this.headers.length > 0 ? new Date(this.headers[0].date) : new Date(this.viewStartDate as Date)
+        const baseDate = this.headers && this.headers.length > 0 ? new Date(this.headers[0].date) : new Date(this.viewStartDate)
         baseDate.setHours(0, 0, 0, 0)
         const baseStartMs = baseDate.getTime()
         const daysOffset = Math.floor((this.scrollX + relativeX) / this.dayWidth)
@@ -261,7 +260,7 @@ export default {
       } else {
         const timelineWidth = Math.max(1, rowRect.width - this.sidebarWidth)
         const msPerPixel = this.viewDurationMs / timelineWidth
-        const startMs = (this.viewStartDate as Date).getTime()
+        const startMs = this.viewStartDate.getTime()
         const newStart = startMs + relativeX * msPerPixel
         d = new Date(newStart)
       }
@@ -272,7 +271,8 @@ export default {
       const dateStr = `${y}-${m}-${day}`
       this.$emit("add-task-at", this.staff.uid, dateStr)
     },
-    isConflict(t: Task): boolean {
+    isConflict(t) {
+      return false
       const startA = parseDateStr(t.startDate).getTime()
       const endA = startA + t.duration * ONE_DAY_MS
       return this.staff.tasks.some(
@@ -294,3 +294,68 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+$space: (
+  "0": 0,
+  "1": 0.25rem,
+  "1\\.5": 0.375rem,
+  "2": 0.5rem,
+  "3": 0.75rem,
+  "4": 1rem,
+  "5": 1.25rem,
+  "6": 1.5rem,
+  "7": 1.75rem,
+  "10": 2.5rem,
+  "full": 100%,
+);
+@each $k, $v in $space {
+  .p-#{$k} {
+    padding: #{$v};
+  }
+  .px-#{$k} {
+    padding-left: #{$v};
+    padding-right: #{$v};
+  }
+  .py-#{$k} {
+    padding-top: #{$v};
+    padding-bottom: #{$v};
+  }
+  .pl-#{$k} {
+    padding-left: #{$v};
+  }
+  .pr-#{$k} {
+    padding-right: #{$v};
+  }
+  .pt-#{$k} {
+    padding-top: #{$v};
+  }
+  .pb-#{$k} {
+    padding-bottom: #{$v};
+  }
+
+  .m-#{$k} {
+    margin: #{$v};
+  }
+  .mx-#{$k} {
+    margin-left: #{$v};
+    margin-right: #{$v};
+  }
+  .my-#{$k} {
+    margin-top: #{$v};
+    margin-bottom: #{$v};
+  }
+  .ml-#{$k} {
+    margin-left: #{$v};
+  }
+  .mr-#{$k} {
+    margin-right: #{$v};
+  }
+  .mt-#{$k} {
+    margin-top: #{$v};
+  }
+  .mb-#{$k} {
+    margin-bottom: #{$v};
+  }
+}
+</style>

@@ -16,28 +16,27 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Task, ViewMode } from "../types"
+<script>
 import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT } from "../utils/constants"
 
 export default {
   props: {
-    task: { type: Object as () => Task, required: true },
-    viewMode: { type: String as () => ViewMode, required: true },
+    task: { type: Object, required: true },
+    viewMode: { type: String, required: true },
     readonly: { type: Boolean, required: false, default: false },
     conflict: { type: Boolean, required: false, default: false },
   },
   data() {
-    return { editing: false, editValue: (this as any).task.name }
+    return { editing: false, editValue: this.task.name }
   },
   computed: {
-    bg(): string {
+    bg() {
       return this.task.bgColor || DEFAULT_TASK_BG
     },
-    text(): string {
+    text() {
       return this.task.textColor || DEFAULT_TASK_TEXT
     },
-    showOutside(): boolean {
+    showOutside() {
       if (this.viewMode === "month") return this.task.duration < 2.5
       if (this.viewMode === "quarter") return this.task.duration < 7
       if (this.viewMode === "year") return this.task.duration < 15
@@ -50,13 +49,13 @@ export default {
       this.editing = true
       this.editValue = this.task.name
       this.$nextTick(() => {
-        const i = this.$refs.inputRef as HTMLInputElement
+        const i = this.$refs.inputRef
         i && i.focus()
       })
     },
     commit() {
       if (this.readonly) return
-      const i = this.$refs.inputRef as HTMLInputElement
+      const i = this.$refs.inputRef
       const raw = i ? i.value : this.editValue
       const v = String(raw || "").trim()
       this.editing = false
@@ -66,17 +65,82 @@ export default {
       this.editValue = this.task.name
       this.editing = false
     },
-    onMouseDown(e: MouseEvent) {
-      if (this.readonly || this.editing || (e as any).button !== 0) return
+    onMouseDown(e) {
+      if (this.readonly || this.editing || e.button !== 0) return
       this.$emit("mouse-down", e, this.task)
     },
-    emitResize(direction: "left" | "right", e: MouseEvent) {
+    emitResize(direction, e) {
       this.$emit("resize-start", e, direction, this.task)
     },
-    emitHover(e: MouseEvent) {
-      const rect = (this.$el as HTMLElement).getBoundingClientRect()
-      this.$emit("mouse-move", { task: this.task, clientX: (e as any).clientX, clientY: (e as any).clientY, rect })
+    emitHover(e) {
+      const rect = this.$el.getBoundingClientRect()
+      this.$emit("mouse-move", { task: this.task, clientX: e.clientX, clientY: e.clientY, rect })
     },
   },
 }
 </script>
+
+<style lang="scss" scoped>
+$space: (
+  "0": 0,
+  "1": 0.25rem,
+  "1\\.5": 0.375rem,
+  "2": 0.5rem,
+  "3": 0.75rem,
+  "4": 1rem,
+  "5": 1.25rem,
+  "6": 1.5rem,
+  "7": 1.75rem,
+  "10": 2.5rem,
+  "full": 100%,
+);
+@each $k, $v in $space {
+  .p-#{$k} {
+    padding: #{$v};
+  }
+  .px-#{$k} {
+    padding-left: #{$v};
+    padding-right: #{$v};
+  }
+  .py-#{$k} {
+    padding-top: #{$v};
+    padding-bottom: #{$v};
+  }
+  .pl-#{$k} {
+    padding-left: #{$v};
+  }
+  .pr-#{$k} {
+    padding-right: #{$v};
+  }
+  .pt-#{$k} {
+    padding-top: #{$v};
+  }
+  .pb-#{$k} {
+    padding-bottom: #{$v};
+  }
+
+  .m-#{$k} {
+    margin: #{$v};
+  }
+  .mx-#{$k} {
+    margin-left: #{$v};
+    margin-right: #{$v};
+  }
+  .my-#{$k} {
+    margin-top: #{$v};
+    margin-bottom: #{$v};
+  }
+  .ml-#{$k} {
+    margin-left: #{$v};
+  }
+  .mr-#{$k} {
+    margin-right: #{$v};
+  }
+  .mt-#{$k} {
+    margin-top: #{$v};
+  }
+  .mb-#{$k} {
+    margin-bottom: #{$v};
+  }
+}
+</style>

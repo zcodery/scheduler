@@ -3,11 +3,11 @@
  * 入参示例："rgb(255, 0, 0)"、"rgba(255, 0, 0, 0.5)"
  * 返回值示例："#ff0000"
  */
-export function rgbTextToHex(rgb: string | undefined): string {
+export function rgbTextToHex(rgb) {
   if (!rgb) return "#ffffff"
   const m = rgb.match(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+)\s*)?\)/i)
   if (!m) return rgb
-  const to2 = (n: number) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0")
+  const to2 = n => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0")
   return `#${to2(Number(m[1]))}${to2(Number(m[2]))}${to2(Number(m[3]))}`
 }
 
@@ -15,7 +15,7 @@ export function rgbTextToHex(rgb: string | undefined): string {
  * 将十六进制颜色转换为 RGB 数值
  * 支持 3 位与 6 位写法，例如："#fff"、"#ffffff"
  */
-export function hexToRgb(hex: string): { r: number; g: number; b: number } {
+export function hexToRgb(hex) {
   let h = hex.replace("#", "")
   if (h.length === 3)
     h = h
@@ -32,7 +32,7 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
  * 计算颜色相对亮度值，用于决定前景文字颜色（深/浅）
  * 返回范围约为 0~1，越大越亮
  */
-export function luminance(hex?: string): number {
+export function luminance(hex) {
   if (!hex) return 0.5
   const { r, g, b } = hexToRgb(hex)
   const a = [r, g, b].map(v => {
@@ -46,7 +46,7 @@ export function luminance(hex?: string): number {
  * 解析 YYYY-MM-DD 字符串为本地时区的 Date
  * 避免使用 Date 构造函数的跨时区偏移导致日期跨月
  */
-export function parseDateStr(s: string): Date {
+export function parseDateStr(s) {
   const parts = String(s).split("-")
   const y = Number(parts[0] || 0)
   const m = Number(parts[1] || 1)
@@ -57,7 +57,7 @@ export function parseDateStr(s: string): Date {
 /**
  * 将日期格式化为 YYYY-MM-DD 字符串
  */
-export function formatDateYYYYMMDD(d: Date): string {
+export function formatDateYYYYMMDD(d) {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, "0")
   const day = String(d.getDate()).padStart(2, "0")
@@ -68,7 +68,7 @@ export function formatDateYYYYMMDD(d: Date): string {
  * 根据开始日期与工期（天）计算结束日期（闭区间右端）
  * 入参示例：start="2025-01-01"，duration=3 => 返回 "2025-01-04"
  */
-export function calcEnd(start: string, duration: number): string {
+export function calcEnd(start, duration) {
   if (!start) return ""
   const d = new Date(start)
   d.setHours(0, 0, 0, 0)
@@ -80,7 +80,7 @@ export function calcEnd(start: string, duration: number): string {
  * 计算两个日期之间的天数（按天对齐，最少 1 天）
  * 入参示例：start="2025-01-01"，end="2025-01-04" => 返回 3
  */
-export function calcDuration(start: string, end: string): number {
+export function calcDuration(start, end) {
   if (!start || !end) return 0
   const d1 = new Date(start)
   const d2 = new Date(end)

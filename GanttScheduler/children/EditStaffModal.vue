@@ -33,28 +33,27 @@
   </el-dialog>
 </template>
 
-<script lang="ts">
+<script>
 import { PRESET_TASK_COLORS } from "../utils/constants"
-import { rgbTextToHex } from "../utils/index"
-import { Staff } from "../types"
+import { rgbTextToHex } from "../utils"
 
 export default {
   props: {
     isOpen: { type: Boolean, required: true },
-    staff: { type: Object as () => Staff | null, required: false },
+    staff: { type: Object, required: false },
     staffConfig: {
-      type: Array as () => Array<{ prop: string; label: string; type: "field" | "picker" | "checkbox"; params?: any; component?: string }>,
+      type: Array,
       required: false,
       default: () => [],
     },
   },
   data() {
-    return { form: { name: "", avatarColor: "" } as Partial<Staff>, PRESET_TASK_COLORS }
+    return { form: { name: "", avatarColor: "" }, PRESET_TASK_COLORS }
   },
   computed: {
-    presetHexes(): string[] {
-      const arr: string[] = (this.PRESET_TASK_COLORS || []).map(p => {
-        if ((p as any).hex) return (p as any).hex as string
+    presetHexes() {
+      const arr = (this.PRESET_TASK_COLORS || []).map(p => {
+        if (p.hex) return p.hex
         else if (p.color) return rgbTextToHex(p.color)
         return ""
       })
@@ -62,13 +61,13 @@ export default {
     },
   },
   watch: {
-    isOpen(val: boolean) {
+    isOpen(val) {
       if (val) {
         if (this.staff) {
-          const base: Partial<Staff> = { name: this.staff.name, avatarColor: this.staff.avatarColor }
-          const extra: Record<string, any> = {}
+          const base = { name: this.staff.name, avatarColor: this.staff.avatarColor }
+          const extra = {}
           ;(this.staffConfig || []).forEach(cfg => {
-            extra[cfg.prop] = (this.staff as any)[cfg.prop]
+            extra[cfg.prop] = this.staff[cfg.prop]
           })
           this.form = { ...extra, ...base }
         } else {
@@ -80,12 +79,12 @@ export default {
     },
     staff: {
       immediate: true,
-      handler(s: Staff | null) {
+      handler(s) {
         if (s) {
-          const base: Partial<Staff> = { name: s.name, avatarColor: s.avatarColor }
-          const extra: Record<string, any> = {}
+          const base = { name: s.name, avatarColor: s.avatarColor }
+          const extra = {}
           ;(this.staffConfig || []).forEach(cfg => {
-            extra[cfg.prop] = (s as any)[cfg.prop]
+            extra[cfg.prop] = s[cfg.prop]
           })
           this.form = { ...extra, ...base }
         }
@@ -93,7 +92,7 @@ export default {
     },
   },
   methods: {
-    componentOf(item: { type: "field" | "picker" | "checkbox"; component?: string }) {
+    componentOf(item) {
       if (item.component) return item.component
       if (item.type === "picker") return "el-color-picker"
       if (item.type === "checkbox") return "el-checkbox"
@@ -102,7 +101,7 @@ export default {
 
     submit() {
       if (!this.staff) return
-      const payload: Record<string, any> = { ...this.form }
+      const payload = { ...this.form }
       this.$emit("save", this.staff.uid, payload)
       this.$emit("close")
     },

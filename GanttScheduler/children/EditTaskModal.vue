@@ -44,23 +44,22 @@
   </el-dialog>
 </template>
 
-<script lang="ts">
+<script>
 import { DEFAULT_TASK_BG, DEFAULT_TASK_TEXT, PRESET_TASK_COLORS } from "../utils/constants"
-import { rgbTextToHex, calcEnd, calcDuration } from "../utils/index"
-import { Task } from "../types"
+import { rgbTextToHex, calcEnd, calcDuration } from "../utils"
 
 export default {
   props: {
     isOpen: { type: Boolean, required: true },
-    task: { type: Object as () => Task | null, required: false },
+    task: { type: Object, required: false },
   },
   data() {
     return { name: "", startDate: "", endDate: "", duration: 1, bgColor: "", textColor: "", presets: PRESET_TASK_COLORS }
   },
   computed: {
-    presetHexes(): string[] {
-      const arr: string[] = (this.presets || []).map(p => {
-        if ((p as any).hex) return (p as any).hex as string
+    presetHexes() {
+      const arr = (this.presets || []).map(p => {
+        if (p.hex) return p.hex
         else if (p.color) return rgbTextToHex(p.color)
         return ""
       })
@@ -68,7 +67,7 @@ export default {
     },
   },
   watch: {
-    isOpen(val: boolean) {
+    isOpen(val) {
       if (val && this.task) {
         this.name = this.task.name
         this.startDate = this.task.startDate
@@ -87,7 +86,7 @@ export default {
     },
     task: {
       immediate: true,
-      handler(t: Task | null) {
+      handler(t) {
         if (t) {
           this.name = t.name
           this.startDate = t.startDate

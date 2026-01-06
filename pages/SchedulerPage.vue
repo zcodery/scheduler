@@ -33,11 +33,10 @@
   </gantt-scheduler>
 </template>
 
-<script lang="ts">
+<script>
 import WorkloadBar from "./components/WorkloadBar.vue"
 import GanttScheduler from "@/GanttScheduler/index.vue"
 import { getMockStaffData, MOCK_ROLE_DATA, REAL_STAFF_DATA } from "./database/gantt"
-import { Staff } from "@/GanttScheduler/types"
 
 export default {
   components: { "gantt-scheduler": GanttScheduler, WorkloadBar },
@@ -47,7 +46,7 @@ export default {
       description: "拖动图表滑动 • 双击编辑 • 右键管理",
       viewMode: "month",
       readonly: false,
-      payload: [] as Staff[],
+      payload: [],
       withdynamicIcon: "",
       loading: false,
       staffConfig: [
@@ -55,7 +54,7 @@ export default {
         { span: 12, prop: "hobby", label: "爱好", type: "field", component: "el-select", params: { placeholder: "选择爱好", options: ["篮球", "足球", "跑步", "游泳", "旅游", "其他"], class: "rs-full-width", multiple: true, allowCreate: true, filterable: true } },
         { prop: "workloadPercentage", label: "进度(%)", type: "field", component: "el-input-number", params: { min: 0, max: 100, step: 1, class: "rs-full-width" } },
       ],
-      realTasks: [] as Staff[],
+      realTasks: [],
       realSize: 0,
       timer: null,
       idleAnimationFrame: null,
@@ -66,9 +65,9 @@ export default {
     this.onRefresh()
   },
   methods: {
-    onRefresh(isReplacementRole: string = "") {
+    onRefresh(isReplacementRole = "") {
       console.time("on-refresh")
-      let initialData: Staff[] = []
+      let initialData = []
       try {
         // if (!isReplacementRole) {
         //   const saved = localStorage.getItem("scheduler:data")
@@ -105,7 +104,7 @@ export default {
       //   console.log(`${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`)
       // }, 1000)
     },
-    onDataChange(payload: any, changedStaff?: Staff) {
+    onDataChange(payload, changedStaff) {
       this.withdynamicIcon = "el-icon-refresh"
       this.realTasks = structuredClone(payload)
       if (changedStaff && changedStaff.id != null) {
