@@ -1,6 +1,6 @@
 <template>
-  <div class="task-card group relative flex items-center h-7 rounded px-1 transition-shadow shadow-sm" :class="conflict ? 'border border-rose-400' : ''" :style="{ overflow: 'visible', backgroundColor: bg }" @dblclick.stop="startEdit" @contextmenu.stop.prevent="$emit('contextmenu', task)" @mousedown="onMouseDown" @mouseenter="emitHover" @mousemove="emitHover" @mouseleave="$emit('mouse-leave')" :aria-id="task.uid" :aria-name="task.name" :aria-description="`开始时间:${task.startDate}，持续${task.duration}天`">
-    <div v-if="!editing && !readonly" class="absolute left-0 top-0 bottom-0 w-2 cursor-w-resize z-20 hover:bg-indigo-400/50 rounded-l" @mousedown.stop="emitResize('left', $event)"></div>
+  <div class="task-card group relative flex items-center h-7 rounded px-1 transition-shadow shadow-sm" :class="[conflict ? 'border border-rose-400' : '', task.readonly ? 'opacity-75 cursor-not-allowed' : '']" :style="{ overflow: 'visible', backgroundColor: bg }" @dblclick.stop="startEdit" @contextmenu.stop.prevent="$emit('contextmenu', task)" @mousedown="onMouseDown" @mouseenter="emitHover" @mousemove="emitHover" @mouseleave="$emit('mouse-leave')" :aria-id="task.uid" :aria-name="task.name" :aria-description="`开始时间:${task.startDate}，持续${task.duration}天`">
+    <div v-if="!editing && !readonly && !task.readonly" class="absolute left-0 top-0 bottom-0 w-2 cursor-w-resize z-20 hover:bg-indigo-400/50 rounded-l" @mousedown.stop="emitResize('left', $event)"></div>
     <span class="text-[10px] font-bold mr-1.5 whitespace-nowrap select-none ml-1 flex-shrink-0 z-10" :style="{ color: text }">{{ task.uid }}</span>
     <el-popover placement="top-start" trigger="manual" v-model="editing" :visible-arrow="true" class="flex-1 whitespace-nowrap text-[10px] font-medium truncate" popper-class="p-1">
       <el-input ref="inputRef" size="mini" v-model="editValue" @blur="commit" @keydown.enter.prevent="commit" @keydown.esc.prevent="cancel" />
@@ -11,7 +11,7 @@
         </div>
       </template>
     </el-popover>
-    <div v-if="!editing && !readonly" class="absolute right-0 top-0 bottom-0 w-2 cursor-e-resize z-20 hover:bg-indigo-400/50 rounded-r" @mousedown.stop="emitResize('right', $event)"></div>
+    <div v-if="!editing && !readonly && !task.readonly" class="absolute right-0 top-0 bottom-0 w-2 cursor-e-resize z-20 hover:bg-indigo-400/50 rounded-r" @mousedown.stop="emitResize('right', $event)"></div>
     <span v-show="!showOutside" class="text-[10px] font-bold mr-1.5 whitespace-nowrap select-none ml-1 flex-shrink-0 z-10" :style="{ color: text }">{{ task.duration }}天</span>
   </div>
 </template>
@@ -45,7 +45,7 @@ export default {
   },
   methods: {
     startEdit() {
-      if (this.readonly) return
+      if (this.readonly || this.task.readonly) return
       this.editing = true
       this.editValue = this.task.name
       this.$nextTick(() => {
@@ -66,10 +66,11 @@ export default {
       this.editing = false
     },
     onMouseDown(e) {
-      if (this.readonly || this.editing || e.button !== 0) return
+      if (this.readonly || this.task.readonly || this.editing || e.button !== 0) return
       this.$emit("mouse-down", e, this.task)
     },
     emitResize(direction, e) {
+      if (this.readonly || this.task.readonly) return
       this.$emit("resize-start", e, direction, this.task)
     },
     emitHover(e) {

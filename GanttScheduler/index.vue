@@ -87,74 +87,74 @@
       <div v-if="contextMenu && menuVisible" ref="contextMenuRef" class="fixed z-[1000]" :style="{ left: (contextMenu.clientX || 0) + 2 + 'px', top: (contextMenu.clientY || 0) + 2 + 'px' }">
         <div class="rs-menu">
           <template v-if="contextMenu.type === 'general'">
-            <div class="rs-item" @click="ctxAddStaff">
+            <div class="rs-item" @click="ctxAddStaff()">
               <i class="el-icon-plus"></i>
               <span>新增人员</span>
             </div>
           </template>
           <template v-else-if="contextMenu.type === 'staff' && contextMenu.staffUid">
-            <div class="rs-item" @click="ctxOpenEditStaff">
+            <div class="rs-item" @click="ctxOpenEditStaff()">
               <i class="el-icon-edit"></i>
               <span>编辑人员</span>
             </div>
-            <div class="rs-item" @click="ctxFocusStaff">
+            <div class="rs-item" @click="ctxFocusStaff()">
               <i class="el-icon-location"></i>
               <span>定位到人员</span>
             </div>
-            <div class="rs-item" @click="ctxToggleCollapse">
+            <div class="rs-item" @click="ctxToggleCollapse()">
               <i :class="[staffCollapseLabel()?.includes('展开') ? 'el-icon-s-data' : 'el-icon-s-grid']"></i>
               <span>{{ staffCollapseLabel() }}</span>
             </div>
             <div class="rs-sep"></div>
-            <div class="rs-item" @click="ctxAddTask">
+            <div class="rs-item" @click="ctxAddTask()">
               <i class="el-icon-plus"></i>
               <span>新增任务</span>
             </div>
             <div class="rs-sep"></div>
-            <div class="rs-item rs-item-danger" @click="ctxDeleteStaff">
+            <div class="rs-item rs-item-danger" @click="ctxDeleteStaff()">
               <i class="el-icon-delete"></i>
               <span>删除人员</span>
             </div>
           </template>
           <template v-else-if="contextMenu.type === 'row' && contextMenu.staffUid">
-            <div class="rs-item" @click="ctxAddTask">
+            <div class="rs-item" @click="ctxAddTask()">
               <i class="el-icon-plus"></i>
               <span>新增任务</span>
             </div>
           </template>
           <template v-else-if="contextMenu.type === 'task' && contextMenu.staffUid && contextMenu.taskUid">
-            <div class="rs-item" @click="ctxOpenEditTask">
+            <div class="rs-item" :class="{ 'rs-item-disabled': currentTaskIsReadonly }" @click="!currentTaskIsReadonly && ctxOpenEditTask()">
               <i class="el-icon-edit"></i>
-              <span>编辑任务</span>
+              <span>{{ currentTaskIsReadonly ? "查看任务 (只读)" : "编辑任务" }}</span>
             </div>
-            <div class="rs-item" @click="ctxDuplicateTask">
+            <div class="rs-item" :class="{ 'rs-item-disabled': currentTaskIsReadonly }" @click="!currentTaskIsReadonly && ctxDuplicateTask()">
               <i class="el-icon-document-copy"></i>
               <span>复制任务</span>
             </div>
-            <div class="rs-item" @click="ctxFocusTask">
+            <div class="rs-item" @click="ctxFocusTask()">
               <i class="el-icon-location"></i>
               <span>定位到任务</span>
             </div>
             <div class="rs-sep"></div>
-            <div class="rs-item" @click="ctxDurationPlus">
+            <div class="rs-item" :class="{ 'rs-item-disabled': currentTaskIsReadonly }" @click="!currentTaskIsReadonly && ctxDurationPlus()">
               <i class="el-icon-plus"></i>
               <span>工期 +1 天</span>
             </div>
-            <div class="rs-item" @click="ctxDurationMinus">
+            <div class="rs-item" :class="{ 'rs-item-disabled': currentTaskIsReadonly }" @click="!currentTaskIsReadonly && ctxDurationMinus()">
               <i class="el-icon-minus"></i>
               <span>工期 -1 天</span>
             </div>
             <div class="rs-sep"></div>
-            <div class="rs-item" :class="{ 'rs-item-disabled': !canMoveRowUp() }" @click="ctxMoveRowUp">
+            <div class="rs-item" :class="{ 'rs-item-disabled': currentTaskIsReadonly || !canMoveRowUp() }" @click="!currentTaskIsReadonly && ctxMoveRowUp()">
               <i class="el-icon-arrow-up"></i>
               <span>移到上一行</span>
             </div>
-            <div class="rs-item" @click="ctxMoveRowDown">
+            <div class="rs-item" :class="{ 'rs-item-disabled': currentTaskIsReadonly }" @click="!currentTaskIsReadonly && ctxMoveRowDown()">
               <i class="el-icon-arrow-down"></i>
               <span>移到下一行</span>
             </div>
             <div class="rs-sep"></div>
-            <div class="rs-item rs-item-danger" @click="ctxDeleteTask">
+            <div class="rs-item rs-item-danger" :class="{ 'rs-item-disabled': currentTaskIsReadonly }" @click="!currentTaskIsReadonly && ctxDeleteTask()">
               <i class="el-icon-delete"></i>
               <span>删除任务</span>
             </div>
@@ -501,11 +501,17 @@ export default {
       return this.rowOffsets[idx] || 0
     },
     bottomSpacerHeight() {
-      const total = this.rowOffsets.length > 0 ? this.rowOffsets[this.rowOffsets.length - 1] + (this.rowHeights[this.rowHeights.length - 1] || 0) : 0
+      const total = this.rowOffsets.length > 0 ? this.rowOffsets[this.rowHeights.length - 1] + (this.rowHeights[this.rowHeights.length - 1] || 0) : 0
       const endIdx = Math.max(0, Math.min(this.rowOffsets.length - 1, this.visibleEndIndex))
       const renderedBottom = this.rowOffsets[endIdx] + (this.rowHeights[endIdx] || 0)
       const rem = Math.max(0, total - renderedBottom)
       return rem
+    },
+    currentTaskIsReadonly() {
+      if (!this.contextMenu || !this.contextMenu.staffUid || !this.contextMenu.taskUid) return !!this.readonly
+      const s = this.staffData.find(x => x.uid === this.contextMenu.staffUid)
+      const t = s?.tasks.find(y => y.uid === this.contextMenu.taskUid)
+      return !!(this.readonly || (t && t.readonly))
     },
   },
   methods: {
@@ -915,6 +921,13 @@ export default {
     handleResizeStart(e, direction = "left", task, staffUid) {
       e.preventDefault()
       e.stopPropagation()
+
+      // Check if task is readonly
+      if (task.readonly) {
+        this.$message.warning(`任务「${task.name}」是只读任务，无法调整大小`)
+        return
+      }
+
       const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : {}
       const taskStartMs = this.parseDateStr(task.startDate).getTime()
@@ -926,6 +939,12 @@ export default {
       document.body.classList.add(direction === "left" ? "resizing-left" : "resizing-right")
     },
     handleTaskMouseDown(task, staffUid, e) {
+      // Check if task is readonly
+      if (task.readonly) {
+        this.$message.warning(`任务「${task.name}」是只读任务，无法拖动`)
+        return
+      }
+
       const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : {}
       const initialX = e.clientX
@@ -1189,6 +1208,14 @@ export default {
     },
     updateTask(staffUid, taskUid, updates) {
       const s = this.staffData.find(x => x.uid === staffUid)
+      const t = s?.tasks.find(y => y.uid === taskUid)
+
+      // Check if task is readonly
+      if (t && t.readonly) {
+        this.$message.warning(`任务「${t.name}」是只读任务，无法修改`)
+        return
+      }
+
       this.lastChangedStaff = s ? s : {}
       this.staffData = this.staffData.map(s => {
         if (s.uid === staffUid) return { ...s, tasks: s.tasks.map(t => (t.uid === taskUid ? { ...t, ...updates } : t)) }
@@ -1198,6 +1225,13 @@ export default {
     deleteTask(staffUid, taskUid) {
       const s = this.staffData?.find(x => x.uid === staffUid)
       const t = s?.tasks.find(y => y.uid === taskUid)
+
+      // Check if task is readonly
+      if (t && t.readonly) {
+        this.$message.warning(`任务「${t.name}」是只读任务，无法删除`)
+        return
+      }
+
       this.$confirm(`确定删除「${taskUid}： ${t?.name}」任务？`, "删除任务", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
         .then(() => {
           const s = this.staffData.find(x => x.uid === staffUid)

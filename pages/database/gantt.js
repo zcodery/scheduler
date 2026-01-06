@@ -225,6 +225,7 @@ export const getMockStaffData = (count = 0) => {
       startDate: getRelativeDate(Math.random() < 0.3 ? -Math.ceil(Math.random() * 100) : Math.ceil(Math.random() * 100)),
       duration: Math.ceil(Math.random() * 30),
       rowOffset: Math.floor(Math.random() * 10),
+      readonly: Math.random() < 0.2, // 20% chance of being readonly
     })),
   }))
 }
@@ -245,6 +246,7 @@ export const REAL_STAFF_DATA = [
         startDate: "2025-12-16",
         duration: 15,
         rowOffset: 0,
+        readonly: false,
       },
       {
         uid: "T0001",
@@ -253,6 +255,7 @@ export const REAL_STAFF_DATA = [
         startDate: "2025-09-16",
         duration: 185,
         rowOffset: 1,
+        readonly: true, // This task is readonly
       },
     ],
   },
@@ -287,6 +290,7 @@ export const REAL_STAFF_DATA = [
         startDate: "2025-09-30",
         duration: 123,
         rowOffset: 2,
+        readonly: false,
       },
       {
         uid: "T0003",
@@ -295,6 +299,7 @@ export const REAL_STAFF_DATA = [
         startDate: "2023-04-27",
         duration: 979,
         rowOffset: 3,
+        readonly: true, // This task is readonly
       },
       {
         uid: "T0004",
@@ -303,6 +308,7 @@ export const REAL_STAFF_DATA = [
         startDate: "2025-11-02",
         duration: 93,
         rowOffset: 4,
+        readonly: false,
       },
       {
         uid: "T0005",
@@ -311,6 +317,7 @@ export const REAL_STAFF_DATA = [
         startDate: "2025-11-02",
         duration: 93,
         rowOffset: 5,
+        readonly: true, // This task is readonly
       },
     ],
   },
@@ -329,6 +336,7 @@ export const REAL_STAFF_DATA = [
         startDate: "2025-09-30",
         duration: 123,
         rowOffset: 0,
+        readonly: false,
       },
     ],
   },

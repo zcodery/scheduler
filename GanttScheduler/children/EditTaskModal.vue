@@ -1,45 +1,45 @@
 <template>
-  <el-dialog :visible="isOpen && !!task" title="编辑任务" width="480px" append-to-body :before-close="() => $emit('close')" @close="$emit('close')">
+  <el-dialog :visible="isOpen && !!task" :title="isReadonly ? '查看任务 (只读)' : '编辑任务'" width="480px" append-to-body :before-close="() => $emit('close')" @close="$emit('close')">
     <el-form label-position="top" size="mini">
       <el-row :gutter="12">
         <el-col :span="24">
           <el-form-item label="任务名称">
-            <el-input v-model="name" maxlength="60" show-word-limit />
+            <el-input v-model="name" maxlength="60" show-word-limit :disabled="isReadonly" />
           </el-form-item>
         </el-col>
 
         <el-col :span="12">
           <el-form-item label="开始日期">
-            <el-date-picker v-model="startDate" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" @change="handleStartDate" class="rs-full-width" />
+            <el-date-picker v-model="startDate" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" @change="handleStartDate" class="rs-full-width" :disabled="isReadonly" />
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="结束日期">
-            <el-date-picker v-model="endDate" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" @change="handleEndDate" class="rs-full-width" />
+            <el-date-picker v-model="endDate" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" @change="handleEndDate" class="rs-full-width" :disabled="isReadonly" />
           </el-form-item>
         </el-col>
 
         <el-col :span="8">
           <el-form-item label="背景色">
-            <el-color-picker v-model="bgColor" :predefine="presetHexes" show-alpha size="mini" />
+            <el-color-picker v-model="bgColor" :predefine="presetHexes" show-alpha size="mini" :disabled="isReadonly" />
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="文字颜色">
-            <el-color-picker v-model="textColor" :predefine="presetHexes" show-alpha size="mini" />
+            <el-color-picker v-model="textColor" :predefine="presetHexes" show-alpha size="mini" :disabled="isReadonly" />
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="工期 (天)">
-            <el-input-number v-model="duration" :min="1" :step="1" @change="handleDuration" class="rs-full-width" />
+            <el-input-number v-model="duration" :min="1" :step="1" @change="handleDuration" class="rs-full-width" :disabled="isReadonly" />
           </el-form-item>
         </el-col>
       </el-row>
     </el-form>
 
     <template v-slot:footer>
-      <el-button size="mini" @click="$emit('close')">取消</el-button>
-      <el-button size="mini" type="primary" @click="submit">保存</el-button>
+      <el-button size="mini" @click="$emit('close')">{{ isReadonly ? "关闭" : "取消" }}</el-button>
+      <el-button v-if="!isReadonly" size="mini" type="primary" @click="submit">保存</el-button>
     </template>
   </el-dialog>
 </template>
@@ -64,6 +64,9 @@ export default {
         return ""
       })
       return arr?.filter(Boolean)
+    },
+    isReadonly() {
+      return this.task && this.task.readonly
     },
   },
   watch: {
