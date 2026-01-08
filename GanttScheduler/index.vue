@@ -176,6 +176,7 @@ import draggable from "vuedraggable"
 export default {
   name: "gantt-scheduler",
   components: { StaffRow, EditTaskModal, EditStaffModal, draggable },
+  model: { prop: "task", event: "update:task" },
   props: {
     title: { type: String, default: "人员排期" },
     description: { type: String, default: "" },
@@ -186,7 +187,7 @@ export default {
   },
   data() {
     return {
-      staffData: this.task,
+      internalStaff: Array.isArray(this.task) ? [...this.task] : [],
       viewStartDate: new Date().setHours(0, 0, 0, 0) - 86400000 * 2,
       scrollX: 0,
       consts: { ONE_DAY_MS, DAY_CELL_PX, MONTH_COLUMN_PX, SIDEBAR_WIDTH },
@@ -235,26 +236,9 @@ export default {
     task: {
       deep: true,
       handler(val) {
-        this.staffData = Array.isArray(val) ? [...val] : []
-      },
-    },
-    staffData: {
-      deep: true,
-      handler(val) {
-        const changedStaff = this.lastChangedStaff
-        const structured = this.buildStructuredChange(val, changedStaff)
-        const shouldEmit = ["add", "edit", "delete"].includes(this.lastEditType)
-        if (shouldEmit) {
-          this.$emit("data-change", structured)
-          try {
-            window.dispatchEvent(new CustomEvent("scheduler:data-change", { detail: structured }))
-          } catch {}
-        }
+        this.internalStaff = Array.isArray(val) ? [...val] : []
         this.computeRowMetrics()
         this.updateVisibleRange()
-        this.lastChangedStaff = {}
-        this.lastChangedTask = null
-        this.lastEditType = ""
       },
     },
     syncViewMode() {
@@ -338,6 +322,38 @@ export default {
     if (container) container.removeEventListener("scroll", this.onScrollUpdate)
   },
   computed: {
+    staffData: {
+      get() {
+        return Array.isArray(this.internalStaff) ? this.internalStaff : []
+      },
+      set(value) {
+        try {
+          const arr = Array.isArray(value) ? value : []
+          const normalized = arr.map(s => {
+            const base = typeof s === "object" && s ? s : {}
+            const tasks = Array.isArray(base.tasks) ? base.tasks : []
+            return { ...base, tasks }
+          })
+          this.internalStaff = normalized
+          const structured = this.buildStructuredChange(normalized, this.lastChangedStaff)
+          const shouldEmit = ["add", "edit", "delete"].includes(this.lastEditType)
+          if (shouldEmit) {
+            this.$emit("update:task", normalized)
+            this.$emit("data-change", structured)
+            try {
+              window.dispatchEvent(new CustomEvent("scheduler:data-change", { detail: structured }))
+            } catch {}
+          }
+          this.computeRowMetrics()
+          this.updateVisibleRange()
+          this.lastChangedStaff = {}
+          this.lastChangedTask = null
+          this.lastEditType = ""
+        } catch (e) {
+          console.warn("[gantt-scheduler] staffData set error:", e)
+        }
+      },
+    },
     effectiveDayWidth() {
       return this.syncViewMode === "quarter" ? this.consts.MONTH_COLUMN_PX / 7 : this.syncViewMode === "year" ? this.consts.MONTH_COLUMN_PX / 30 : this.consts.DAY_CELL_PX
     },
