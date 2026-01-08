@@ -42,7 +42,6 @@ export default {
         { span: 12, prop: "hobby", label: "爱好", type: "field", component: "el-select", params: { placeholder: "选择爱好", options: ["篮球", "足球", "跑步", "游泳", "旅游", "其他"], class: "rs-full-width", multiple: true, allowCreate: true, filterable: true } },
         { prop: "workloadPercentage", label: "进度(%)", type: "field", component: "el-input-number", params: { min: 0, max: 100, step: 1, class: "rs-full-width" } },
       ],
-      realTasks: [],
       realSize: 0,
       timer: null,
       idleAnimationFrame: null,
@@ -79,7 +78,6 @@ export default {
           }
         }
         this.payload.push(result[index])
-        this.realTasks = structuredClone(this.payload)
         index++
         this.idleAnimationFrame = requestAnimationFrame(animationFrame)
       }
@@ -95,9 +93,10 @@ export default {
     onDataChange(result) {
       const { payload, changedStaff, changedTask, editType } = result || {}
       console.log("onDataChange:", { payload, changedStaff, changedTask, editType })
+      this.payload = structuredClone(payload)
 
       // this.withdynamicIcon = "el-icon-refresh"
-      // if (Array.isArray(payload)) this.realTasks = structuredClone(payload)
+      // if (Array.isArray(payload)) this.payload = structuredClone(payload)
       // if (changedStaff && changedStaff.id != null) {
       //   console.log("changed staff:", structuredClone(changedStaff))
       //   this.updateData = changedStaff
@@ -112,8 +111,8 @@ export default {
     onSave() {
       this.loading = true
       setTimeout(() => {
-        console.log(structuredClone(this.realTasks))
-        localStorage.setItem("scheduler:data", JSON.stringify(this.realTasks))
+        console.log(structuredClone(this.payload))
+        localStorage.setItem("scheduler:data", JSON.stringify(this.payload))
         this.loading = false
         this.withdynamicIcon = "el-icon-finished"
         this.$message.success("保存成功")

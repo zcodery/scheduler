@@ -52,7 +52,8 @@
 
 ```html
 <template>
-  <gantt-scheduler :readonly="readonly" :task="staffs" :title="title" :description="description" :staffConfig="staffConfig" @data-change="onDataChange">
+  <!-- 使用 .sync 双向绑定 -->
+  <gantt-scheduler :readonly="readonly" :task.sync="staffs" :title="title" :description="description" :staffConfig="staffConfig" @data-change="onDataChange">
     <template #staffDescription="{ staff }">
       <el-tag size="mini" type="primary" effect="plain">{{ staff.role || '未设置职位' }}</el-tag>
     </template>
@@ -62,6 +63,8 @@
     </template>
   </gantt-scheduler>
   
+  <!-- 或使用 v-model（Vue 2 自定义模型） -->
+  <gantt-scheduler v-model="staffs" />
 </template>
 
 <script>
