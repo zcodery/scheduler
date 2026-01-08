@@ -246,7 +246,6 @@ export const REAL_STAFF_DATA = [
         startDate: "2025-12-16",
         duration: 15,
         rowOffset: 0,
-        readonly: false,
       },
       {
         uid: "T0001",

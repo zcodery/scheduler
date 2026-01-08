@@ -1,23 +1,11 @@
 <template>
-  <gantt-scheduler class="min-h-screen h-screen" :readonly="readonly" :task="payload" :view-mode="viewMode" :title="title" :description="description" :staff-config="staffConfig" @data-change="onDataChange">
-    <!-- <template #avatar="{ staff }">
-      <img v-if="staff.avatar" :src="staff.avatar" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
-      <img v-else-if="staff.name == '王五'" src="/avatar.jpg" :alt="staff.name" class="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0 select-none" />
-      <div v-else :class="staff.avatarColor" class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold">{{ staff.name.charAt(0) }}</div>
-    </template> -->
+  <gantt-scheduler class="min-h-screen h-screen" :readonly="readonly" :task="payload" :view-mode.sync="viewMode" :title="title" :description="description" :staff-config="staffConfig" @data-change="onDataChange">
     <template #staffDescription="{ staff }">
       <el-tag size="mini" type="primary" effect="plain" v-if="staff.role">{{ staff.role }}</el-tag>
     </template>
     <template #workloadBar="{ staff }">
       <workload-bar :percentage="staff.workloadPercentage" v-if="staff.workloadPercentage"></workload-bar>
     </template>
-    <!-- <template #tooltip="{ task }">
-      <div>ID: {{ task && task.id }}</div>
-      <div>名称: {{ task && task.name }}</div>
-      <div>开始: {{ task && task.startDate }}</div>
-      <div>结束: {{ task && task.endDate }}</div>
-      <div>工期: {{ task && task.duration }} 天</div>
-    </template> -->
     <template #extra>
       <el-dropdown size="mini" @command="onRefresh" split-button type="primary" :disabled="idleAnimationFrame">
         <span class="el-dropdown-link">{{ idleAnimationFrame ? `正则加载数据中(${payload.length}/${realSize})` : `刷新数据(${realSize})` }}</span>
