@@ -1,7 +1,7 @@
 export const WEEK_DAYS = ["日", "一", "二", "三", "四", "五", "六"]
 
-export const DEFAULT_TASK_BG = "#e0e7ff"
-export const DEFAULT_TASK_TEXT = "#3730a3"
+export const DEFAULT_TASK_BG = "#fff2df"
+export const DEFAULT_TASK_TEXT = "#ff7a00"
 
 export const SIDEBAR_WIDTH = 260
 

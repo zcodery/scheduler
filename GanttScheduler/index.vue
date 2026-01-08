@@ -222,6 +222,8 @@ export default {
       menuVisible: false,
       isEditingTask: false,
       hoverTask: null,
+      lastChangedTask: null,
+      lastEditType: "",
     }
   },
   created() {
@@ -240,13 +242,19 @@ export default {
       deep: true,
       handler(val) {
         const changedStaff = this.lastChangedStaff
-        this.$emit("data-change", val, changedStaff)
-        try {
-          window.dispatchEvent(new CustomEvent("scheduler:data-change", { detail: { data: val, changedStaff } }))
-        } catch {}
+        const structured = this.buildStructuredChange(val, changedStaff)
+        const shouldEmit = ["add", "edit", "delete"].includes(this.lastEditType)
+        if (shouldEmit) {
+          this.$emit("data-change", structured)
+          try {
+            window.dispatchEvent(new CustomEvent("scheduler:data-change", { detail: structured }))
+          } catch {}
+        }
         this.computeRowMetrics()
         this.updateVisibleRange()
         this.lastChangedStaff = {}
+        this.lastChangedTask = null
+        this.lastEditType = ""
       },
     },
     syncViewMode() {
@@ -594,6 +602,23 @@ export default {
     onTaskEditEnd() {
       this.stopAutoScroll()
       this.isEditingTask = false
+    },
+    buildStructuredChange(payload, changedStaff) {
+      const arr = Array.isArray(payload) ? payload : []
+      const cs = changedStaff && typeof changedStaff === "object" ? changedStaff : null
+      const ct = this.lastChangedTask && typeof this.lastChangedTask === "object" ? this.lastChangedTask : null
+      let type = ["add", "edit", "delete"].includes(this.lastEditType) ? this.lastEditType : "edit"
+      const safePayload = arr.map(s => {
+        const base = typeof s === "object" && s ? s : {}
+        const tasks = Array.isArray(base.tasks) ? base.tasks : []
+        return { ...base, tasks }
+      })
+      return {
+        payload: typeof structuredClone === "function" ? structuredClone(safePayload) : JSON.parse(JSON.stringify(safePayload)),
+        changedStaff: cs ? (typeof structuredClone === "function" ? structuredClone(cs) : JSON.parse(JSON.stringify(cs))) : null,
+        changedTask: ct ? (typeof structuredClone === "function" ? structuredClone(ct) : JSON.parse(JSON.stringify(ct))) : null,
+        editType: type,
+      }
     },
     // 预扩展左缓冲区：向左/右各扩展 30 天并同步滚动基准，防止临界自动滚动/拖拽时画面跳变
     preExtendLeftBuffer() {
@@ -1071,7 +1096,10 @@ export default {
               const nextStart = this.dragState?.dateStr != null ? this.dragState?.dateStr : t.startDate
               const nextDur = this.dragState?.duration != null ? this.dragState?.duration : t.duration
               const nextRow = this.dragState?.rowOffset != null ? this.dragState?.rowOffset : t.rowOffset
-              return { ...t, startDate: nextStart, duration: nextDur, rowOffset: nextRow }
+              const nextTask = { ...t, startDate: nextStart, duration: nextDur, rowOffset: nextRow }
+              this.lastChangedTask = nextTask
+              this.lastEditType = "edit"
+              return nextTask
             })
             const nextStaff = { ...this.staffData[sIdx], tasks }
             this.lastChangedStaff = nextStaff
@@ -1172,6 +1200,8 @@ export default {
       const now = Date.now()
       const newStaff = { uid: String(now), id: now, name: "新员工", avatarColor: "bg-gray-200 text-gray-600", tasks: [], isCollapsed: false }
       this.lastChangedStaff = newStaff
+      this.lastChangedTask = null
+      this.lastEditType = "add"
       this.staffData = [...this.staffData, newStaff]
       this.contextMenu = null
     },
@@ -1188,6 +1218,8 @@ export default {
         if (s.uid === staffUid) {
           const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
           const t = { uid: `T${Date.now().toString().slice(-4)}`, id: Date.now(), name: "新任务", startDate: dateStr, duration: 3, rowOffset: maxRow + 1 }
+          this.lastChangedTask = t
+          this.lastEditType = "add"
           return { ...s, tasks: [...s.tasks, t] }
         }
         return s
@@ -1201,6 +1233,8 @@ export default {
         if (s.uid === staffUid) {
           const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
           const t = { uid: `T${Date.now().toString().slice(-4)}`, id: Date.now(), name: "新任务", startDate: dateStr, duration: 3, rowOffset: maxRow + 1 }
+          this.lastChangedTask = t
+          this.lastEditType = "add"
           return { ...s, tasks: [...s.tasks, t] }
         }
         return s
@@ -1217,6 +1251,8 @@ export default {
       }
 
       this.lastChangedStaff = s ? s : {}
+      this.lastChangedTask = t ? { ...t, ...updates } : null
+      this.lastEditType = "edit"
       this.staffData = this.staffData.map(s => {
         if (s.uid === staffUid) return { ...s, tasks: s.tasks.map(t => (t.uid === taskUid ? { ...t, ...updates } : t)) }
         return s
@@ -1236,6 +1272,8 @@ export default {
         .then(() => {
           const s = this.staffData.find(x => x.uid === staffUid)
           this.lastChangedStaff = s ? s : {}
+          this.lastChangedTask = t ? t : null
+          this.lastEditType = "delete"
           this.staffData = this.staffData.map(x => (x.uid === staffUid ? { ...x, tasks: x.tasks.filter(y => y.uid !== taskUid) } : x))
           this.contextMenu = null
         })
@@ -1250,6 +1288,8 @@ export default {
         if (!original) return s
         const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
         const copy = { ...original, uid: `T${Date.now().toString().slice(-3)}`, id: Date.now(), name: `${original.name}(新)`, rowOffset: maxRow + 1 }
+        this.lastChangedTask = copy
+        this.lastEditType = "add"
         return { ...s, tasks: [...s.tasks, copy] }
       })
       this.contextMenu = null
@@ -1326,6 +1366,8 @@ export default {
       const s = this.staffData.find(x => x.uid === staffUid)
       const next = s ? { ...s, ...updates } : {}
       this.lastChangedStaff = next
+      this.lastChangedTask = null
+      this.lastEditType = "edit"
       this.staffData = this.staffData.map(s => (s.uid === staffUid ? { ...s, ...updates } : s))
     },
     openEditModal() {
@@ -1354,6 +1396,8 @@ export default {
       const s = this.staffData.find(x => x.uid === staffUid)
       const next = s ? { ...s, ...updates } : {}
       this.lastChangedStaff = next
+      this.lastChangedTask = null
+      this.lastEditType = "edit"
       this.staffData = this.staffData.map(s => (s.uid === staffUid ? { ...s, ...updates } : s))
     },
     deleteStaff(staffUid) {
@@ -1363,6 +1407,8 @@ export default {
         .then(() => {
           const s2 = this.staffData.find(x => String(x.uid) === String(staffUid))
           this.lastChangedStaff = s2 ? s2 : {}
+          this.lastChangedTask = null
+          this.lastEditType = "delete"
           this.staffData = this.staffData.filter(x => String(x.uid) !== String(staffUid))
           this.contextMenu = null
         })

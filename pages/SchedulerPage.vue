@@ -92,18 +92,22 @@ export default {
       //   console.log(`${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`)
       // }, 1000)
     },
-    onDataChange(payload, changedStaff) {
-      this.withdynamicIcon = "el-icon-refresh"
-      this.realTasks = structuredClone(payload)
-      if (changedStaff && changedStaff.id != null) {
-        console.log("changed staff:", structuredClone(changedStaff))
-        this.updateData = changedStaff
-      }
-      if (!this.idleAnimationFrame) {
-        console.log(structuredClone(payload))
-      }
-      // this.payload = structuredClone(payload)
-      // localStorage.setItem("scheduler:data", JSON.stringify(payload))
+    onDataChange(result) {
+      const { payload, changedStaff, changedTask, editType } = result || {}
+      console.log("onDataChange:", { payload, changedStaff, changedTask, editType })
+
+      // this.withdynamicIcon = "el-icon-refresh"
+      // if (Array.isArray(payload)) this.realTasks = structuredClone(payload)
+      // if (changedStaff && changedStaff.id != null) {
+      //   console.log("changed staff:", structuredClone(changedStaff))
+      //   this.updateData = changedStaff
+      // }
+      // if (changedTask && changedTask.uid != null) {
+      //   console.log("changed task:", structuredClone(changedTask), "editType:", editType)
+      // }
+      // if (!this.idleAnimationFrame && Array.isArray(payload)) {
+      //   console.log(structuredClone(payload))
+      // }
     },
     onSave() {
       this.loading = true
