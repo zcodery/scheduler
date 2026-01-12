@@ -26,7 +26,7 @@
         </div>
         <div v-show="!staff.isCollapsed" class="relative w-full h-full pt-3 pb-2" @dblclick="onGridDblClick">
           <div v-for="t in visibleTasks" :key="t.uid" class="absolute z-10" :style="taskStyle(t)" @mouseenter="onTaskWrapperEnter(t, $event)" @mousemove="onTaskWrapperMove(t, $event)" @mouseleave="onTaskWrapperLeave">
-            <TaskCard :task="t" :viewMode="viewMode" :readonly="readonly" :conflict="isConflict(t)" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" @mouse-move="onTaskMouseMove" @mouse-leave="onTaskMouseLeave" @editing-start="onTaskEditingStart" @editing-end="onTaskEditingEnd" />
+            <TaskCard :task="t" :viewMode="viewMode" :readonly="readonly" @dblclick.native="openEditTask(t)" @contextmenu.native.prevent="onContextTask(t, $event)" @update="onUpdateTaskName" @resize-start="onResizeStart" @mouse-down="onTaskMouseDown" @mouse-move="onTaskMouseMove" @mouse-leave="onTaskMouseLeave" @editing-start="onTaskEditingStart" @editing-end="onTaskEditingEnd" />
           </div>
         </div>
       </div>
@@ -271,20 +271,6 @@ export default {
       const dateStr = `${y}-${m}-${day}`
       this.$emit("add-task-at", this.staff.uid, dateStr)
     },
-    isConflict(t) {
-      return false
-      const startA = parseDateStr(t.startDate).getTime()
-      const endA = startA + t.duration * ONE_DAY_MS
-      return this.staff.tasks.some(
-        x =>
-          x.uid !== t.uid &&
-          (() => {
-            const startB = parseDateStr(x.startDate).getTime()
-            const endB = startB + x.duration * ONE_DAY_MS
-            return Math.max(startA, startB) < Math.min(endA, endB)
-          })()
-      )
-    },
     onTaskEditingStart() {
       this.$emit("task-edit-start")
     },
@@ -356,6 +342,18 @@ $space: (
   }
   .mb-#{$k} {
     margin-bottom: #{$v};
+  }
+}
+
+$gap-map: (
+  "1": 0.25rem,
+  "2": 0.5rem,
+  "3": 0.75rem,
+  "4": 1rem,
+);
+@each $k, $v in $gap-map {
+  .gap-#{$k} {
+    gap: $v;
   }
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="task-card group relative flex items-center h-7 rounded px-1 transition-shadow shadow-sm" :class="[conflict ? 'border border-rose-400' : '', task.readonly ? 'opacity-75 cursor-not-allowed' : '']" :style="{ overflow: 'visible', backgroundColor: bg }" @dblclick.stop="startEdit" @contextmenu.stop.prevent="$emit('contextmenu', task)" @mousedown="onMouseDown" @mouseenter="emitHover" @mousemove="emitHover" @mouseleave="$emit('mouse-leave')" :aria-id="task.uid" :aria-name="task.name" :aria-description="`开始时间:${task.startDate}，持续${task.duration}天`">
+  <div class="task-card group relative flex items-center h-7 rounded px-1 transition-shadow shadow-sm" :class="[task.readonly ? 'opacity-75 cursor-not-allowed' : '']" :style="{ overflow: 'visible', backgroundColor: bg }" @dblclick.stop="startEdit" @contextmenu.stop.prevent="$emit('contextmenu', task)" @mousedown="onMouseDown" @mouseenter="emitHover" @mousemove="emitHover" @mouseleave="$emit('mouse-leave')" :aria-id="task.uid" :aria-name="task.name" :aria-description="`开始时间:${task.startDate}，持续${task.duration}天`">
     <div v-if="!editing && !readonly && !task.readonly" class="absolute left-0 top-0 bottom-0 w-2 cursor-w-resize z-20 hover:bg-indigo-400/50 rounded-l" @mousedown.stop="emitResize('left', $event)"></div>
     <span class="text-[10px] font-bold mr-1.5 whitespace-nowrap select-none ml-1 flex-shrink-0 z-10" :style="{ color: text }">{{ task.uid }}</span>
     <el-popover placement="top-start" trigger="manual" v-model="editing" :visible-arrow="true" class="flex-1 whitespace-nowrap text-[10px] font-medium truncate" popper-class="p-1">
@@ -24,7 +24,6 @@ export default {
     task: { type: Object, required: true },
     viewMode: { type: String, required: true },
     readonly: { type: Boolean, required: false, default: false },
-    conflict: { type: Boolean, required: false, default: false },
   },
   data() {
     return { editing: false, editValue: this.task.name }

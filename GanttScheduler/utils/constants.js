@@ -3,7 +3,7 @@ export const WEEK_DAYS = ["日", "一", "二", "三", "四", "五", "六"]
 export const DEFAULT_TASK_BG = "#fff2df"
 export const DEFAULT_TASK_TEXT = "#ff7a00"
 
-export const SIDEBAR_WIDTH = 260
+export const SIDEBAR_WIDTH = 240
 
 // 单天的毫秒数，用于日期换算与像素换算
 export const ONE_DAY_MS = 86400000
@@ -80,5 +80,5 @@ export const PRESET_TASK_COLORS = [
   { color: "rgb(107, 57, 0)", name: "橙色-6" },
   { color: "rgb(98, 28, 24)", name: "红色-6" },
   { color: "rgb(122, 15, 75)", name: "粉色-6" },
-  { color: "rgb(39, 5, 97)", name: "紫色-6" },
+  { color: "rgb(39, 5, 97)", name: "紫色-6" }
 ]
