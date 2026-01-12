@@ -1,6 +1,6 @@
-import GanttScheduler from "./common/gantt-scheduler.vue"
+import GanttScheduler from "./GanttScheduler/index.vue"
 export { GanttScheduler }
-export * from "./GanttScheduler/types"
+// export * from "./GanttScheduler/types"
 export * from "./GanttScheduler/utils/constants"
 
 export const ResourceSchedulerPlugin = {
