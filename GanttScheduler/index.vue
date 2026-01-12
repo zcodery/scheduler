@@ -415,7 +415,9 @@ export default {
           const sub = `${weekStart.getMonth() + 1}/${weekStart.getDate()} ~ ${weekEnd.getMonth() + 1}/${weekEnd.getDate()}`
           const dd = new Date(d)
           const inWeek = today.getTime() >= weekStart.getTime() && today.getTime() <= weekEnd.getTime()
-          headers.push({ date: dd, label: `Q${Math.floor(dd.getMonth() / 3) + 1}/W${Math.ceil(dd.getDate() / 7)}`, subLabel: sub, isToday: inWeek, isWeekend: false })
+          const qStart = new Date(dd.getFullYear(), Math.floor(dd.getMonth() / 3) * 3, 1)
+          const weekNum = Math.floor((dd.getTime() - qStart.getTime()) / (7 * 86400000)) + 1
+          headers.push({ date: dd, label: `Q${Math.floor(dd.getMonth() / 3) + 1}/W${weekNum}`, subLabel: sub, isToday: inWeek, isWeekend: false })
         }
       } else {
         const container = this.$refs.containerRef
