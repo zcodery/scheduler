@@ -7,7 +7,7 @@ export function rgbTextToHex(rgb) {
   if (!rgb) return "#ffffff"
   const m = rgb.match(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+)\s*)?\)/i)
   if (!m) return rgb
-  const to2 = n => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0")
+  const to2 = (n) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0")
   return `#${to2(Number(m[1]))}${to2(Number(m[2]))}${to2(Number(m[3]))}`
 }
 
@@ -20,7 +20,7 @@ export function hexToRgb(hex) {
   if (h.length === 3)
     h = h
       .split("")
-      .map(x => x + x)
+      .map((x) => x + x)
       .join("")
   const r = parseInt(h.slice(0, 2), 16)
   const g = parseInt(h.slice(2, 4), 16)
@@ -35,7 +35,7 @@ export function hexToRgb(hex) {
 export function luminance(hex) {
   if (!hex) return 0.5
   const { r, g, b } = hexToRgb(hex)
-  const a = [r, g, b].map(v => {
+  const a = [r, g, b].map((v) => {
     const c = v / 255
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
   })
@@ -65,27 +65,25 @@ export function formatDateYYYYMMDD(d) {
 }
 
 /**
- * 根据开始日期与工期（天）计算结束日期（闭区间右端）
- * 入参示例：start="2025-01-01"，duration=3 => 返回 "2025-01-04"
+ * 根据开始日期与工期（天）计算结束日期（包含开始与结束日期）
+ * 入参示例：start="2025-01-01"，duration=3 => 返回 "2025-01-03"
  */
 export function calcEnd(start, duration) {
   if (!start) return ""
-  const d = new Date(start)
-  d.setHours(0, 0, 0, 0)
-  d.setDate(d.getDate() + Math.round(duration))
+  const d = parseDateStr(start)
+  const days = Math.max(1, Math.round(duration || 0))
+  d.setDate(d.getDate() + (days - 1))
   return formatDateYYYYMMDD(d)
 }
 
 /**
- * 计算两个日期之间的天数（按天对齐，最少 1 天）
- * 入参示例：start="2025-01-01"，end="2025-01-04" => 返回 3
+ * 计算两个日期之间的天数（包含开始与结束日期，最少 1 天）
+ * 入参示例：start="2025-01-01"，end="2025-01-03" => 返回 3
  */
 export function calcDuration(start, end) {
   if (!start || !end) return 0
-  const d1 = new Date(start)
-  const d2 = new Date(end)
-  d1.setHours(0, 0, 0, 0)
-  d2.setHours(0, 0, 0, 0)
+  const d1 = parseDateStr(start)
+  const d2 = parseDateStr(end)
   const diff = d2.getTime() - d1.getTime()
-  return Math.max(1, Math.round(diff / 86400000))
+  return Math.max(1, Math.round(diff / 86400000) + 1)
 }

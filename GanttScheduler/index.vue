@@ -45,7 +45,7 @@
     </div>
 
     <div ref="containerRef" class="flex-1 overflow-y-auto overflow-x-hidden relative" @mousedown="onPanMouseDown" @contextmenu.prevent @wheel="onWheel">
-      <div class="sticky top-0 z-40 flex border-b border-gray-200 bg-gray-50 shadow-sm header-row">
+      <div class="sticky top-0 z-40 flex border-b border-gray-200 bg-gray-50 shadow-sm">
         <div class="flex-shrink-0 p-4 border-r border-gray-200 text-xs font-semibold text-gray-500 flex items-center bg-gray-50" :style="{ width: consts.SIDEBAR_WIDTH + 'px' }" @contextmenu.prevent="onHeaderSidebarContext" @mousedown.stop>人员 / 饱和度</div>
         <div class="flex-1 overflow-hidden">
           <div
