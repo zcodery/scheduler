@@ -1322,7 +1322,7 @@ export default {
         const original = s.tasks.find(t => t.uid === taskUid)
         if (!original) return s
         const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
-        const copy = { ...original, uid: `T${Date.now().toString().slice(-3)}`, id: Date.now(), name: `${original.name}(新)`, rowOffset: maxRow + 1 }
+        const copy = { ...original, uid: `T${Date.now().toString().slice(-4)}`, id: Date.now(), name: `${original.name}(新)`, rowOffset: maxRow + 1 }
         this.lastChangedTask = copy
         this.lastEditType = "add"
         return { ...s, tasks: [...s.tasks, copy] }
