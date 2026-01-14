@@ -166,7 +166,7 @@
 </template>
 
 <script>
-import { WEEK_DAYS, SIDEBAR_WIDTH, ONE_DAY_MS, DAY_CELL_PX, MONTH_COLUMN_PX } from "./utils/constants"
+import { WEEK_DAYS, SIDEBAR_WIDTH, ONE_DAY_MS, DAY_CELL_PX, MONTH_COLUMN_PX, DEFAULT_TASK_BG, DEFAULT_TASK_TEXT } from "./utils/constants"
 import { calcEnd } from "./utils"
 import StaffRow from "./children/StaffRow.vue"
 import EditTaskModal from "./children/EditTaskModal.vue"
@@ -1248,7 +1248,7 @@ export default {
       this.staffData = this.staffData.map(s => {
         if (s.uid === staffUid) {
           const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
-          const t = { uid: `T${Date.now().toString().slice(-4)}`, id: Date.now(), name: "新任务", startDate: dateStr, duration: 3, rowOffset: maxRow + 1 }
+          const t = { uid: `T${Date.now().toString().slice(-4)}`, id: Date.now(), name: "新任务", startDate: dateStr, duration: 3, rowOffset: maxRow + 1, bgColor: DEFAULT_TASK_BG, textColor: DEFAULT_TASK_TEXT }
           this.lastChangedTask = t
           this.lastEditType = "add"
           return { ...s, tasks: [...s.tasks, t] }
@@ -1264,7 +1264,7 @@ export default {
       this.staffData = this.staffData.map(s => {
         if (s.uid === staffUid) {
           const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
-          const t = { uid: `T${Date.now().toString().slice(-4)}`, id: Date.now(), name: "新任务", startDate: dateStr, duration: 3, rowOffset: maxRow + 1 }
+          const t = { uid: `T${Date.now().toString().slice(-4)}`, id: Date.now(), name: "新任务", startDate: dateStr, duration: 3, rowOffset: maxRow + 1, bgColor: DEFAULT_TASK_BG, textColor: DEFAULT_TASK_TEXT }
           this.lastChangedTask = t
           this.lastEditType = "add"
           return { ...s, tasks: [...s.tasks, t] }
