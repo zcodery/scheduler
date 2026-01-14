@@ -55,7 +55,7 @@
               width: syncViewMode === 'month' ? headers.length * consts.DAY_CELL_PX + 'px' : headers.length * consts.MONTH_COLUMN_PX + 'px',
               transform: `translateX(${-scrollX}px)`,
               willChange: 'transform',
-              height: '100%'
+              height: '100%',
             }"
           >
             <div v-for="(h, i) in headers" :key="i" :class="['flex flex-col items-center justify-center py-2 border-r border-gray-200 text-xs', h.isToday ? 'bg-blue-100/50' : h.isWeekend ? 'bg-gray-200/50' : '']">
@@ -181,9 +181,10 @@ export default {
     title: { type: String, default: "人员排期" },
     description: { type: String, default: "" },
     readonly: { type: Boolean, required: false, default: false },
+    allow: { type: Array, required: false, default: () => ["general", "staff", "row", "task"] },
     task: { type: Array, required: true },
     staffConfig: { type: Array, default: () => [] },
-    viewMode: { type: String, default: "month" }
+    viewMode: { type: String, default: "month" },
   },
   data() {
     return {
@@ -224,7 +225,7 @@ export default {
       isEditingTask: false,
       hoverTask: null,
       lastChangedTask: null,
-      lastEditType: ""
+      lastEditType: "",
     }
   },
   created() {
@@ -239,7 +240,7 @@ export default {
         this.internalStaff = Array.isArray(val) ? [...val] : []
         this.computeRowMetrics()
         this.updateVisibleRange()
-      }
+      },
     },
     syncViewMode() {
       this.initHeadersRange()
@@ -270,10 +271,10 @@ export default {
         }
       }
       this.scheduleAdjustRange(false)
-    }
+    },
   },
   mounted() {
-    const onKey = (e) => {
+    const onKey = e => {
       if (e.key === "Escape") {
         this.contextMenu = null
         this.interaction = null
@@ -286,7 +287,7 @@ export default {
         }
       }
     }
-    const onDocClick = (e) => {
+    const onDocClick = e => {
       const target = e.target
       const menuEl = this.$refs.contextMenuRef
       if (menuEl && (menuEl === target || menuEl.contains(target))) return
@@ -295,7 +296,7 @@ export default {
     }
     document.addEventListener("keydown", onKey)
     document.addEventListener("mousedown", onDocClick)
-    const onDocMouseMove = (e) => this.onGlobalMouseMove(e)
+    const onDocMouseMove = e => this.onGlobalMouseMove(e)
     document.addEventListener("mousemove", onDocMouseMove)
     this._onKey = onKey
     this._onDocClick = onDocClick
@@ -329,7 +330,7 @@ export default {
       set(value) {
         try {
           const arr = Array.isArray(value) ? value : []
-          const normalized = arr.map((s) => {
+          const normalized = arr.map(s => {
             const base = typeof s === "object" && s ? s : {}
             const tasks = Array.isArray(base.tasks) ? base.tasks : []
             return { ...base, tasks }
@@ -352,7 +353,7 @@ export default {
         } catch (e) {
           console.warn("[gantt-scheduler] staffData set error:", e)
         }
-      }
+      },
     },
     effectiveDayWidth() {
       return this.syncViewMode === "quarter" ? this.consts.MONTH_COLUMN_PX / 7 : this.syncViewMode === "year" ? this.consts.MONTH_COLUMN_PX / 30 : this.consts.DAY_CELL_PX
@@ -504,7 +505,7 @@ export default {
       },
       set(value) {
         this.$emit("update:viewMode", value)
-      }
+      },
     },
     quickJumpDir() {
       return this.getQuickJumpDirection()
@@ -535,10 +536,10 @@ export default {
     },
     currentTaskIsReadonly() {
       if (!this.contextMenu || !this.contextMenu.staffUid || !this.contextMenu.taskUid) return !!this.readonly
-      const s = this.staffData.find((x) => x.uid === this.contextMenu.staffUid)
-      const t = s?.tasks.find((y) => y.uid === this.contextMenu.taskUid)
+      const s = this.staffData.find(x => x.uid === this.contextMenu.staffUid)
+      const t = s?.tasks.find(y => y.uid === this.contextMenu.taskUid)
       return !!(this.readonly || (t && t.readonly))
-    }
+    },
   },
   methods: {
     calcEnd,
@@ -580,8 +581,8 @@ export default {
       const heights = []
       const offsets = []
       let acc = 0
-      this.staffData.forEach((s) => {
-        const h = s.isCollapsed ? 64 : Math.max(128, ((s.tasks.length > 0 ? Math.max(...s.tasks.map((t) => t.rowOffset)) : 0) + 2) * 36 + 20)
+      this.staffData.forEach(s => {
+        const h = s.isCollapsed ? 64 : Math.max(128, ((s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : 0) + 2) * 36 + 20)
         heights.push(h)
         offsets.push(acc)
         acc += h
@@ -626,7 +627,7 @@ export default {
       const cs = changedStaff && typeof changedStaff === "object" ? changedStaff : null
       const ct = this.lastChangedTask && typeof this.lastChangedTask === "object" ? this.lastChangedTask : null
       let type = ["add", "edit", "delete"].includes(this.lastEditType) ? this.lastEditType : "edit"
-      const safePayload = arr.map((s) => {
+      const safePayload = arr.map(s => {
         const base = typeof s === "object" && s ? s : {}
         const tasks = Array.isArray(base.tasks) ? base.tasks : []
         return { ...base, tasks }
@@ -635,7 +636,7 @@ export default {
         payload: typeof structuredClone === "function" ? structuredClone(safePayload) : JSON.parse(JSON.stringify(safePayload)),
         changedStaff: cs ? (typeof structuredClone === "function" ? structuredClone(cs) : JSON.parse(JSON.stringify(cs))) : null,
         changedTask: ct ? (typeof structuredClone === "function" ? structuredClone(ct) : JSON.parse(JSON.stringify(ct))) : null,
-        editType: type
+        editType: type,
       }
     },
     // 预扩展左缓冲区：向左/右各扩展 30 天并同步滚动基准，防止临界自动滚动/拖拽时画面跳变
@@ -851,10 +852,10 @@ export default {
       this.viewStartDate = ms - this.viewDurationMs * 0.1
     },
     collapseAll() {
-      this.staffData = this.staffData.map((s) => ({ ...s, isCollapsed: true }))
+      this.staffData = this.staffData.map(s => ({ ...s, isCollapsed: true }))
     },
     expandAll() {
-      this.staffData = this.staffData.map((s) => ({ ...s, isCollapsed: false }))
+      this.staffData = this.staffData.map(s => ({ ...s, isCollapsed: false }))
     },
     onPanMouseDown(e) {
       if (this.isEditingTask) return
@@ -961,9 +962,15 @@ export default {
         }
       }, 16)
     },
+    isAllowed(type) {
+      const arr = Array.isArray(this.allow) ? this.allow : []
+      return arr.includes(type)
+    },
     handleResizeStart(e, direction = "left", task, staffUid) {
       e.preventDefault()
       e.stopPropagation()
+
+      if (!this.isAllowed("task")) return
 
       // Check if task is readonly
       if (task.readonly) {
@@ -971,32 +978,33 @@ export default {
         return
       }
 
-      const s = this.staffData.find((x) => x.uid === staffUid)
+      const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : {}
       const taskStartMs = this.parseDateStr(task.startDate).getTime()
       const mouseTime = this.getDateAtMouse(e.clientX)
-      const staffIdx = this.staffData.findIndex((s) => s.uid === staffUid)
-      const taskIdx = staffIdx !== -1 ? this.staffData[staffIdx].tasks.findIndex((t) => t.uid === task.uid) : -1
+      const staffIdx = this.staffData.findIndex(s => s.uid === staffUid)
+      const taskIdx = staffIdx !== -1 ? this.staffData[staffIdx].tasks.findIndex(t => t.uid === task.uid) : -1
       const msPerPixel = this.viewDurationMs / this.getTimelineWidth()
       this.interaction = { type: "resize", taskUid: String(task.uid), staffUid: String(staffUid), direction, initialX: e.clientX, initialY: e.clientY, initialStartTime: taskStartMs, initialDuration: task.duration, offsetMs: taskStartMs - mouseTime, staffIdx, taskIdx, msPerPixel }
       document.body.classList.add(direction === "left" ? "resizing-left" : "resizing-right")
     },
     handleTaskMouseDown(task, staffUid, e) {
+      if (!this.isAllowed("task")) return
       // Check if task is readonly
       if (task.readonly) {
         this.$message.warning(`任务「${task.name}」是只读任务，无法拖动`)
         return
       }
 
-      const s = this.staffData.find((x) => x.uid === staffUid)
+      const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : {}
       const initialX = e.clientX
       const initialY = e.clientY
       const taskStartMs = this.parseDateStr(task.startDate).getTime()
       const mouseTime = this.getDateAtMouse(initialX)
       const offsetMs = taskStartMs - mouseTime
-      const staffIdx = this.staffData.findIndex((s) => s.uid === staffUid)
-      const taskIdx = staffIdx !== -1 ? this.staffData[staffIdx].tasks.findIndex((t) => t.uid === task.uid) : -1
+      const staffIdx = this.staffData.findIndex(s => s.uid === staffUid)
+      const taskIdx = staffIdx !== -1 ? this.staffData[staffIdx].tasks.findIndex(t => t.uid === task.uid) : -1
       const msPerPixel = this.viewDurationMs / this.getTimelineWidth()
       this.interaction = { type: "move", taskUid: String(task.uid), staffUid: String(staffUid), initialX, initialY, initialStartTime: taskStartMs, initialRowOffset: task.rowOffset, offsetMs, staffIdx, taskIdx, msPerPixel }
       document.body.style.cursor = "move"
@@ -1107,9 +1115,9 @@ export default {
       this.stopAutoScroll()
       if (this.interaction) {
         if (this.dragState && this.dragState.taskUid && this.dragState.staffUid) {
-          const sIdx = this.staffData.findIndex((s) => s.uid === this.dragState?.staffUid)
+          const sIdx = this.staffData.findIndex(s => s.uid === this.dragState?.staffUid)
           if (sIdx !== -1) {
-            const tasks = this.staffData[sIdx].tasks.map((t) => {
+            const tasks = this.staffData[sIdx].tasks.map(t => {
               if (t.uid !== this.dragState?.taskUid) return t
               const nextStart = this.dragState?.dateStr != null ? this.dragState?.dateStr : t.startDate
               const nextDur = this.dragState?.duration != null ? this.dragState?.duration : t.duration
@@ -1143,6 +1151,7 @@ export default {
     },
     onHeaderSidebarContext(e) {
       if (this.readonly) return
+      if (!this.isAllowed("general")) return
       this.onContextMenu({ clientX: e.clientX, clientY: e.clientY, type: "general" })
     },
     onTaskMouseMove(payload) {
@@ -1196,6 +1205,7 @@ export default {
     },
     onContextMenu(payload) {
       if (this.readonly) return
+      if (!this.isAllowed(payload.type)) return
       const container = this.$refs.containerRef
       const rect = container.getBoundingClientRect()
       const clientX = payload.clientX != null ? payload.clientX : payload.x != null ? rect.left + payload.x : rect.left
@@ -1215,6 +1225,7 @@ export default {
       this.menuVisible = true
     },
     addStaff() {
+      if (!this.isAllowed("general")) return
       const now = Date.now()
       const newStaff = { uid: String(now), id: now, name: "新员工", avatarColor: "bg-gray-200 text-gray-600", tasks: [], isCollapsed: false }
       this.lastChangedStaff = newStaff
@@ -1224,17 +1235,18 @@ export default {
       this.contextMenu = null
     },
     addTask(staffUid) {
+      if (!this.isAllowed("row")) return
       const d = new Date(this.viewStartDate + this.viewDurationMs * 0.1)
       d.setHours(0, 0, 0, 0)
       const y = d.getFullYear()
       const m = String(d.getMonth() + 1).padStart(2, "0")
       const day = String(d.getDate()).padStart(2, "0")
       const dateStr = `${y}-${m}-${day}`
-      const s = this.staffData.find((x) => x.uid === staffUid)
+      const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : {}
-      this.staffData = this.staffData.map((s) => {
+      this.staffData = this.staffData.map(s => {
         if (s.uid === staffUid) {
-          const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map((t) => t.rowOffset)) : -1
+          const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
           const t = { uid: `T${Date.now().toString().slice(-4)}`, id: Date.now(), name: "新任务", startDate: dateStr, duration: 3, rowOffset: maxRow + 1 }
           this.lastChangedTask = t
           this.lastEditType = "add"
@@ -1245,11 +1257,12 @@ export default {
       this.contextMenu = null
     },
     addTaskAtDate(staffUid, dateStr) {
-      const s = this.staffData.find((x) => x.uid === staffUid)
+      if (!this.isAllowed("row")) return
+      const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : {}
-      this.staffData = this.staffData.map((s) => {
+      this.staffData = this.staffData.map(s => {
         if (s.uid === staffUid) {
-          const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map((t) => t.rowOffset)) : -1
+          const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
           const t = { uid: `T${Date.now().toString().slice(-4)}`, id: Date.now(), name: "新任务", startDate: dateStr, duration: 3, rowOffset: maxRow + 1 }
           this.lastChangedTask = t
           this.lastEditType = "add"
@@ -1259,8 +1272,9 @@ export default {
       })
     },
     updateTask(staffUid, taskUid, updates) {
-      const s = this.staffData.find((x) => x.uid === staffUid)
-      const t = s?.tasks.find((y) => y.uid === taskUid)
+      if (!this.isAllowed("task")) return
+      const s = this.staffData.find(x => x.uid === staffUid)
+      const t = s?.tasks.find(y => y.uid === taskUid)
 
       // Check if task is readonly
       if (t && t.readonly) {
@@ -1271,14 +1285,15 @@ export default {
       this.lastChangedStaff = s ? s : {}
       this.lastChangedTask = t ? { ...t, ...updates } : null
       this.lastEditType = "edit"
-      this.staffData = this.staffData.map((s) => {
-        if (s.uid === staffUid) return { ...s, tasks: s.tasks.map((t) => (t.uid === taskUid ? { ...t, ...updates } : t)) }
+      this.staffData = this.staffData.map(s => {
+        if (s.uid === staffUid) return { ...s, tasks: s.tasks.map(t => (t.uid === taskUid ? { ...t, ...updates } : t)) }
         return s
       })
     },
     deleteTask(staffUid, taskUid) {
-      const s = this.staffData?.find((x) => x.uid === staffUid)
-      const t = s?.tasks.find((y) => y.uid === taskUid)
+      if (!this.isAllowed("task")) return
+      const s = this.staffData?.find(x => x.uid === staffUid)
+      const t = s?.tasks.find(y => y.uid === taskUid)
 
       // Check if task is readonly
       if (t && t.readonly) {
@@ -1288,23 +1303,24 @@ export default {
 
       this.$confirm(`确定删除「${taskUid}： ${t?.name}」任务？`, "删除任务", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
         .then(() => {
-          const s = this.staffData.find((x) => x.uid === staffUid)
+          const s = this.staffData.find(x => x.uid === staffUid)
           this.lastChangedStaff = s ? s : {}
           this.lastChangedTask = t ? t : null
           this.lastEditType = "delete"
-          this.staffData = this.staffData.map((x) => (x.uid === staffUid ? { ...x, tasks: x.tasks.filter((y) => y.uid !== taskUid) } : x))
+          this.staffData = this.staffData.map(x => (x.uid === staffUid ? { ...x, tasks: x.tasks.filter(y => y.uid !== taskUid) } : x))
           this.contextMenu = null
         })
         .catch(() => {})
     },
     duplicateTask(staffUid, taskUid) {
-      const s = this.staffData.find((x) => x.uid === staffUid)
+      if (!this.isAllowed("task")) return
+      const s = this.staffData.find(x => x.uid === staffUid)
       this.lastChangedStaff = s ? s : {}
-      this.staffData = this.staffData.map((s) => {
+      this.staffData = this.staffData.map(s => {
         if (s.uid !== staffUid) return s
-        const original = s.tasks.find((t) => t.uid === taskUid)
+        const original = s.tasks.find(t => t.uid === taskUid)
         if (!original) return s
-        const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map((t) => t.rowOffset)) : -1
+        const maxRow = s.tasks.length > 0 ? Math.max(...s.tasks.map(t => t.rowOffset)) : -1
         const copy = { ...original, uid: `T${Date.now().toString().slice(-3)}`, id: Date.now(), name: `${original.name}(新)`, rowOffset: maxRow + 1 }
         this.lastChangedTask = copy
         this.lastEditType = "add"
@@ -1313,8 +1329,8 @@ export default {
       this.contextMenu = null
     },
     focusTask(staffUid, taskUid) {
-      const s = this.staffData.find((x) => x.uid === staffUid)
-      const t = s && s.tasks.find((y) => y.uid === taskUid)
+      const s = this.staffData.find(x => x.uid === staffUid)
+      const t = s && s.tasks.find(y => y.uid === taskUid)
       if (!t) return
       const d = this.parseDateStr(t.startDate)
       if (this.syncViewMode === "month" || this.syncViewMode === "quarter" || this.syncViewMode === "year") {
@@ -1342,7 +1358,7 @@ export default {
       this.contextMenu = null
     },
     focusStaff(staffUid) {
-      const s = this.staffData.find((x) => x.uid === staffUid)
+      const s = this.staffData.find(x => x.uid === staffUid)
       if (!s) {
         this.scrollToStaff(staffUid)
         return
@@ -1351,7 +1367,7 @@ export default {
         this.scrollToStaff(staffUid)
         return
       }
-      const targetDate = new Date(Math.min(...s.tasks.map((t) => this.parseDateStr(t.startDate).getTime())))
+      const targetDate = new Date(Math.min(...s.tasks.map(t => this.parseDateStr(t.startDate).getTime())))
       if (this.syncViewMode === "month" || this.syncViewMode === "quarter" || this.syncViewMode === "year") {
         const px = this.dateToPixel(targetDate)
         const container = this.$refs.containerRef
@@ -1368,30 +1384,32 @@ export default {
       this.scrollToStaff(staffUid)
     },
     openEditTask(staff) {
-      return (task) => {
+      return task => {
         if (this.readonly) return
+        if (!this.isAllowed("task")) return
         this.editModal = { isOpen: true, staffUid: String(staff.uid), task }
       }
     },
     openEditStaff(staff) {
       if (this.readonly) return
+      if (!this.isAllowed("staff")) return
       this.editStaffModal = { isOpen: true, staff }
     },
     onSaveTask(taskUid, updates) {
       this.updateTask(this.editModal.staffUid, taskUid, updates)
     },
     onSaveStaff(staffUid, updates) {
-      const s = this.staffData.find((x) => x.uid === staffUid)
+      const s = this.staffData.find(x => x.uid === staffUid)
       const next = s ? { ...s, ...updates } : {}
       this.lastChangedStaff = next
       this.lastChangedTask = null
       this.lastEditType = "edit"
-      this.staffData = this.staffData.map((s) => (s.uid === staffUid ? { ...s, ...updates } : s))
+      this.staffData = this.staffData.map(s => (s.uid === staffUid ? { ...s, ...updates } : s))
     },
     openEditModal() {
       if (this.contextMenu && this.contextMenu.staffUid && this.contextMenu.taskUid) {
-        const staff = this.staffData.find((s) => s.uid === this.contextMenu?.staffUid)
-        const task = staff && staff.tasks.find((t) => t.uid === this.contextMenu?.taskUid)
+        const staff = this.staffData.find(s => s.uid === this.contextMenu?.staffUid)
+        const task = staff && staff.tasks.find(t => t.uid === this.contextMenu?.taskUid)
         if (staff && task) {
           this.editModal = { isOpen: true, staffUid: String(staff.uid), task }
           this.contextMenu = null
@@ -1400,7 +1418,7 @@ export default {
     },
     openEditStaffModal() {
       if (this.contextMenu && this.contextMenu.staffUid) {
-        const staff = this.staffData.find((s) => s.uid === this.contextMenu?.staffUid)
+        const staff = this.staffData.find(s => s.uid === this.contextMenu?.staffUid)
         if (staff) {
           this.editStaffModal = { isOpen: true, staff }
           this.contextMenu = null
@@ -1411,23 +1429,25 @@ export default {
       const keys = Object.keys(updates || {})
       const onlyCollapse = keys.length === 1 && keys[0] === "isCollapsed"
       if (this.readonly && !onlyCollapse) return
-      const s = this.staffData.find((x) => x.uid === staffUid)
+      if (!this.isAllowed("staff") && !onlyCollapse) return
+      const s = this.staffData.find(x => x.uid === staffUid)
       const next = s ? { ...s, ...updates } : {}
       this.lastChangedStaff = next
       this.lastChangedTask = null
       this.lastEditType = "edit"
-      this.staffData = this.staffData.map((s) => (s.uid === staffUid ? { ...s, ...updates } : s))
+      this.staffData = this.staffData.map(s => (s.uid === staffUid ? { ...s, ...updates } : s))
     },
     deleteStaff(staffUid) {
-      const s = this.staffData.find((x) => String(x.uid) === String(staffUid))
+      if (!this.isAllowed("staff")) return
+      const s = this.staffData.find(x => String(x.uid) === String(staffUid))
       const msg = `确定删除人员「${s ? s.name : staffUid}」及其 ${s ? s.tasks.length : 0} 个任务？`
       this.$confirm(msg, "删除人员", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
         .then(() => {
-          const s2 = this.staffData.find((x) => String(x.uid) === String(staffUid))
+          const s2 = this.staffData.find(x => String(x.uid) === String(staffUid))
           this.lastChangedStaff = s2 ? s2 : {}
           this.lastChangedTask = null
           this.lastEditType = "delete"
-          this.staffData = this.staffData.filter((x) => String(x.uid) !== String(staffUid))
+          this.staffData = this.staffData.filter(x => String(x.uid) !== String(staffUid))
           this.contextMenu = null
         })
         .catch(() => {})
@@ -1447,13 +1467,13 @@ export default {
     ctxToggleCollapse() {
       this.menuVisible = false
       if (!this.contextMenu || !this.contextMenu.staffUid) return
-      const s = this.staffData.find((x) => x.uid === this.contextMenu?.staffUid)
+      const s = this.staffData.find(x => x.uid === this.contextMenu?.staffUid)
       if (!s) return
       this.updateStaff(String(s.uid), { isCollapsed: !s.isCollapsed })
     },
     staffCollapseLabel() {
       if (!this.contextMenu || !this.contextMenu.staffUid) return "折叠/展开人员"
-      const s = this.staffData.find((x) => x.uid === this.contextMenu?.staffUid)
+      const s = this.staffData.find(x => x.uid === this.contextMenu?.staffUid)
       if (!s) return "折叠/展开人员"
       return s.isCollapsed ? "展开人员" : "折叠人员"
     },
@@ -1488,8 +1508,8 @@ export default {
     ctxDurationPlus() {
       this.menuVisible = false
       if (!this.contextMenu || !this.contextMenu.staffUid || !this.contextMenu.taskUid) return
-      const s = this.staffData.find((x) => x.uid === this.contextMenu?.staffUid)
-      const t = s && s.tasks.find((y) => y.uid === this.contextMenu?.taskUid)
+      const s = this.staffData.find(x => x.uid === this.contextMenu?.staffUid)
+      const t = s && s.tasks.find(y => y.uid === this.contextMenu?.taskUid)
       if (!t) return
       const next = Math.max(1, (t.duration || 1) + 1)
       this.updateTask(this.contextMenu.staffUid, this.contextMenu.taskUid, { duration: next })
@@ -1497,8 +1517,8 @@ export default {
     ctxDurationMinus() {
       this.menuVisible = false
       if (!this.contextMenu || !this.contextMenu.staffUid || !this.contextMenu.taskUid) return
-      const s = this.staffData.find((x) => x.uid === this.contextMenu?.staffUid)
-      const t = s && s.tasks.find((y) => y.uid === this.contextMenu?.taskUid)
+      const s = this.staffData.find(x => x.uid === this.contextMenu?.staffUid)
+      const t = s && s.tasks.find(y => y.uid === this.contextMenu?.taskUid)
       if (!t) return
       const next = Math.max(1, (t.duration || 1) - 1)
       this.updateTask(this.contextMenu.staffUid, this.contextMenu.taskUid, { duration: next })
@@ -1507,8 +1527,8 @@ export default {
       this.menuVisible = false
       if (!this.contextMenu || !this.contextMenu.staffUid || !this.contextMenu.taskUid) return
       if (!this.canMoveRowUp()) return
-      const s = this.staffData.find((x) => x.uid === this.contextMenu?.staffUid)
-      const t = s && s.tasks.find((y) => y.uid === this.contextMenu?.taskUid)
+      const s = this.staffData.find(x => x.uid === this.contextMenu?.staffUid)
+      const t = s && s.tasks.find(y => y.uid === this.contextMenu?.taskUid)
       if (!t) return
       const next = Math.max(0, (t.rowOffset || 0) - 1)
       this.updateTask(this.contextMenu.staffUid, this.contextMenu.taskUid, { rowOffset: next })
@@ -1516,16 +1536,16 @@ export default {
     ctxMoveRowDown() {
       this.menuVisible = false
       if (!this.contextMenu || !this.contextMenu.staffUid || !this.contextMenu.taskUid) return
-      const s = this.staffData.find((x) => x.uid === this.contextMenu?.staffUid)
-      const t = s && s.tasks.find((y) => y.uid === this.contextMenu?.taskUid)
+      const s = this.staffData.find(x => x.uid === this.contextMenu?.staffUid)
+      const t = s && s.tasks.find(y => y.uid === this.contextMenu?.taskUid)
       if (!t) return
       const next = (t.rowOffset || 0) + 1
       this.updateTask(this.contextMenu.staffUid, this.contextMenu.taskUid, { rowOffset: next })
     },
     canMoveRowUp() {
       if (!this.contextMenu || !this.contextMenu.staffUid || !this.contextMenu.taskUid) return false
-      const s = this.staffData.find((x) => x.uid === this.contextMenu?.staffUid)
-      const t = s && s.tasks.find((y) => y.uid === this.contextMenu?.taskUid)
+      const s = this.staffData.find(x => x.uid === this.contextMenu?.staffUid)
+      const t = s && s.tasks.find(y => y.uid === this.contextMenu?.taskUid)
       if (!t) return false
       return (t.rowOffset || 0) > 0
     },
@@ -1533,10 +1553,10 @@ export default {
       let minTaskStart = Infinity
       let maxTaskEnd = -Infinity
       let hasTasks = false
-      const allCollapsed = this.staffData.every((s) => s.isCollapsed)
-      this.staffData.forEach((s) => {
+      const allCollapsed = this.staffData.every(s => s.isCollapsed)
+      this.staffData.forEach(s => {
         if (!allCollapsed && s.isCollapsed) return
-        s.tasks.forEach((t) => {
+        s.tasks.forEach(t => {
           hasTasks = true
           const start = this.parseDateStr(t.startDate).getTime()
           const end = start + t.duration * this.consts.ONE_DAY_MS
@@ -1562,16 +1582,16 @@ export default {
     },
     jumpToData(direction) {
       // 是否全部折叠
-      const allCollapsed = this.staffData.every((s) => s.isCollapsed)
+      const allCollapsed = this.staffData.every(s => s.isCollapsed)
       if (this.syncViewMode === "month" || this.syncViewMode === "quarter" || this.syncViewMode === "year") {
         const container = this.$refs.containerRef
         const viewport = Math.max(1, (container?.clientWidth || window.innerWidth) - this.consts.SIDEBAR_WIDTH)
         const visibleDays = Math.max(1, Math.floor(viewport / this.effectiveDayWidth))
         if (direction === "left") {
           let minTaskStart = Infinity
-          this.staffData.forEach((s) => {
+          this.staffData.forEach(s => {
             if (!allCollapsed && s.isCollapsed) return
-            s.tasks.forEach((t) => {
+            s.tasks.forEach(t => {
               const start = this.parseDateStr(t.startDate).getTime()
               if (start < minTaskStart) minTaskStart = start
             })
@@ -1592,9 +1612,9 @@ export default {
           this.scheduleAdjustRange(true)
         } else {
           let maxTaskEnd = -Infinity
-          this.staffData.forEach((s) => {
+          this.staffData.forEach(s => {
             if (!allCollapsed && s.isCollapsed) return
-            s.tasks.forEach((t) => {
+            s.tasks.forEach(t => {
               const start = this.parseDateStr(t.startDate).getTime()
               const end = start + t.duration * this.consts.ONE_DAY_MS
               if (end > maxTaskEnd) maxTaskEnd = end
@@ -1621,9 +1641,9 @@ export default {
 
       if (direction == "left") {
         let minTaskStart = Infinity
-        this.staffData.forEach((s) => {
+        this.staffData.forEach(s => {
           if (!allCollapsed && s.isCollapsed) return
-          s.tasks.forEach((t) => {
+          s.tasks.forEach(t => {
             const start = new Date(t.startDate).getTime()
             if (start < minTaskStart) minTaskStart = start
           })
@@ -1632,9 +1652,9 @@ export default {
         this.viewStartDate = minTaskStart - this.viewDurationMs * 0.1
       } else {
         let maxTaskEnd = -Infinity
-        this.staffData.forEach((s) => {
+        this.staffData.forEach(s => {
           if (!allCollapsed && s.isCollapsed) return
-          s.tasks.forEach((t) => {
+          s.tasks.forEach(t => {
             const start = new Date(t.startDate).getTime()
             const end = start + t.duration * this.consts.ONE_DAY_MS
             if (end > maxTaskEnd) maxTaskEnd = end
@@ -1643,8 +1663,8 @@ export default {
         if (maxTaskEnd === -Infinity) maxTaskEnd = new Date().getTime()
         this.viewStartDate = maxTaskEnd - this.viewDurationMs * 0.9
       }
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -1664,7 +1684,7 @@ $space: (
   "6": 1.5rem,
   "7": 1.75rem,
   "10": 2.5rem,
-  "full": 100%
+  "full": 100%,
 );
 @each $k, $v in $space {
   .p-#{$k} {
@@ -1720,7 +1740,7 @@ $gap-map: (
   "1": 0.25rem,
   "2": 0.5rem,
   "3": 0.75rem,
-  "4": 1rem
+  "4": 1rem,
 );
 @each $k, $v in $gap-map {
   .gap-#{$k} {
