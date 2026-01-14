@@ -368,6 +368,7 @@ export default {
       const startDate = new Date(this.viewStartDate)
       const isSameDay = (d1, d2) => d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear()
       const today = new Date()
+      today.setHours(0, 0, 0, 0)
       if (this.syncViewMode === "month") {
         const rangeStart = this.headersStartDate
           ? new Date(this.headersStartDate)
